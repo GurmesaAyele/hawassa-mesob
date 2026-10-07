@@ -1,37 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { APP_NAME, ROUTES, LANGUAGES } from '../../utils/constants';
-import Button from '../common/Button';
+import { ROUTES, LANGUAGES } from '../../utils/constants';
 
 const Header = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    // Close mobile menu on route change
     setIsMobileMenuOpen(false);
   }, [location]);
 
   const navItems = [
     { label: 'Home', path: ROUTES.HOME },
+    { label: 'Institutions', path: ROUTES.ORGANIZATIONS },
     { label: 'Services', path: ROUTES.SERVICES },
-    { label: 'Organizations', path: ROUTES.ORGANIZATIONS },
-    { label: 'How It Works', path: ROUTES.HOW_IT_WORKS },
-    { label: 'News', path: ROUTES.NEWS },
-    { label: 'About', path: ROUTES.ABOUT },
     { label: 'Contact', path: ROUTES.CONTACT },
+    { label: 'Service Catalogue', path: '/service-catalogue' },
+    { label: 'About Us', path: ROUTES.ABOUT },
   ];
 
   const isActivePath = (path) => {
@@ -44,49 +31,47 @@ const Header = () => {
   const handleLanguageChange = (langCode) => {
     setCurrentLanguage(langCode);
     setIsLanguageDropdownOpen(false);
-    // TODO: Implement actual language change logic
-    console.log('Language changed to:', langCode);
   };
 
-  const selectedLanguage = LANGUAGES.find(lang => lang.code === currentLanguage);
-
   return (
-    <header
-      className={`
-        fixed top-0 left-0 right-0 z-40 transition-all duration-300
-        ${isScrolled ? 'bg-white shadow-md py-3' : 'bg-white py-4'}
-      `}
-    >
-      <div className="container-custom">
-        <div className="flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#3b5998] shadow-md">
+      <div className="container mx-auto px-4 lg:px-8">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to={ROUTES.HOME} className="flex items-center gap-3 group">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-              <span className="text-white font-bold text-xl">HM</span>
-            </div>
-            <div className="hidden md:block">
-              <div className="font-bold text-xl text-gray-900">
-                {APP_NAME}
-              </div>
-              <div className="text-xs text-gray-500 -mt-1">
-                One-Stop Service Center
+          <Link to={ROUTES.HOME} className="flex items-center">
+            <div className="w-12 h-12 rounded-full bg-white bg-opacity-10 p-1 flex items-center justify-center">
+              <div className="w-full h-full rounded-full border-4 border-yellow-500 flex items-center justify-center relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-6 h-6">
+                    <svg viewBox="0 0 100 100" className="w-full h-full text-white">
+                      <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="2"/>
+                      <circle cx="50" cy="50" r="3" fill="currentColor"/>
+                      {[...Array(12)].map((_, i) => {
+                        const angle = (i * 30 - 90) * (Math.PI / 180);
+                        const x1 = 50 + 35 * Math.cos(angle);
+                        const y1 = 50 + 35 * Math.sin(angle);
+                        const x2 = 50 + 42 * Math.cos(angle);
+                        const y2 = 50 + 42 * Math.sin(angle);
+                        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="1.5"/>;
+                      })}
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          <nav className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`
-                  px-4 py-2 rounded-lg font-medium text-sm transition-colors
-                  ${isActivePath(item.path)
-                    ? 'text-primary-600 bg-primary-50'
-                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                  }
-                `}
+                className={`text-sm font-medium transition-colors px-3 py-2 ${
+                  isActivePath(item.path)
+                    ? 'text-yellow-400'
+                    : 'text-white hover:text-yellow-300'
+                }`}
               >
                 {item.label}
               </Link>
@@ -94,84 +79,57 @@ const Header = () => {
           </nav>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-3">
-            {/* Search Icon */}
-            <Link
-              to={ROUTES.SEARCH}
-              className="hidden md:flex items-center justify-center w-10 h-10 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Search"
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
+            <button
+              className="hidden md:flex items-center justify-center w-10 h-10 bg-white bg-opacity-10 hover:bg-opacity-20 text-white rounded-full transition-all"
+              aria-label="Toggle theme"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
               </svg>
-            </Link>
+            </button>
 
             {/* Language Selector */}
             <div className="hidden md:block relative">
               <button
                 onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-full transition-all text-sm font-medium"
                 aria-label="Select language"
-                aria-expanded={isLanguageDropdownOpen}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                 </svg>
-                <span className="font-medium">{selectedLanguage.code.toUpperCase()}</span>
+                <span>English</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              {/* Language Dropdown */}
               {isLanguageDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-large border border-gray-200 py-2 animate-slide-down">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2">
                   {LANGUAGES.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => handleLanguageChange(lang.code)}
-                      className={`
-                        w-full text-left px-4 py-2 text-sm transition-colors
-                        ${lang.code === currentLanguage
-                          ? 'bg-primary-50 text-primary-700 font-medium'
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                        lang.code === currentLanguage
+                          ? 'bg-blue-50 text-blue-700 font-medium'
                           : 'text-gray-700 hover:bg-gray-50'
-                        }
-                      `}
+                      }`}
                     >
-                      <div>{lang.name}</div>
-                      <div className="text-xs opacity-75">{lang.nativeName}</div>
+                      {lang.name}
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Track Application Button */}
-            <Button
-              to={ROUTES.TRACK}
-              variant="outline"
-              size="sm"
-              className="hidden md:inline-flex"
-            >
-              Track Application
-            </Button>
-
-            {/* Login Button */}
-            <Button
-              to={ROUTES.LOGIN}
-              variant="primary"
-              size="sm"
-              className="hidden md:inline-flex"
-            >
-              Login
-            </Button>
-
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden flex items-center justify-center w-10 h-10 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="lg:hidden flex items-center justify-center w-10 h-10 text-white rounded-lg"
               aria-label="Toggle menu"
-              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,62 +146,22 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden mt-4 pb-4 border-t border-gray-200 animate-slide-down">
-            <nav className="flex flex-col space-y-1 mt-4">
+          <div className="lg:hidden pb-4">
+            <nav className="flex flex-col space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`
-                    px-4 py-3 rounded-lg font-medium transition-colors
-                    ${isActivePath(item.path)
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-700 hover:bg-gray-50'
-                    }
-                  `}
+                  className={`px-4 py-3 rounded-lg transition-colors ${
+                    isActivePath(item.path)
+                      ? 'text-yellow-400 bg-white bg-opacity-10'
+                      : 'text-white hover:bg-white hover:bg-opacity-10'
+                  }`}
                 >
                   {item.label}
                 </Link>
               ))}
             </nav>
-
-            {/* Mobile Actions */}
-            <div className="mt-4 space-y-2">
-              <Button to={ROUTES.SEARCH} variant="ghost" fullWidth>
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Search Services
-              </Button>
-              <Button to={ROUTES.TRACK} variant="outline" fullWidth>
-                Track Application
-              </Button>
-              <Button to={ROUTES.LOGIN} variant="primary" fullWidth>
-                Login
-              </Button>
-
-              {/* Mobile Language Selector */}
-              <div className="pt-4 border-t border-gray-200">
-                <div className="text-sm font-medium text-gray-700 mb-2">Language</div>
-                <div className="space-y-1">
-                  {LANGUAGES.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => handleLanguageChange(lang.code)}
-                      className={`
-                        w-full text-left px-4 py-2 rounded-lg text-sm transition-colors
-                        ${lang.code === currentLanguage
-                          ? 'bg-primary-50 text-primary-700 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      {lang.name} ({lang.nativeName})
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>

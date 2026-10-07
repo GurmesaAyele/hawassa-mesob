@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SearchBar from '../common/SearchBar';
-import Button from '../common/Button';
 import { servicesData } from '../../data';
 import { ROUTES } from '../../utils/constants';
 
@@ -9,14 +7,14 @@ const Hero = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (searchQuery.trim().length > 1) {
       const filtered = servicesData
         .filter(service => 
           service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          service.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          service.category.toLowerCase().includes(searchQuery.toLowerCase())
+          service.description.toLowerCase().includes(searchQuery.toLowerCase())
         )
         .slice(0, 5)
         .map(service => ({
@@ -24,132 +22,138 @@ const Hero = () => {
           title: service.name,
         }));
       setSuggestions(filtered);
+      setShowSuggestions(true);
     } else {
       setSuggestions([]);
+      setShowSuggestions(false);
     }
   }, [searchQuery]);
 
-  const handleSearch = (query) => {
-    if (query.trim()) {
-      navigate(`${ROUTES.SERVICES}?search=${encodeURIComponent(query)}`);
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`${ROUTES.SERVICES}?search=${encodeURIComponent(searchQuery)}`);
+      setShowSuggestions(false);
     }
   };
 
   const handleSuggestionClick = (suggestion) => {
     navigate(`/services/${suggestion.id}`);
+    setShowSuggestions(false);
   };
 
-  const handleChatClick = () => {
-    // This will trigger the chatbot to open
-    window.dispatchEvent(new CustomEvent('openChatbot'));
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   return (
-    <section className="relative bg-gradient-to-br from-primary-50 via-white to-secondary-50 overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}></div>
+    <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: 'url("https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=1080&fit=crop")',
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 via-blue-800/85 to-blue-900/90"></div>
       </div>
 
-      <div className="container-custom relative py-20 lg:py-28">
+      <div className="container mx-auto px-4 lg:px-8 relative z-10 py-20">
         <div className="max-w-4xl mx-auto text-center">
+          {/* Logo and Title */}
+          <div className="flex flex-col items-center mb-8">
+            {/* MESOB Logo */}
+            <div className="w-32 h-32 mb-6">
+              <div className="w-full h-full rounded-full border-8 border-yellow-500 bg-white bg-opacity-10 p-2 flex items-center justify-center relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg viewBox="0 0 100 100" className="w-full h-full text-white">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="2"/>
+                    <circle cx="50" cy="50" r="4" fill="currentColor"/>
+                    {[...Array(16)].map((_, i) => {
+                      const angle = (i * 22.5 - 90) * (Math.PI / 180);
+                      const x1 = 50 + 30 * Math.cos(angle);
+                      const y1 = 50 + 30 * Math.sin(angle);
+                      const x2 = 50 + 38 * Math.cos(angle);
+                      const y2 = 50 + 38 * Math.sin(angle);
+                      return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="2"/>;
+                    })}
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Amharic Text */}
+            <div className="text-white text-2xl md:text-3xl mb-2 font-light tracking-wide">
+              አዲስ መሶብ
+            </div>
+
+            {/* ADDIS MESOB */}
+            <h1 className="text-white text-4xl md:text-5xl font-bold mb-2 tracking-wide">
+              ADDIS MESOB
+            </h1>
+          </div>
+
           {/* Main Heading */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 animate-fade-in-up">
-            Government Services,{' '}
-            <span className="text-primary-600">All in One Place</span>
-          </h1>
+          <h2 className="text-white text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            All Services, One Place
+          </h2>
 
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            Access public services in Hawassa through one simple, transparent and convenient digital platform.
+          <p className="text-white text-lg md:text-xl mb-3 opacity-95">
+            Serving Addis Ababa City Residents
+          </p>
+
+          {/* Description */}
+          <p className="text-white text-base md:text-lg mb-10 opacity-90 max-w-3xl mx-auto">
+            Access multiple city services faster, efficiently, and under one roof
           </p>
 
           {/* Search Bar */}
-          <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <SearchBar
-              placeholder="Search for a service, organization, requirement or question..."
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onSearch={handleSearch}
-              suggestions={suggestions}
-              onSuggestionClick={handleSuggestionClick}
-              showSuggestions={true}
-              size="lg"
-              className="max-w-3xl mx-auto"
-            />
-            <p className="text-sm text-gray-500 mt-3">
-              Try: "business registration", "passport", "driver license", "tax"
-            </p>
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <Button
-              to={ROUTES.SERVICES}
-              variant="primary"
-              size="lg"
-              icon={
+          <div className="max-w-2xl mx-auto relative">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                placeholder="Search for Services or Organizations"
+                className="w-full px-6 py-4 pr-14 bg-white bg-opacity-95 hover:bg-opacity-100 text-gray-800 placeholder-gray-500 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all shadow-lg"
+              />
+              <button
+                onClick={handleSearch}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors"
+                aria-label="Search"
+              >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-              }
-            >
-              Explore Services
-            </Button>
+              </button>
+            </div>
 
-            <Button
-              onClick={handleChatClick}
-              variant="outline"
-              size="lg"
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-              }
-            >
-              Ask MESOB AI
-            </Button>
-
-            <Button
-              to={ROUTES.TRACK}
-              variant="ghost"
-              size="lg"
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              }
-            >
-              Track Application
-            </Button>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            {[
-              { number: '35+', label: 'Services' },
-              { number: '12', label: 'Organizations' },
-              { number: '50K+', label: 'Citizens Served' },
-              { number: '92%', label: 'Satisfaction' },
-            ].map((stat, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-soft">
-                <div className="text-3xl font-bold text-primary-600 mb-1">
-                  {stat.number}
-                </div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl max-h-96 overflow-y-auto">
+                <ul className="py-2">
+                  {suggestions.map((suggestion) => (
+                    <li
+                      key={suggestion.id}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="px-6 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-3"
+                    >
+                      <span className="text-2xl">{suggestion.icon}</span>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{suggestion.name}</div>
+                        <div className="text-sm text-gray-500 line-clamp-1">{suggestion.description}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            ))}
+            )}
           </div>
         </div>
-      </div>
-
-      {/* Wave Divider */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-          <path d="M0 0L60 10C120 20 240 40 360 46.7C480 53 600 47 720 43.3C840 40 960 40 1080 46.7C1200 53 1320 67 1380 73.3L1440 80V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V0Z" fill="white"/>
-        </svg>
       </div>
     </section>
   );
