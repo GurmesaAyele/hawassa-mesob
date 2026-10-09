@@ -1,0 +1,1 @@
+// Admin Institutions Management page
