@@ -38,7 +38,7 @@ const Home = () => {
               />
               <div className="text-left">
                 <h1 className="text-5xl font-bold text-white leading-tight">
-                  አዲስ መሶብ
+                      ሀዋሳ መሶብ
                 </h1>
                 <h2 className="text-4xl font-bold text-white mt-1">
                   HAWASSA MESOB
