@@ -1,5 +1,5 @@
 // src/config/db.js
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 
 let prisma;
 
@@ -9,12 +9,13 @@ if (process.env.NODE_ENV === "production") {
   });
 } else {
   // Prevent hot-reload from creating multiple PrismaClient instances
-  if (!global.__prisma) {
-    global.__prisma = new PrismaClient({
+  if (!globalThis.__prisma) {
+    globalThis.__prisma = new PrismaClient({
       log: ["query", "error", "warn"],
     });
   }
-  prisma = global.__prisma;
+  prisma = globalThis.__prisma;
 }
 
-module.exports = { prisma };
+export { prisma };
+export default prisma;

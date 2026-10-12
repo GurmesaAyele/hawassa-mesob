@@ -1,8 +1,8 @@
 // src/app.js
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const chatRoutes = require("./modules/chat/chat.routes");
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import chatRoutes from "./modules/chat/chat.routes.js";
 
 const app = express();
 
@@ -34,4 +34,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-module.exports = app;
+export default app;

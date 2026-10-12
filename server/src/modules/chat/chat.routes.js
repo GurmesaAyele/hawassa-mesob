@@ -1,5 +1,5 @@
 // src/modules/chat/chat.routes.js
-const express = require("express");
+import express from "express";
 
 const router = express.Router();
 
@@ -8,4 +8,4 @@ router.get("/health", (req, res) => {
   res.json({ status: "ok", module: "chat" });
 });
 
-module.exports = router;
+export default router;

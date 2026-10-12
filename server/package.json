@@ -2,6 +2,7 @@
   "name": "hawassa-mesob-server",
   "version": "1.0.0",
   "description": "Hawassa MESOB Center Backend API with AI Chatbot integration",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -18,7 +19,6 @@
   ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^7.10.0",
