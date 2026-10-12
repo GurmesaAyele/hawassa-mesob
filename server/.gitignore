@@ -1,0 +1,4 @@
+node_modules/
+.env
+*.log
+chatbot-integration-guide.md
