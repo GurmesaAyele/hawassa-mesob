@@ -43,7 +43,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-r from-[#3d5a99]/95 via-[#3d5a99]/95 via-40% to-[#b8965f]/95">
+    <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-r from-blue-600 via-blue-600 via-40% to-yellow-500">
       <div className="flex items-center justify-between h-full px-6">
         {/* Logo */}
         <button onClick={() => scrollToSection('home')} className="flex items-center gap-2">
@@ -54,41 +54,41 @@ const Navbar = () => {
           />
         </button>
 
-        {/* Navigation Links - Centered/Right aligned */}
-        <div className="flex items-center gap-1">
+        {/* Navigation Links - Right aligned with better spacing */}
+        <div className="flex items-center gap-6 ml-12">
           <button 
             onClick={() => scrollToSection('home')}
-            className="text-[#ffd54f] px-4 py-2 text-[15px] font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
             Home
           </button>
           <button 
             onClick={() => scrollToSection('institutions')}
-            className="text-white px-4 py-2 text-[15px] font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
             Institutions
           </button>
           <button 
             onClick={() => scrollToSection('services')}
-            className="text-white px-4 py-2 text-[15px] font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
             Services
           </button>
           <button 
             onClick={() => scrollToSection('contact')}
-            className="text-white px-4 py-2 text-[15px] font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
             Contact
           </button>
           <button 
             onClick={() => scrollToSection('service-catalogue')}
-            className="text-white px-4 py-2 text-[15px] font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
             Service Catalogue
           </button>
           <button 
             onClick={() => scrollToSection('about-us')}
-            className="text-white px-4 py-2 text-[15px] font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
+            className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
           >
             About Us
           </button>
@@ -96,7 +96,7 @@ const Navbar = () => {
           {/* Dark Mode Toggle - White background */}
           <button 
             onClick={toggleDarkMode}
-            className="ml-4 p-2.5 rounded-full bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+            className="ml-6 p-2.5 rounded-full bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
           >
             {darkMode ? (
               <svg 
