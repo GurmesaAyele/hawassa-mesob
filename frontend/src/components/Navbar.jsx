@@ -43,20 +43,21 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#3d5a99]/95 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-6">
+    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <button onClick={() => scrollToSection('home')} className="flex items-center gap-2">
-            <img 
-              src={logo} 
-              alt="Hawassa Mesob Logo" 
-              className="h-10 w-10 animate-spin-slow"
-            />
-          </button>
+          {/* Left side - Blue background */}
+          <div className="flex items-center gap-1 bg-[#3d5a99]/95 px-6 h-full">
+            {/* Logo */}
+            <button onClick={() => scrollToSection('home')} className="flex items-center gap-2 mr-4">
+              <img 
+                src={logo} 
+                alt="Hawassa Mesob Logo" 
+                className="h-10 w-10 animate-spin-slow"
+              />
+            </button>
 
-          {/* Navigation Links */}
-          <div className="flex items-center gap-1">
+            {/* Navigation Links */}
             <button 
               onClick={() => scrollToSection('home')}
               className="text-[#ffd54f] px-4 py-2 text-[15px] font-medium hover:bg-white/5 transition-colors"
@@ -95,17 +96,17 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* Right side icons */}
-          <div className="flex items-center gap-3">
-            {/* Dark Mode Toggle - Yellow background */}
+          {/* Right side - Yellow/Brown background */}
+          <div className="flex items-center gap-3 bg-[#b8965f]/95 px-6 h-full">
+            {/* Dark Mode Toggle - White background */}
             <button 
               onClick={toggleDarkMode}
-              className="p-2.5 rounded-full bg-[#ffd54f] hover:bg-[#ffed4e] transition-colors"
+              className="p-2.5 rounded-full bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
             >
               {darkMode ? (
                 // Moon Icon for Dark Mode
                 <svg 
-                  className="w-5 h-5 text-[#3d5a99]" 
+                  className="w-5 h-5 text-black dark:text-white" 
                   fill="currentColor" 
                   viewBox="0 0 20 20"
                 >
@@ -114,7 +115,7 @@ const Navbar = () => {
               ) : (
                 // Sun Icon for Light Mode
                 <svg 
-                  className="w-5 h-5 text-[#3d5a99]" 
+                  className="w-5 h-5 text-gray-800" 
                   fill="currentColor" 
                   viewBox="0 0 20 20"
                 >
@@ -127,11 +128,11 @@ const Navbar = () => {
               )}
             </button>
 
-            {/* Language Selector - Yellow background */}
+            {/* Language Selector - White background */}
             <div className="relative">
               <button 
                 onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                className="flex items-center gap-2 px-4 py-2 rounded-md bg-[#ffd54f] hover:bg-[#ffed4e] text-[#3d5a99] font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-md bg-white dark:bg-black text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 font-medium transition-colors"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path 
@@ -152,13 +153,13 @@ const Navbar = () => {
 
               {/* Dropdown Menu */}
               {showLanguageDropdown && (
-                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg py-2 z-50">
+                <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
                   {languages.map((lang) => (
                     <button
                       key={lang}
                       onClick={() => handleLanguageSelect(lang)}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
-                        language === lang ? 'bg-[#3d5a99] text-white hover:bg-[#2d4a7f]' : 'text-gray-700'
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        language === lang ? 'bg-[#3d5a99] text-white hover:bg-[#2d4a7f]' : 'text-gray-700 dark:text-gray-200'
                       }`}
                     >
                       {lang}
