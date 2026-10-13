@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import logo from '../assets/images/messob_logo.png';
 
@@ -33,8 +32,14 @@ const Navbar = () => {
   const handleLanguageSelect = (lang) => {
     setLanguage(lang);
     setShowLanguageDropdown(false);
-    // Here you can add logic to change the app language
     localStorage.setItem('language', lang);
+  };
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   return (
@@ -42,52 +47,52 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <button onClick={() => scrollToSection('home')} className="flex items-center gap-2">
             <img 
               src={logo} 
               alt="Hawassa Mesob Logo" 
               className="h-9 w-9 animate-spin-slow"
             />
-          </Link>
+          </button>
 
           {/* Navigation Links */}
           <div className="flex items-center gap-1">
-            <Link 
-              to="/" 
+            <button 
+              onClick={() => scrollToSection('home')}
               className="text-[#ffd54f] px-4 py-2 text-[15px] font-normal hover:bg-white/5 transition-colors"
             >
               Home
-            </Link>
-            <Link 
-              to="/institutions" 
+            </button>
+            <button 
+              onClick={() => scrollToSection('institutions')}
               className="text-white px-4 py-2 text-[15px] font-normal hover:bg-white/5 transition-colors"
             >
               Institutions
-            </Link>
-            <Link 
-              to="/services" 
+            </button>
+            <button 
+              onClick={() => scrollToSection('services')}
               className="text-white px-4 py-2 text-[15px] font-normal hover:bg-white/5 transition-colors"
             >
               Services
-            </Link>
-            <Link 
-              to="/contact" 
+            </button>
+            <button 
+              onClick={() => scrollToSection('contact')}
               className="text-white px-4 py-2 text-[15px] font-normal hover:bg-white/5 transition-colors"
             >
               Contact
-            </Link>
-            <Link 
-              to="/service-catalogue" 
+            </button>
+            <button 
+              onClick={() => scrollToSection('service-catalogue')}
               className="text-white px-4 py-2 text-[15px] font-normal hover:bg-white/5 transition-colors"
             >
               Service Catalogue
-            </Link>
-            <Link 
-              to="/about-us" 
+            </button>
+            <button 
+              onClick={() => scrollToSection('about-us')}
               className="text-white px-4 py-2 text-[15px] font-normal hover:bg-white/5 transition-colors"
             >
               About Us
-            </Link>
+            </button>
           </div>
 
           {/* Right side icons */}
