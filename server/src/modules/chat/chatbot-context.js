@@ -105,8 +105,42 @@ export const SCOPE_REFUSAL_MESSAGES = {
   sid: "Konnira kaa'lahe didandeemmo. Ane kaa'lo Hawaasa MESOOBE Bayichi agurrote fi xa'mubba callaho.",
 };
 
+const SPECIFIC_INQUIRY_PATTERNS = [
+  /\bage\b/i,
+  /\bhow old\b/i,
+  /\bminimum\b/i,
+  /\bmaximum\b/i,
+  /\bchild(ren)?\b/i,
+  /\bminor\b/i,
+  /\bstudent\b/i,
+  /\blost\b/i,
+  /\brenew(al)?\b/i,
+  /\breplace(ment)?\b/i,
+  /\bvalidity\b/i,
+  /\bexpire\b/i,
+  /\bpenalty\b/i,
+  /ዕድሜ/,
+  /ህፃን/,
+  /ልጅ/,
+  /ማደስ/,
+  /የጠፋ/,
+  /ቅጣት/,
+  /\bdiri\b/i,
+  /\bqaaqqu\b/i,
+];
+
+export function isSpecificDetailedInquiry(query) {
+  return SPECIFIC_INQUIRY_PATTERNS.some((rx) => rx.test(query));
+}
+
 export async function findFAQAnswer(query, locale = "en") {
   const lowerQuery = query.toLowerCase().trim();
+
+  // If the query asks for specific criteria (e.g. age limits, lost ID, renewal exceptions),
+  // let Tier 3 AI provide a tailored, direct answer instead of returning a generic FAQ summary.
+  if (isSpecificDetailedInquiry(lowerQuery)) {
+    return null;
+  }
 
   try {
     const faqs = await prisma.chatbotFAQ.findMany({
