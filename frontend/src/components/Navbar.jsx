@@ -43,7 +43,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-r from-blue-600 via-blue-600 via-40% to-yellow-500">
+    <nav className="fixed top-0 left-0 right-0 z-50 h-16" style={{
+      background: 'linear-gradient(to right, #294491 0%, #203B87 45%, #756951 72%, #CB9D2A 100%)'
+    }}>
       <div className="flex items-center justify-between h-full px-6">
         {/* Logo */}
         <button onClick={() => scrollToSection('home')} className="flex items-center gap-2">
