@@ -70,18 +70,18 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
       <Navbar />
       
       <div className="pt-24 px-4 pb-12">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-center text-[#3d5a99] mb-4">Contact Us</h1>
-          <p className="text-center text-gray-600 mb-12">We'd love to hear from you. Send us a message!</p>
+          <h1 className="text-4xl font-bold text-center text-[#3d5a99] dark:text-white mb-4">Contact Us</h1>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-12">We'd love to hear from you. Send us a message!</p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Contact Information */}
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 transition-colors">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Contact Information</h2>
               
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
@@ -91,8 +91,8 @@ const Contact = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-800">Email</h3>
-                    <p className="text-gray-600">{contactInfo.email || 'info@hawassamob.gov.et'}</p>
+                    <h3 className="font-semibold text-gray-800 dark:text-white">Email</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{contactInfo.email || 'info@hawassamob.gov.et'}</p>
                   </div>
                 </div>
 
@@ -103,8 +103,8 @@ const Contact = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-800">Phone</h3>
-                    <p className="text-gray-600">{contactInfo.phone || '+251 46 XXX XXXX'}</p>
+                    <h3 className="font-semibold text-gray-800 dark:text-white">Phone</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{contactInfo.phone || '+251 46 XXX XXXX'}</p>
                   </div>
                 </div>
 
@@ -116,15 +116,15 @@ const Contact = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-800">Address</h3>
-                    <p className="text-gray-600">{contactInfo.address || 'Hawassa, Ethiopia'}</p>
+                    <h3 className="font-semibold text-gray-800 dark:text-white">Address</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{contactInfo.address || 'Hawassa, Ethiopia'}</p>
                   </div>
                 </div>
               </div>
 
               <div className="mt-8">
-                <h3 className="font-semibold text-gray-800 mb-4">Office Hours</h3>
-                <div className="space-y-2 text-gray-600">
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-4">Office Hours</h3>
+                <div className="space-y-2 text-gray-600 dark:text-gray-300">
                   <p>Monday - Friday: 8:00 AM - 5:00 PM</p>
                   <p>Saturday: 9:00 AM - 1:00 PM</p>
                   <p>Sunday: Closed</p>
@@ -132,7 +132,7 @@ const Contact = () => {
               </div>
             </div>
 
-            {/* Contact Form */}
+            {/* Contact Form - Always light/white */}
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Send us a Message</h2>
               
