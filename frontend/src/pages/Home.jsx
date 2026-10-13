@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
-import logo from '../assets/images/messob_logo.png';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
 
@@ -30,22 +29,14 @@ const Home = () => {
 
         <div className="relative pt-32 pb-20 px-6 min-h-screen flex items-center">
           <div className="max-w-4xl mx-auto text-center w-full">
-            {/* Logo and Title */}
-            <div className="flex flex-col items-center mb-10">
-              <div className="flex items-center gap-6 mb-6">
+            {/* Logo Image */}
+            <div className="flex flex-col items-center mb-12">
+              <div className="mb-8">
                 <img 
-                  src={logo} 
+                  src={footerLogo} 
                   alt="Hawassa Mesob Logo" 
-                  className="w-32 h-32 animate-spin-slow"
+                  className="w-96 h-auto mx-auto"
                 />
-                <div className="text-left">
-                  <h1 className="text-5xl font-bold text-white leading-tight">
-                    ሀዋሳ መሶብ
-                  </h1>
-                  <h2 className="text-4xl font-bold text-white mt-1">
-                    HAWASSA MESOB
-                  </h2>
-                </div>
               </div>
             </div>
 
@@ -254,7 +245,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto text-center">
           {/* Logo and Tagline */}
           <div className="flex flex-col items-center mb-8">
-            <div className="mb-6">
+            <div className="mb-4">
               <img 
                 src={footerLogo} 
                 alt="Hawassa Mesob Logo" 
@@ -262,7 +253,7 @@ const Home = () => {
               />
             </div>
             
-            <h4 className="text-xl font-semibold mb-2">All Services, One Place</h4>
+            <h4 className="text-2xl font-semibold mb-2 text-white">All Services, One Place</h4>
             <p className="text-gray-300 mb-6">Serving Hawassa City Residents</p>
             
             {/* Social Media Icons */}
