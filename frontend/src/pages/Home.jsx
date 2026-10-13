@@ -26,8 +26,8 @@ const Home = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <div className="relative min-h-screen flex items-center justify-center pt-14">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+      <div className="relative pt-32 pb-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
           {/* Logo and Title */}
           <div className="flex flex-col items-center mb-10">
             <div className="flex items-center gap-6 mb-6">
