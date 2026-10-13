@@ -27,50 +27,51 @@ const Home = () => {
           <div className="absolute inset-0 bg-[#3d5a99]/70"></div>
         </div>
 
-        <div className="relative pt-32 pb-20 px-6 min-h-screen flex items-center">
-          <div className="max-w-4xl mx-auto text-center w-full">
+        <div className="relative pt-20 pb-16 px-6 min-h-screen flex items-center">
+          <div className="max-w-5xl mx-auto text-center w-full">
             {/* Logo Image */}
-            <div className="flex flex-col items-center mb-12">
-              <div className="mb-8">
+            <div className="flex flex-col items-center mb-4">
+              <div className="mb-3">
                 <img 
                   src={footerLogo} 
                   alt="Hawassa Mesob Logo" 
-                  className="w-96 h-auto mx-auto"
+                  className="w-[500px] h-auto mx-auto"
                 />
               </div>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-6xl font-bold text-white mb-4 leading-tight">
               All Services, One Place
             </h1>
 
             {/* Subtitle */}
-            <p className="text-2xl text-white mb-4">
+            <p className="text-2xl text-white mb-3">
               Serving Hawassa City Residents
             </p>
 
             {/* Description */}
-            <p className="text-lg text-white/90 mb-12">
+            <p className="text-lg text-white/90 mb-6">
               Access multiple city services faster, efficiently, and under one roof
             </p>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+            <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
               <div className="relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for Services or Organizations"
-                  className="w-full px-6 py-4 pr-14 rounded-full bg-[#4a6bb5]/80 text-white placeholder-white/70 border-none focus:outline-none focus:ring-2 focus:ring-white/30 text-base"
+                  className="w-full px-8 py-5 pr-16 rounded-full text-white placeholder-white/80 border-none focus:outline-none focus:ring-2 focus:ring-white/30 text-lg"
+                  style={{ backgroundColor: '#294491' }}
                 />
                 <button
                   type="submit"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full hover:bg-white/10 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full hover:bg-white/10 transition-colors"
                 >
                   <svg 
-                    className="w-5 h-5 text-white" 
+                    className="w-6 h-6 text-white" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
