@@ -1085,4 +1085,4 @@ export const HAWASSA_INSTITUTIONS = [
   }
 ];
 
-export default { HAWASSA_INSTITUTIONS };
+export default HAWASSA_INSTITUTIONS;
