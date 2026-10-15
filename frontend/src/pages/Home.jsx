@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
+import Chatbot from '../components/Chatbot';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
 
@@ -14,6 +15,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <Chatbot />
       
       {/* Hero Section */}
       <section id="home" className="min-h-screen relative">
