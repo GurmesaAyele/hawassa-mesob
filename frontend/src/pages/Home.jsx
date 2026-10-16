@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Chatbot from '../components/Chatbot';
+import VIPTicket from '../components/VIPTicket';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
 
@@ -208,6 +209,7 @@ const Home = () => {
     <div className="min-h-screen">
       <Navbar />
       <Chatbot />
+      <VIPTicket />
       
       {/* Hero Section */}
       <section id="home" className="min-h-screen relative">
