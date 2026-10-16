@@ -285,24 +285,24 @@ const Home = () => {
       </section>
 
       {/* Seamless Public Services Section */}
-      <section className="relative py-20 px-6 overflow-hidden" style={{ backgroundColor: '#172231' }}>
+      <section className="relative py-20 px-6 overflow-hidden bg-white dark:bg-[#172231] transition-colors">
         {/* Background Glow Effects */}
-        <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]"></div>
+        <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[100px]"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left Column - Text Content */}
             <div>
               <h2 className="text-[clamp(2.5rem,4.5vw,3.75rem)] font-[800] leading-tight mb-5">
-                <span style={{ color: '#F8FAFC' }}>{st.seamless}</span>
+                <span className="text-gray-900 dark:text-[#F8FAFC]">{st.seamless}</span>
                 <br />
-                <span style={{ color: '#2563EB' }}>{st.publicServices}</span>
+                <span className="text-[#2563EB]">{st.publicServices}</span>
                 <br />
-                <span style={{ color: '#F8FAFC' }}>{st.inCity}</span>
+                <span className="text-gray-900 dark:text-[#F8FAFC]">{st.inCity}</span>
               </h2>
               
-              <p className="text-[clamp(1.125rem,1.75vw,1.5rem)] mb-7" style={{ color: '#CBD5E1' }}>
+              <p className="text-[clamp(1.125rem,1.75vw,1.5rem)] mb-7 text-gray-600 dark:text-[#CBD5E1]">
                 {st.accessDesc}
               </p>
 
@@ -310,19 +310,13 @@ const Home = () => {
               <div className="flex gap-4">
                 <button 
                   onClick={() => scrollToSection('service-catalogue')}
-                  className="px-7 py-3.5 rounded-xl font-semibold text-[19px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
-                  style={{ backgroundColor: '#2563EB' }}
+                  className="px-7 py-3.5 rounded-xl font-semibold text-[19px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#2563EB]"
                 >
                   {st.exploreBtn} →
                 </button>
                 <button 
                   onClick={() => scrollToSection('services')}
-                  className="px-7 py-3.5 rounded-xl font-semibold text-[19px] transition-all duration-200 hover:translate-y-[-2px]"
-                  style={{ 
-                    color: '#CBD5E1', 
-                    border: '1px solid #334155',
-                    backgroundColor: 'transparent'
-                  }}
+                  className="px-7 py-3.5 rounded-xl font-semibold text-[19px] transition-all duration-200 hover:translate-y-[-2px] bg-transparent text-gray-600 dark:text-[#CBD5E1] border border-gray-300 dark:border-[#334155]"
                 >
                   {st.learnBtn}
                 </button>
@@ -330,52 +324,49 @@ const Home = () => {
             </div>
 
             {/* Right Column - Feature Panel */}
-            <div className="rounded-2xl p-6 border" style={{ 
-              backgroundColor: '#1F2A39',
-              borderColor: '#334155'
-            }}>
+            <div className="rounded-2xl p-6 border bg-gray-100 dark:bg-[#1F2A39] border-gray-300 dark:border-[#334155]">
               <div className="space-y-4">
                 {/* Digital Services Card */}
-                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#1E3A5F' }}>
+                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1 bg-blue-50 dark:bg-[#1E3A5F]">
                   <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: '#2563EB' }}>
+                    <div className="p-2.5 rounded-lg bg-[#2563EB]">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-[19px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>{st.digitalTitle}</h3>
-                      <p className="text-[16px]" style={{ color: '#CBD5E1' }}>{st.digitalDesc}</p>
+                      <h3 className="text-[19px] font-semibold mb-1 text-gray-900 dark:text-[#F8FAFC]">{st.digitalTitle}</h3>
+                      <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1]">{st.digitalDesc}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Citizen Support Card */}
-                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#1E4D3B' }}>
+                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1 bg-green-50 dark:bg-[#1E4D3B]">
                   <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: '#10B981' }}>
+                    <div className="p-2.5 rounded-lg bg-[#10B981]">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-[19px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>{st.supportTitle}</h3>
-                      <p className="text-[16px]" style={{ color: '#CBD5E1' }}>{st.supportDesc}</p>
+                      <h3 className="text-[19px] font-semibold mb-1 text-gray-900 dark:text-[#F8FAFC]">{st.supportTitle}</h3>
+                      <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1]">{st.supportDesc}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Quick Processing Card */}
-                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#3B2D5C' }}>
+                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1 bg-purple-50 dark:bg-[#3B2D5C]">
                   <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: '#8B5CF6' }}>
+                    <div className="p-2.5 rounded-lg bg-[#8B5CF6]">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-[19px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>{st.processingTitle}</h3>
-                      <p className="text-[16px]" style={{ color: '#CBD5E1' }}>{st.processingDesc}</p>
+                      <h3 className="text-[19px] font-semibold mb-1 text-gray-900 dark:text-[#F8FAFC]">{st.processingTitle}</h3>
+                      <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1]">{st.processingDesc}</p>
                     </div>
                   </div>
                 </div>
@@ -430,24 +421,22 @@ const Home = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="min-h-screen py-20 px-6 relative overflow-hidden" style={{ 
-        background: 'linear-gradient(135deg, #172231 0%, #1C2839 100%)'
-      }}>
+      <section id="contact" className="min-h-screen py-20 px-6 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-[#172231] dark:to-[#1C2839] transition-colors">
         {/* Background Glow Effects */}
-        <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/5 rounded-full blur-[100px]"></div>
+        <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/10 dark:bg-blue-600/5 rounded-full blur-[100px]"></div>
 
         <div className="max-w-4xl mx-auto ml-20 relative z-10">
           {/* Contact Form */}
-          <div className="rounded-3xl p-8" style={{ backgroundColor: '#111827' }}>
-            <h2 className="text-[38px] font-bold mb-6" style={{ color: '#F8FAFC' }}>{ct.heading}</h2>
+          <div className="rounded-3xl p-8 bg-white dark:bg-[#111827] border border-gray-200 dark:border-0 shadow-xl dark:shadow-none transition-colors">
+            <h2 className="text-[38px] font-bold mb-6 text-gray-900 dark:text-[#F8FAFC]">{ct.heading}</h2>
             
             <form onSubmit={handleFormSubmit} className="space-y-5">
               {/* Name and Email Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
-                    {ct.nameLabel} <span style={{ color: '#EF4444' }}>{ct.required}</span>
+                  <label className="block text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
+                    {ct.nameLabel} <span className="text-red-600 dark:text-[#EF4444]">{ct.required}</span>
                   </label>
                   <input
                     type="text"
@@ -456,18 +445,13 @@ const Home = () => {
                     onChange={handleInputChange}
                     required
                     placeholder={ct.namePlaceholder}
-                    className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
-                    style={{ 
-                      backgroundColor: '#1F2937',
-                      borderColor: '#374151',
-                      borderWidth: '1px',
-                      fontSize: '16px'
-                    }}
+                    className="w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151]"
+                    style={{ fontSize: '16px' }}
                   />
                 </div>
                 <div>
-                  <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
-                    {ct.emailLabel} <span style={{ color: '#EF4444' }}>{ct.required}</span>
+                  <label className="block text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
+                    {ct.emailLabel} <span className="text-red-600 dark:text-[#EF4444]">{ct.required}</span>
                   </label>
                   <input
                     type="email"
@@ -476,40 +460,30 @@ const Home = () => {
                     onChange={handleInputChange}
                     required
                     placeholder={ct.emailPlaceholder}
-                    className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
-                    style={{ 
-                      backgroundColor: '#1F2937',
-                      borderColor: '#374151',
-                      borderWidth: '1px',
-                      fontSize: '16px'
-                    }}
+                    className="w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151]"
+                    style={{ fontSize: '16px' }}
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>{ct.phoneLabel}</label>
+                <label className="block text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">{ct.phoneLabel}</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
                   placeholder={ct.phonePlaceholder}
-                  className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
-                  style={{ 
-                    backgroundColor: '#1F2937',
-                    borderColor: '#374151',
-                    borderWidth: '1px',
-                    fontSize: '16px'
-                  }}
+                  className="w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151]"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* Message */}
               <div>
-                <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
-                  {ct.messageLabel} <span style={{ color: '#EF4444' }}>{ct.required}</span>
+                <label className="block text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
+                  {ct.messageLabel} <span className="text-red-600 dark:text-[#EF4444]">{ct.required}</span>
                 </label>
                 <textarea
                   name="message"
@@ -518,19 +492,14 @@ const Home = () => {
                   required
                   rows="4"
                   placeholder={ct.messagePlaceholder}
-                  className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all resize-none"
-                  style={{ 
-                    backgroundColor: '#1F2937',
-                    borderColor: '#374151',
-                    borderWidth: '1px',
-                    fontSize: '16px'
-                  }}
+                  className="w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all resize-none bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151]"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* Human Verification */}
-              <div className="rounded-xl p-5" style={{ backgroundColor: '#1F2937', borderColor: '#374151', borderWidth: '1px' }}>
-                <p className="text-center mb-3" style={{ color: '#E2E8F0', fontSize: '16px' }}>
+              <div className="rounded-xl p-5 bg-gray-100 dark:bg-[#1F2937] border border-gray-300 dark:border-[#374151] transition-colors">
+                <p className="text-center mb-3 text-gray-700 dark:text-[#E2E8F0]" style={{ fontSize: '16px' }}>
                   {ct.verificationText}
                 </p>
                 
@@ -551,8 +520,7 @@ const Home = () => {
                       const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
                       setVerificationWord(words[Math.floor(Math.random() * words.length)]);
                     }}
-                    className="ml-3 p-2.5 rounded-full hover:bg-white/10 transition-colors"
-                    style={{ backgroundColor: '#2563EB' }}
+                    className="ml-3 p-2.5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors bg-[#2563EB]"
                   >
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -568,21 +536,15 @@ const Home = () => {
                   onChange={handleInputChange}
                   required
                   placeholder={ct.verificationPlaceholder}
-                  className="w-full px-4 py-2.5 rounded-xl border text-white text-center placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
-                  style={{ 
-                    backgroundColor: '#111827',
-                    borderColor: '#374151',
-                    borderWidth: '1px',
-                    fontSize: '16px'
-                  }}
+                  className="w-full px-4 py-2.5 rounded-xl border text-gray-900 dark:text-white text-center placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-white dark:bg-[#111827] border-gray-300 dark:border-[#374151]"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
 
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
-                style={{ backgroundColor: '#2563EB' }}
+                className="w-full py-3.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#2563EB]"
               >
                 {ct.submitBtn}
               </button>

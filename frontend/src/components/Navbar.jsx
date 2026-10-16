@@ -4,7 +4,7 @@ import logo from '../assets/images/messob_logo.png';
 const Navbar = () => {
   const [language, setLanguage] = useState('English');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true); // Default to true (dark mode on)
 
   const languages = ['English', 'Amharic', 'Sidama'];
 
@@ -37,11 +37,19 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    // Check for saved dark mode preference
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    setDarkMode(savedDarkMode);
-    if (savedDarkMode) {
-      document.documentElement.classList.add('dark');
+    // Check for saved dark mode preference - default is TRUE (dark mode on by default)
+    const savedDarkMode = localStorage.getItem('darkMode');
+    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
+    setDarkMode(isDarkMode);
+    
+    // Force add/remove dark class on html element
+    const html = document.documentElement;
+    if (isDarkMode) {
+      html.classList.add('dark');
+      console.log('Dark mode enabled on load');
+    } else {
+      html.classList.remove('dark');
+      console.log('Dark mode disabled on load');
     }
 
     // Check for saved language preference
@@ -55,12 +63,20 @@ const Navbar = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
     localStorage.setItem('darkMode', newDarkMode);
+    console.log('Dark mode toggled:', newDarkMode); // Debug log
     
+    // Force add/remove dark class on html element
+    const html = document.documentElement;
     if (newDarkMode) {
-      document.documentElement.classList.add('dark');
+      html.classList.add('dark');
+      console.log('Dark class added');
     } else {
-      document.documentElement.classList.remove('dark');
+      html.classList.remove('dark');
+      console.log('Dark class removed');
     }
+    
+    // Force a small re-render
+    window.dispatchEvent(new Event('resize'));
   };
 
   const handleLanguageSelect = (lang) => {

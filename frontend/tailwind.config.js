@@ -4,7 +4,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
+  darkMode: 'selector', // Changed from 'class' to 'selector' for Tailwind v4
   theme: {
     extend: {
       animation: {

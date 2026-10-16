@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 /* Custom animations for Hawassa Mesob */
 @keyframes spin-slow {
   from {
