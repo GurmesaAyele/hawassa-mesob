@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # 🏛️ Hawassa MESOB Portal
 
@@ -66,15 +66,21 @@ All endpoints are hosted on the local development network:
 http://10.20.254.64:5000
 ```
 
-| Method | Endpoint | Description | Auth | Query / Body Params |
+| Method | Endpoint | Description | Target Role | Query / Body Params |
 | :---: | :--- | :--- | :---: | :--- |
 | `GET` | `/api/health` | Service health status & server timestamp | Public | — |
 | `POST` | `/api/chat` | Multilingual citizen inquiry chatbot | Public | `{ message, locale, sessionId }` |
-| `GET` | `/api/institutions` | Directory of public institutions | Public | `?locale=en\|am\|sid&page=1&limit=20&search=` |
-| `GET` | `/api/institutions/:id` | Institution details + full services list | Public | `?locale=en\|am\|sid` |
-| `GET` | `/api/institutions/:id/services` | Paginated services for an institution | Public | `?locale=en\|am\|sid&page=1&limit=20` |
-| `GET` | `/api/services` | Global public services catalog across all bureaus | Public | `?locale=en\|am\|sid&page=1&limit=20&search=` |
-| `GET` | `/api/services/:id` | Single service card with parent institution | Public | `?locale=en\|am\|sid` |
+| `GET` | `/api/institutions` | Directory of institutions (supports search & pagination) | Public / Admin | `?locale=en\|am\|sid&page=1&limit=20&search=&raw=true&includeInactive=true` |
+| `POST` | `/api/institutions` | **Create institution** (supports instant nested services) | **Admin** | `{ name, code, icon, floorRoomNumber, contactPhone, services: [...] }` |
+| `GET` | `/api/institutions/:id` | Institution details + full services list | Public / Admin | `?locale=en\|am\|sid&raw=true&includeInactive=true` |
+| `PUT` | `/api/institutions/:id` | **Update institution** details / status | **Admin** | `{ name, code, icon, floorRoomNumber, contactPhone, isActive }` |
+| `DELETE` | `/api/institutions/:id` | **Deactivate / delete institution** | **Admin** | `?permanent=true` (optional hard delete) |
+| `GET` | `/api/institutions/:id/services` | Paginated services of an institution | Public / Admin | `?locale=en\|am\|sid&page=1&limit=20&includeInactive=true` |
+| `POST` | `/api/institutions/:id/services` | **Add service(s)** to an institution (single or batch) | **Admin** | `{ title, description, requirements, estimatedFee, processingDays }` |
+| `GET` | `/api/services` | Global public services catalog across all bureaus | Public / Admin | `?locale=en\|am\|sid&page=1&limit=20&search=&includeInactive=true` |
+| `GET` | `/api/services/:id` | Single service card with parent institution | Public / Admin | `?locale=en\|am\|sid&raw=true` |
+| `PUT` | `/api/services/:id` | **Update service** details / requirements / fee | **Admin** | `{ title, description, requirements, estimatedFee, processingDays, isActive }` |
+| `DELETE` | `/api/services/:id` | **Deactivate / delete service** | **Admin** | `?permanent=true` (optional hard delete) |
 
 ---
 
@@ -202,6 +208,249 @@ GET /api/services?locale=en&page=1&limit=20&search=Commercial
 ```
 
 Returns flat paginated services with embedded institution profile on each item.
+
+---
+
+## 🛠️ Admin Dashboard Management API (Manager/Admin CRUD)
+
+> **For the frontend developer building the MESOB Admin / Manager Dashboard.**  
+> These endpoints enable center administrators to manage institutions and the public services they offer — adding new bureaus, instantly registering services, editing requirements, updating fees, or archiving obsolete services.
+
+### 🌟 Admin Query Parameters
+
+| Parameter | Type | Purpose | Example |
+| :--- | :---: | :--- | :--- |
+| `raw=true` | boolean | Returns complete trilingual JSONB objects `{ en, am, sid }` instead of a single string. **Essential for populating Admin Edit Forms.** | `GET /api/institutions/:id?raw=true` |
+| `includeInactive=true` | boolean | Includes deactivated / archived institutions and services. | `GET /api/institutions?includeInactive=true` |
+
+---
+
+### 1. Add a New Institution (Optionally with Instant Services)
+
+```http
+POST /api/institutions
+Content-Type: application/json
+```
+
+Admins can supply localized names `{ en, am, sid }` or a plain string (which automatically populates all three languages). You can also pass a `services` array to **instantly register all active services** in one single request!
+
+#### Request Body
+```json
+{
+  "name": {
+    "en": "Hawassa City Water Supply & Sewerage Enterprise",
+    "am": "የሀዋሳ ከተማ የውሃ እና ፍሳሽ አገልግሎት ድርጅት",
+    "sid": "Hawaasa Quchumi Wotonna Fushshote Owaante Ejeensi"
+  },
+  "code": "HAWASSA_WATER",
+  "icon": "/icons/water.svg",
+  "floorRoomNumber": "Counter 7 & 8, Ground Floor",
+  "contactPhone": "+251 46 220 4455",
+  "isActive": true,
+  "services": [
+    {
+      "title": {
+        "en": "New Residential Water Meter Installation",
+        "am": "አዲስ የመኖሪያ ቤት የውሃ ቆጣሪ ዝርጋታ",
+        "sid": "Haaro Mini Wotonna Kootare Harinsho"
+      },
+      "description": "Application and technical inspection for domestic water meter connection.",
+      "requirements": [
+        "Kebele Resident ID",
+        "House ownership deed or verified lease agreement",
+        "Kebele clearance letter"
+      ],
+      "estimatedFee": 850.0,
+      "processingDays": 5
+    },
+    {
+      "title": "Water Meter Relocation or Maintenance",
+      "description": "Request to move existing meter during compound renovation.",
+      "requirements": ["Customer account number", "Latest paid water utility bill"],
+      "estimatedFee": 200.0,
+      "processingDays": 2
+    }
+  ]
+}
+```
+
+#### Response (`201 Created`)
+```json
+{
+  "message": "Institution created successfully.",
+  "data": {
+    "id": "cuid_9876543210",
+    "code": "HAWASSA_WATER",
+    "name": { "en": "...", "am": "...", "sid": "..." },
+    "icon": "/icons/water.svg",
+    "floorRoomNumber": "Counter 7 & 8, Ground Floor",
+    "contactPhone": "+251 46 220 4455",
+    "isActive": true,
+    "services": [ ... ]
+  }
+}
+```
+
+---
+
+### 2. Update Institution Details
+
+```http
+PUT /api/institutions/:id
+PATCH /api/institutions/:id
+Content-Type: application/json
+```
+
+Update any field: `name`, `code`, `icon`, `floorRoomNumber`, `contactPhone`, or `isActive`.
+
+#### Request Body
+```json
+{
+  "floorRoomNumber": "Main Hall, Counter 9",
+  "contactPhone": "+251 46 220 8888",
+  "isActive": true
+}
+```
+
+#### Response (`200 OK`)
+```json
+{
+  "message": "Institution updated successfully.",
+  "data": {
+    "id": "cuid_9876543210",
+    "code": "HAWASSA_WATER",
+    "floorRoomNumber": "Main Hall, Counter 9",
+    "contactPhone": "+251 46 220 8888",
+    "serviceCount": 2
+  }
+}
+```
+
+---
+
+### 3. Add Services to an Institution (Single or Batch)
+
+```http
+POST /api/institutions/:id/services
+Content-Type: application/json
+```
+
+Admins can send a single service or an array of services.
+
+#### Request Body (Single Service)
+```json
+{
+  "title": {
+    "en": "Commercial Water Connection",
+    "am": "ለንግድ ተቋማት የውሃ መስመር ዝርጋታ",
+    "sid": "Dureeyyete Dagate Wotonna Harinsho"
+  },
+  "description": "High-volume water connection for hotels, factories, and commercial centers.",
+  "requirements": [
+    "Renewed Business Trade License",
+    "TIN Registration Certificate",
+    "Site Engineering Plan"
+  ],
+  "estimatedFee": 3500.0,
+  "processingDays": 10,
+  "isActive": true
+}
+```
+
+#### Request Body (Batch Services)
+```json
+{
+  "services": [
+    {
+      "title": "Service A",
+      "description": "...",
+      "requirements": ["Document 1"],
+      "estimatedFee": 100.0,
+      "processingDays": 1
+    },
+    {
+      "title": "Service B",
+      "description": "...",
+      "requirements": ["Document 2"],
+      "estimatedFee": 250.0,
+      "processingDays": 3
+    }
+  ]
+}
+```
+
+#### Response (`201 Created`)
+```json
+{
+  "message": "1 service(s) created successfully.",
+  "data": {
+    "id": "cuid_srv_12345",
+    "providerId": "cuid_9876543210",
+    "title": { ... },
+    "estimatedFee": 3500.0,
+    "processingDays": 10,
+    "isActive": true
+  }
+}
+```
+
+---
+
+### 4. Update Existing Service Details
+
+```http
+PUT /api/services/:id
+PATCH /api/services/:id
+Content-Type: application/json
+```
+
+Update any service properties: `title`, `description`, `requirements`, `estimatedFee`, `processingDays`, or `isActive`.
+
+#### Request Body
+```json
+{
+  "estimatedFee": 1200.0,
+  "processingDays": 3,
+  "requirements": [
+    "National Digital ID (Fayda)",
+    "Verified Site Plan",
+    "Receipt of Processing Fee"
+  ]
+}
+```
+
+#### Response (`200 OK`)
+```json
+{
+  "message": "Service updated successfully.",
+  "data": {
+    "id": "cuid_srv_12345",
+    "estimatedFee": 1200.0,
+    "processingDays": 3,
+    "updatedAt": "2026-10-16T15:30:00.000Z"
+  }
+}
+```
+
+---
+
+### 5. Deactivate or Delete Institution / Service
+
+#### Soft Delete (Archive / Hide from Citizens)
+```http
+DELETE /api/institutions/:id
+DELETE /api/services/:id
+```
+- Sets `isActive: false` (archives the record).
+- For an institution, automatically archives all its child services as well.
+- Citizens will no longer see it; administrators can still view it via `?includeInactive=true` and reactivate it anytime via `PUT`.
+
+#### Permanent Hard Delete (Purge from Database)
+```http
+DELETE /api/institutions/:id?permanent=true
+DELETE /api/services/:id?permanent=true
+```
+- Permanently removes the record from PostgreSQL.
 
 ---
 
