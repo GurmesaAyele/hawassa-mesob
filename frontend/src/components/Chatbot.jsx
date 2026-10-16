@@ -13,6 +13,19 @@ const Chatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Function to format markdown-style text to readable format
+  const formatMessageText = (text) => {
+    if (!text) return text;
+    
+    // Remove markdown bold markers but keep the text
+    let formatted = text.replace(/\*\*(.+?)\*\*/g, '$1');
+    
+    // Keep line breaks
+    formatted = formatted.replace(/\n/g, '\n');
+    
+    return formatted;
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -34,39 +47,34 @@ const Chatbot = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage;
     setInputMessage('');
     setIsTyping(true);
 
-    // TODO: Replace this with actual API call
-    // Simulate bot response for now
-    setTimeout(() => {
-      const botMessage = {
-        type: 'bot',
-        text: 'Thank you for your message. This chatbot will be connected to the API soon to provide you with real-time assistance.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 1000);
-
-    // TODO: Uncomment and configure when API is ready
-    /*
     try {
-      const response = await fetch('YOUR_API_ENDPOINT_HERE', {
+      const response = await fetch('http://10.20.254.64:5000/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: inputMessage,
+          message: currentMessage,
         }),
       });
 
+      if (!response.ok) {
+        throw new Error('Failed to get response from server');
+      }
+
       const data = await response.json();
+      console.log('API Response:', data); // Debug log
+      
+      const rawText = data.response || data.reply || data.answer || data.message || data.text || JSON.stringify(data);
+      const formattedText = formatMessageText(rawText);
       
       const botMessage = {
         type: 'bot',
-        text: data.response,
+        text: formattedText,
         timestamp: new Date()
       };
       
@@ -76,13 +84,12 @@ const Chatbot = () => {
       console.error('Error sending message:', error);
       const errorMessage = {
         type: 'bot',
-        text: 'Sorry, I encountered an error. Please try again.',
+        text: 'Sorry, I encountered an error connecting to the server. Please try again.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
       setIsTyping(false);
     }
-    */
   };
 
   return (
@@ -137,7 +144,7 @@ const Chatbot = () => {
                   }`}
                   style={message.type === 'user' ? { backgroundColor: '#294491' } : {}}
                 >
-                  <p className="text-sm leading-relaxed">{message.text}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>
                   <p className={`text-xs mt-1 ${message.type === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
