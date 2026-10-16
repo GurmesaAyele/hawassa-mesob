@@ -23,10 +23,10 @@ const Home = () => {
       searchPlaceholder: 'የመንግስት አገልግሎት ይፈልጉ'
     },
     Sidama: {
-      mainHeading: 'All Services, One Place', // TODO: Add Sidama translation
-      subtitle: 'Serving Hawassa City Residents',
-      description: 'Access multiple city services faster, efficiently, and under one roof',
-      searchPlaceholder: 'Search for Services or Organizations'
+      mainHeading: 'Baalu Oosuwa, Mittu Dargu', // TODO: Add Sidama translation
+      subtitle: 'Hawassa Katama Mannu Oosate',
+      description: 'Katama Oosuwa Baala, Albi Loosamme, Mittu Dargu Afiinni',
+      searchPlaceholder: 'Gawajju Oosuwa woy Biiro Hasa'
     }
   };
 
@@ -52,6 +52,13 @@ const Home = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
+  };
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const t = heroTranslations[language] || heroTranslations.English;
@@ -132,6 +139,107 @@ const Home = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Seamless Public Services Section */}
+      <section className="relative py-24 px-6 overflow-hidden" style={{ backgroundColor: '#172231' }}>
+        {/* Background Glow Effects */}
+        <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]"></div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column - Text Content */}
+            <div>
+              <h2 className="text-[clamp(3rem,5vw,4.5rem)] font-[800] leading-tight mb-6">
+                <span style={{ color: '#F8FAFC' }}>Seamless</span>
+                <br />
+                <span style={{ color: '#2563EB' }}>Public Services</span>
+                <br />
+                <span style={{ color: '#F8FAFC' }}>in Hawassa.</span>
+              </h2>
+              
+              <p className="text-[clamp(1.25rem,2vw,1.75rem)] mb-8" style={{ color: '#CBD5E1' }}>
+                Access government services from 9 public institutions in one place.
+              </p>
+
+              {/* Buttons */}
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => scrollToSection('service-catalogue')}
+                  className="px-8 py-4 rounded-xl font-semibold text-[22px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
+                  style={{ backgroundColor: '#2563EB' }}
+                >
+                  Explore Services →
+                </button>
+                <button 
+                  onClick={() => scrollToSection('services')}
+                  className="px-8 py-4 rounded-xl font-semibold text-[22px] transition-all duration-200 hover:translate-y-[-2px]"
+                  style={{ 
+                    color: '#CBD5E1', 
+                    border: '1px solid #334155',
+                    backgroundColor: 'transparent'
+                  }}
+                >
+                  Learn More
+                </button>
+              </div>
+            </div>
+
+            {/* Right Column - Feature Panel */}
+            <div className="rounded-3xl p-8 border" style={{ 
+              backgroundColor: '#1F2A39',
+              borderColor: '#334155'
+            }}>
+              <div className="space-y-6">
+                {/* Digital Services Card */}
+                <div className="p-6 rounded-2xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#1E3A5F' }}>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-lg" style={{ backgroundColor: '#2563EB' }}>
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-[22px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>Digital Services</h3>
+                      <p className="text-[19px]" style={{ color: '#CBD5E1' }}>Apply for permits online</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Citizen Support Card */}
+                <div className="p-6 rounded-2xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#1E4D3B' }}>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-lg" style={{ backgroundColor: '#10B981' }}>
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-[22px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>Citizen Support</h3>
+                      <p className="text-[19px]" style={{ color: '#CBD5E1' }}>24/7 assistance available</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Processing Card */}
+                <div className="p-6 rounded-2xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#3B2D5C' }}>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-lg" style={{ backgroundColor: '#8B5CF6' }}>
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-[22px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>Quick Processing</h3>
+                      <p className="text-[19px]" style={{ color: '#CBD5E1' }}>Fast and efficient service</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

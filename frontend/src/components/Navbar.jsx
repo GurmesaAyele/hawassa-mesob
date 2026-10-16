@@ -27,12 +27,12 @@ const Navbar = () => {
       aboutUs: 'ስለ እኛ'
     },
     Sidama: {
-      home: 'Home', // TODO: Add Sidama translation
-      institutions: 'Institutions',
-      services: 'Services',
-      contact: 'Contact',
-      serviceCatalogue: 'Service Catalogue',
-      aboutUs: 'About Us'
+      home: 'Umi Qoola', // TODO: Add Sidama translation
+      institutions: 'Qoqqowu Biiro',
+      services: 'Oosuwa',
+      contact: 'Nooro Qoolate',
+      serviceCatalogue: 'Oosuwa Diramate',
+      aboutUs: 'Nooni Mashala'
     }
   };
 
