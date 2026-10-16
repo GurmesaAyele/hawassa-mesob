@@ -1,542 +1,153 @@
-# Hawassa MESOB Portal — Chatbot API Integration Guide
+﻿<div align="center">
 
-> **For frontend developers building the chatbot window UI.**
-> Base URL on the local development network: `http://10.20.254.64:5000`
+# 🏛️ Hawassa MESOB Portal
 
----
+### Unified Citizen Services & AI-Powered Multilingual Assistant
 
-## Table of Contents
+[![Node.js Version](https://img.shields.io/badge/Node.js-v20+-68a063?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express.js](https://img.shields.io/badge/Express-v5.3-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169e1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Prisma ORM](https://img.shields.io/badge/Prisma-v6.19-2d3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![Google Gemini AI](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285f4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20AM%20%7C%20SID-ff6b6b?style=for-the-badge)](#-multilingual-support)
+[![Tests Passing](https://img.shields.io/badge/Tests-25%2F25%20Passing-brightgreen?style=for-the-badge)](#-running-automated-tests)
 
-1. [Overview](#overview)
-2. [Endpoint Reference](#endpoint-reference)
-3. [Request Specification](#request-specification)
-4. [Response Specification](#response-specification)
-5. [Response Tiers Explained](#response-tiers-explained)
-6. [Localization (Multilingual Support)](#localization-multilingual-support)
-7. [Error Handling & Validation Errors](#error-handling--validation-errors)
-8. [Rate Limiting](#rate-limiting)
-9. [Complete Code Examples](#complete-code-examples)
-10. [Rendering Best Practices](#rendering-best-practices)
-11. [Health Check](#health-check)
-12. [Frequently Asked Questions](#frequently-asked-questions)
+<p align="center">
+  <b>A single digital gateway for citizens of Hawassa City to discover government institutions, browse public services, check documentation requirements, and get instant answers via a context-aware AI chatbot.</b>
+</p>
 
 ---
 
-## Overview
+[Endpoints Matrix](#-api-endpoints-matrix) • [Chatbot Integration](#-chatbot-api-integration) • [Institutions & Services](#-institutions--services-api) • [Frontend Starter Code](#-frontend-integration-examples) • [Local Setup](#-local-development--testing)
 
-The MESOB Chatbot API is an intelligent, trilingual backend service that answers citizen questions about Hawassa MESOB Center services — including Fayda National ID enrollment, TIN numbers, trade licenses, construction permits, banking, and more.
-
-It uses a **3-tier response architecture**:
-
-| Tier | Source | When Used | Speed |
-|------|--------|-----------|-------|
-| **Tier 2** | Static FAQ lookup (DB + cache) | Simple routine questions | < 50ms |
-| **Tier 3** | Gemini AI (Google) | Nuanced, conditional, situational questions | 3–12s |
-| **Fallback** | Hardcoded safety reply | When all services fail | Instant |
+</div>
 
 ---
 
-## Endpoint Reference
+## 🧭 System Architecture
 
-### Chat Message
+```mermaid
+graph LR
+    subgraph Client ["Frontend Client (React / Vite)"]
+        UI["Chatbot Widget & Portal UI"]
+    end
 
+    subgraph Gateway ["Express API Gateway (:5000)"]
+        Sec["Security Headers (Helmet) & CORS Guard"]
+        Rate["Rate Limiter (30 req/min/IP)"]
+        Router["API Router"]
+    end
+
+    subgraph DataEngine ["MESOB Backend Services"]
+        FAQ["Tier 2: Instant FAQ Engine"]
+        Context["Context Injector (DB Services)"]
+        Gemini["Tier 3: Google Gemini AI"]
+    end
+
+    subgraph Storage ["Database"]
+        PG[("PostgreSQL via Prisma")]
+    end
+
+    UI --> Sec --> Rate --> Router
+    Router -->|GET /api/institutions| PG
+    Router -->|GET /api/services| PG
+    Router -->|POST /api/chat| FAQ
+    FAQ -->|Cache Hit <50ms| UI
+    FAQ -->|Miss| Context --> PG
+    Context --> Gemini -->|3-12s Nuanced Answer| UI
 ```
-POST http://10.20.254.64:5000/api/chat
-```
-
-| Property | Value |
-|----------|-------|
-| **Method** | `POST` |
-| **URL** | `http://10.20.254.64:5000/api/chat` |
-| **Content-Type** | `application/json` |
-| **Authentication** | None (public endpoint) |
-| **Max Body Size** | 100 KB |
 
 ---
 
-## Request Specification
+## 📡 API Endpoints Matrix
 
-### Request Body
+All endpoints are hosted on the local development network:
+```http
+http://10.20.254.64:5000
+```
 
-Send a JSON object with the following fields:
+| Method | Endpoint | Description | Auth | Query / Body Params |
+| :---: | :--- | :--- | :---: | :--- |
+| `GET` | `/api/health` | Service health status & server timestamp | Public | — |
+| `POST` | `/api/chat` | Multilingual citizen inquiry chatbot | Public | `{ message, locale, sessionId }` |
+| `GET` | `/api/institutions` | Directory of public institutions | Public | `?locale=en\|am\|sid&page=1&limit=20&search=` |
+| `GET` | `/api/institutions/:id` | Institution details + full services list | Public | `?locale=en\|am\|sid` |
+| `GET` | `/api/institutions/:id/services` | Paginated services for an institution | Public | `?locale=en\|am\|sid&page=1&limit=20` |
+| `GET` | `/api/services` | Global public services catalog across all bureaus | Public | `?locale=en\|am\|sid&page=1&limit=20&search=` |
+| `GET` | `/api/services/:id` | Single service card with parent institution | Public | `?locale=en\|am\|sid` |
+
+---
+
+## 🤖 Chatbot API Integration
+
+```http
+POST /api/chat
+Content-Type: application/json
+```
+
+### 1. Request Body Schema
 
 ```json
 {
-  "message": "string",
-  "locale": "string",
-  "sessionId": "string"
+  "message": "What documents do I need to get a new Trade License?",
+  "locale": "en",
+  "sessionId": "b47c87c2-9e32-4d2b-9831-7b0b8d2ef020"
 }
 ```
 
-### Field Details
+#### Field Specifications
 
-| Field | Type | Required | Description | Constraints |
-|-------|------|----------|-------------|-------------|
-| `message` | `string` | ✅ Yes | The user's chat message | Non-empty after trimming; max **500 characters** |
-| `locale` | `string` | ❌ No (defaults to `"en"`) | Language for the response | Only `"en"`, `"am"`, or `"sid"` |
-| `sessionId` | `string` | ❌ No | Optional session tracking identifier | Must be a valid **UUID v1–v5** if provided |
+| Field | Type | Required | Default | Rules & Constraints |
+| :--- | :---: | :---: | :---: | :--- |
+| `message` | `string` | **Yes** | — | Non-empty string. Max **500 characters**. Strips unprintable control characters. |
+| `locale` | `string` | No | `"en"` | Must be one of: `"en"` (English), `"am"` (Amharic), `"sid"` (Sidaamu Afoo). |
+| `sessionId` | `string` | No | — | Optional tracking UUID (RFC 4122 v1–v5). |
 
-### Locale Values
-
-| Value | Language |
-|-------|----------|
-| `"en"` | English (default) |
-| `"am"` | Amharic (አማርኛ) |
-| `"sid"` | Sidaamu Afoo (Sidama) |
-
-> **Important:** Sending any locale value other than `"en"`, `"am"`, or `"sid"` returns a `400 Bad Request`. Validate the locale on the client before sending — do not assume an invalid value will default silently.
+> ⚠️ **Strict Locale Validation**: Passing an unsupported locale (e.g. `"fr"`) returns `400 Bad Request`.
 
 ---
 
-## Response Specification
-
-### Success Response — `200 OK`
-
-All successful chat responses return HTTP `200` with the following JSON body:
+### 2. Response Body Schema
 
 ```json
 {
-  "reply": "string",
-  "tier": "number | string"
-}
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `reply` | `string` | The chatbot answer in the requested language. May contain **Markdown** (bold text, numbered lists, emojis). |
-| `tier` | `number or string` | Which tier served the response. See section below. |
-
-### Example Success Response
-
-```json
-{
-  "reply": "**Hawassa MESOB Center Operating Schedule**\n\n1. Monday – Friday: 8:30 AM – 5:00 PM\n2. Saturday: 8:30 AM – 12:30 PM\n3. Sunday & Public Holidays: Closed\n\nPhone: +251 46 220 1100",
+  "reply": "**Requirements for Commercial Registration & Trade License:**\n\n1. Valid National ID or Passport\n2. Office lease agreement verified by Kebele\n3. TIN Certificate from Revenue Authority\n\n📍 Visit **Counter 4** at Hawassa MESOB Center.",
   "tier": 2
 }
 ```
 
----
+### 3. Response Tiers Explained
 
-## Response Tiers Explained
+The `tier` property indicates how the response was generated. Use this to adapt your client UI:
 
-Use the `tier` field to adapt your UI:
-
-| `tier` value | Type | Meaning | UI Recommendation |
-|-------------|------|---------|-------------------|
-| `2` | number | Instant FAQ answer from the database | Display immediately; no loading indicator needed |
-| `3` | number | AI-generated response from Gemini | Show a typing indicator while waiting (3–12 seconds) |
-| `"scope-guard"` | string | Off-topic question blocked at the scope gate | Show the reply — no special treatment needed |
-| `"scope-refusal"` | string | Question outside MESOB scope | Show the reply as a polite refusal |
-| `"context-fallback"` | string | AI unavailable; returning raw service data | Display the structured data in `reply` |
-| `"fallback"` | string | All services failed; hardcoded safe reply | Show reply with an optional offline notice |
-| `"rate-limit"` | string | Rate limit exceeded (HTTP 429) | Show a "please wait" message |
+| `tier` Value | Type | Engine / Source | Latency | Recommended UI Behavior |
+| :---: | :---: | :--- | :---: | :--- |
+| `2` | `number` | Instant FAQ Database & Keyword Lookup | < 50ms | Render immediately. No typing loader needed. |
+| `3` | `number` | Google Gemini AI (Context-Grounded) | 3–12s | Show typing indicator / loading dots while awaiting response. |
+| `"scope-guard"` | `string` | Pre-LLM Guardrail | < 10ms | User asked off-topic query. Render polite refusal. |
+| `"scope-refusal"` | `string` | Post-Lookup Scope Boundary | < 50ms | Query is outside MESOB service domain. |
+| `"context-fallback"` | `string` | Database Context Fallback | < 100ms | AI unavailable; returning verified raw service instructions. |
+| `"fallback"` | `string` | Hardcoded Safe Response | Instant | Render fallback message; optionally show offline banner. |
+| `"rate-limit"` | `string` | Express Rate Limiter | Instant | HTTP 429: Show "Rate limit reached. Please wait a moment." |
 
 ---
 
-## Localization (Multilingual Support)
+## 🏛️ Institutions & Services API
 
-The chatbot is fully trilingual. The `locale` field controls the language of `reply`. Always pass the locale that matches the user's selected language in the UI.
-
-```json
-{ "message": "What documents do I need for Fayda ID?", "locale": "en" }
-{ "message": "ለፋይዳ መታወቂያ ምን ሰነዶች ያስፈልጋሉ?",          "locale": "am" }
-{ "message": "Fayda wolooma afidhanno gara hiittoonniiti?", "locale": "sid" }
-```
-
----
-
-## Error Handling & Validation Errors
-
-All validation errors return `400 Bad Request` with a JSON body:
-
-```json
-{
-  "reply": "Human-friendly message for optional UI display",
-  "error": "Technical error description for debugging"
-}
-```
-
-### Validation Error Reference
-
-| Scenario | HTTP Status | `error` value |
-|----------|-------------|---------------|
-| Body is not a JSON object (e.g. array, null) | `400` | `"Malformed or non-object request body."` |
-| `message` field is missing | `400` | `"Message must be a string."` |
-| `message` is empty or whitespace only | `400` | `"Message cannot be empty or whitespace-only."` |
-| `message` exceeds 500 characters | `400` | `"Message exceeds 500 characters."` |
-| `locale` is not `"en"`, `"am"`, or `"sid"` | `400` | `"Unsupported locale specified."` |
-| `sessionId` is present but not a valid UUID | `400` | `"Invalid sessionId format."` |
-| JSON body is malformed / unparseable | `400` | `"Invalid JSON payload"` |
-| Rate limit exceeded | `429` | `"Too many requests. Rate limit exceeded."` |
-| Unexpected server error | `500` | `"Internal server error"` |
-
-### Recommended Client-Side Error Handler
-
-```javascript
-async function sendChatMessage(message, locale = "en") {
-  try {
-    const response = await fetch("http://10.20.254.64:5000/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, locale }),
-    });
-
-    if (response.status === 429) {
-      return { reply: "Too many messages. Please wait a moment.", tier: "rate-limit" };
-    }
-
-    if (!response.ok) {
-      const errData = await response.json();
-      return { reply: errData.reply || "Something went wrong. Please try again.", tier: "error" };
-    }
-
-    return await response.json(); // { reply, tier }
-  } catch {
-    return { reply: "Could not connect to the MESOB service. Check your connection.", tier: "offline" };
-  }
-}
-```
-
----
-
-## Rate Limiting
-
-| Limit | Value |
-|-------|-------|
-| **Max requests** | 30 per minute per IP address |
-| **Window** | 60 seconds (rolling) |
-| **HTTP Status when exceeded** | `429 Too Many Requests` |
-
-### Rate Limit Headers (on every response)
-
-| Header | Description |
-|--------|-------------|
-| `RateLimit-Limit` | Max allowed requests in the window |
-| `RateLimit-Remaining` | Remaining requests before limit is hit |
-| `RateLimit-Reset` | Seconds until the window resets |
-
-```javascript
-const response = await fetch("http://10.20.254.64:5000/api/chat", { ... });
-
-const remaining = parseInt(response.headers.get("ratelimit-remaining"), 10);
-const resetIn   = response.headers.get("ratelimit-reset");
-
-if (remaining <= 3) {
-  showWarning(`${remaining} messages left — resets in ${resetIn}s.`);
-}
-```
-
----
-
-## Complete Code Examples
-
-### Vanilla JavaScript / Fetch
-
-```javascript
-const CHAT_URL = "http://10.20.254.64:5000/api/chat";
-
-async function sendMessageToMESOB(message, locale = "en", sessionId = null) {
-  if (!message.trim() || message.length > 500) {
-    throw new Error("Message must be between 1 and 500 characters.");
-  }
-
-  const payload = { message: message.trim(), locale };
-  if (sessionId) payload.sessionId = sessionId;
-
-  const response = await fetch(CHAT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.reply || "Request failed");
-
-  return data; // { reply: string, tier: number | string }
-}
-
-// Usage
-const { reply, tier } = await sendMessageToMESOB("What is the fee for a trade license?", "en");
-console.log(reply);
-```
-
----
-
-### React Hook
-
-```jsx
-import { useState } from "react";
-
-const CHAT_URL = "http://10.20.254.64:5000/api/chat";
-
-export function useChatbot(locale = "en") {
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError]   = useState(null);
-
-  async function sendMessage(userText) {
-    const text = userText.trim();
-    if (!text || text.length > 500) return;
-
-    setMessages((prev) => [...prev, { role: "user", text }]);
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, locale }),
-      });
-
-      if (res.status === 429) throw new Error("Too many messages. Please wait a moment.");
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.reply || "Something went wrong.");
-      }
-
-      const { reply, tier } = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", text: reply, tier }]);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  return { messages, isLoading, error, sendMessage };
-}
-```
-
-#### Chat Window Component
-
-```jsx
-import ReactMarkdown from "react-markdown";
-import { useChatbot } from "./useChatbot";
-
-export function ChatWindow({ locale = "en" }) {
-  const [input, setInput] = useState("");
-  const { messages, isLoading, error, sendMessage } = useChatbot(locale);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    sendMessage(input);
-    setInput("");
-  };
-
-  return (
-    <div className="chat-window">
-      <div className="chat-messages">
-        {messages.map((msg, i) => (
-          <div key={i} className={`bubble ${msg.role}`}>
-            <ReactMarkdown>{msg.text}</ReactMarkdown>
-          </div>
-        ))}
-
-        {/* Show typing indicator only for AI (tier 3) responses */}
-        {isLoading && <div className="bubble assistant typing"><span/><span/><span/></div>}
-        {error     && <div className="error-banner">{error}</div>}
-      </div>
-
-      <form onSubmit={handleSubmit} className="chat-input">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about MESOB Center services..."
-          maxLength={500}
-          disabled={isLoading}
-        />
-        <button type="submit" disabled={isLoading || !input.trim()}>
-          {isLoading ? "..." : "Send"}
-        </button>
-      </form>
-    </div>
-  );
-}
-```
-
----
-
-### Axios
-
-```javascript
-import axios from "axios";
-
-const chatAPI = axios.create({
-  baseURL: "http://10.20.254.64:5000",
-  headers: { "Content-Type": "application/json" },
-  timeout: 15000, // 15 seconds — accounts for Gemini AI response time
-});
-
-export async function askChatbot(message, locale = "en") {
-  const { data } = await chatAPI.post("/api/chat", { message: message.trim(), locale });
-  return data; // { reply, tier }
-}
-```
-
----
-
-## Rendering Best Practices
-
-### Render `reply` as Markdown — Not Plain Text
-
-AI and FAQ answers use Markdown formatting:
-
-- `**bold text**` — service and institution names
-- Numbered lists (`1.`, `2.`, `3.`) — procedural steps and document requirements
-- Emojis (`🏢`, `📍`, `📋`, `💵`, `⏱️`) — section icons in structured service cards
-
-| Framework | Recommended Library |
-|-----------|---------------------|
-| React | `react-markdown` |
-| Vue | `vue-markdown-render` |
-| Vanilla JS | `marked.js` |
-
-```jsx
-import ReactMarkdown from "react-markdown";
-<ReactMarkdown>{reply}</ReactMarkdown>
-```
-
-### Typing Indicator
-
-Only show a typing/loading animation when waiting for `tier === 3` (Gemini AI) responses.  
-`tier === 2` FAQ responses arrive in under 50ms and should appear instantly — no animation needed.
-
-### Quick-Reply Suggestion Buttons
-
-```javascript
-const SUGGESTIONS = {
-  en: [
-    "What are the working hours?",
-    "How do I register for Fayda ID?",
-    "Where is MESOB Center located?",
-    "How much does a trade license cost?",
-    "Book a VIP fast-track ticket",
-  ],
-  am: [
-    "የስራ ሰዓቱ ምን ያህል ነው?",
-    "ፋይዳ መታወቂያ እንዴት ይመዘገባሉ?",
-    "የቲን ቁጥር ለማግኘት ምን ያስፈልጋል?",
-  ],
-  sid: [
-    "Loosu sa'ate hiittoonniiti?",
-    "Fayda wolooma hiitto borreessammo?",
-    "TIN kiiro afidhanno hiitto?",
-  ],
-};
-```
-
----
-
-## Health Check
-
-Check whether the server is reachable before mounting the chat widget:
-
-```
-GET http://10.20.254.64:5000/api/health
-```
-
-**Response:**
-
-```json
-{
-  "status": "ok",
-  "service": "mesob-hawassa-api",
-  "timestamp": "2026-10-16T06:45:00.000Z"
-}
-```
-
-```javascript
-async function checkAPIHealth() {
-  try {
-    const res = await fetch("http://10.20.254.64:5000/api/health", {
-      signal: AbortSignal.timeout(3000),
-    });
-    const data = await res.json();
-    return data.status === "ok";
-  } catch {
-    return false;
-  }
-}
-
-const isOnline = await checkAPIHealth();
-if (isOnline) mountChatWidget();
-else showOfflineMessage("Chatbot temporarily unavailable. Please try again later.");
-```
-
----
-
-## Frequently Asked Questions
-
-**Q: Do I need an API key or token?**  
-No. `/api/chat` is a public endpoint requiring no authentication header.
-
----
-
-**Q: How do I handle the AI wait time?**  
-Check `tier` in the response. If `tier === 3`, show a typing indicator before sending and hide it when the response arrives. `tier === 2` FAQ responses appear in under 50ms — no indicator needed.
-
----
-
-**Q: Can I send Amharic text with `locale: "en"`?**  
-Yes. The `locale` controls the *response language*, not the input language. The AI understands Amharic, Sidaamu Afoo, and English and will reply in whichever locale you specify.
-
----
-
-**Q: What if the Gemini AI backend is down?**  
-The server falls back automatically to a static service context reply (`tier: "context-fallback"`) or polite scope refusal (`tier: "scope-refusal"`). The `reply` field always contains a safe, displayable string.
-
----
-
-**Q: I'm getting a CORS error. What do I do?**  
-Ask the backend developer to add your frontend origin to the `CORS_ORIGIN` environment variable:
-
-```
-CORS_ORIGIN=http://10.20.254.64:5173,http://localhost:5173
-```
-
-Private LAN origins (`http://10.x.x.x:...`, `http://192.168.x.x:...`) are already allowed automatically during development.
-
----
-
-**Q: Can I test from the browser console?**  
-Yes, on any LAN-connected device:
-
-```javascript
-fetch("http://10.20.254.64:5000/api/chat", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ message: "What are the working hours?", locale: "en" }),
-}).then(r => r.json()).then(console.log);
-```
-
----
-
-## Institutions & Services API Reference
-
-The backend exposes full RESTful endpoints for institutions (service providers) and the public services they offer, with built-in trilingual localization (`en`, `am`, `sid`), search, and pagination.
-
-### 1. List All Institutions
+### 1. List Institutions
 
 ```http
-GET /api/institutions?locale=en&page=1&limit=20&search=
+GET /api/institutions?locale=am&page=1&limit=10
 ```
 
-- **Query Parameters**:
-  - `locale`: `"en"` | `"am"` | `"sid"` (Default: `"en"`)
-  - `page`: Page number (Default: `1`)
-  - `limit`: Items per page, 1-50 (Default: `20`)
-  - `search`: Case-insensitive text search matching institution name
-
-- **Response (`200 OK`)**:
+**Response (`200 OK`)**:
 ```json
 {
   "data": [
     {
       "id": "5935b034-cc1d-4504-ab08-b8e301827311",
       "code": "HAWASSA_TRADE",
-      "name": "Hawassa City Administration Trade Bureau",
+      "name": "የሀዋሳ ከተማ አስተዳደር ንግድ ቢሮ",
       "icon": "/city.jpg",
       "floorRoomNumber": "Main Hall, Counter 4",
       "contactPhone": "+251 46 220 1137",
@@ -546,21 +157,19 @@ GET /api/institutions?locale=en&page=1&limit=20&search=
   "meta": {
     "total": 6,
     "page": 1,
-    "limit": 20,
+    "limit": 10,
     "totalPages": 1
   }
 }
 ```
 
----
-
-### 2. Get Single Institution with its Services
+### 2. Single Institution with Embedded Services
 
 ```http
-GET /api/institutions/:id?locale=en
+GET /api/institutions/5935b034-cc1d-4504-ab08-b8e301827311?locale=en
 ```
 
-- **Response (`200 OK`)**:
+**Response (`200 OK`)**:
 ```json
 {
   "id": "5935b034-cc1d-4504-ab08-b8e301827311",
@@ -571,12 +180,13 @@ GET /api/institutions/:id?locale=en
   "contactPhone": "+251 46 220 1137",
   "services": [
     {
-      "id": "...",
+      "id": "c1f7ad42-124b-4b47-...",
       "title": "Trade Name Amendment for Business Organizations",
-      "description": "Service description...",
+      "description": "Approval of legal business name modifications.",
       "requirements": [
         "National ID",
-        "Renewed passport, driver license or digital ID"
+        "Renewed passport, driver license or digital ID",
+        "Draft meeting minutes authorizing name change"
       ],
       "estimatedFee": 150.0,
       "processingDays": 2
@@ -585,69 +195,258 @@ GET /api/institutions/:id?locale=en
 }
 ```
 
----
-
-### 3. Get Paginated Services for an Institution
+### 3. Global Public Services Catalog
 
 ```http
-GET /api/institutions/:id/services?locale=en&page=1&limit=20
+GET /api/services?locale=en&page=1&limit=20&search=Commercial
 ```
+
+Returns flat paginated services with embedded institution profile on each item.
 
 ---
 
-### 4. Global Services Directory (All Institutions)
+## 🌐 Multilingual Support
 
-```http
-GET /api/services?locale=en&page=1&limit=20&search=
-```
+The portal natively supports Ethiopia's prominent administrative languages:
 
-- **Query Parameters**:
-  - `locale`: `"en"` | `"am"` | `"sid"` (Default: `"en"`)
-  - `page`: Page number (Default: `1`)
-  - `limit`: Items per page, 1-50 (Default: `20`)
-  - `search`: Filter services by title across all languages
+| Code | Language | Native Name | Default |
+| :---: | :--- | :--- | :---: |
+| `en` | English | English | ✅ Yes |
+| `am` | Amharic | አማርኛ | — |
+| `sid` | Sidaamu Afoo | Sidaamu Afoo | — |
 
-- **Response (`200 OK`)**:
 ```json
+// Example in Sidaamu Afoo:
+GET /api/institutions?locale=sid
 {
-  "data": [
-    {
-      "id": "...",
-      "title": "Commercial Registration",
-      "description": "...",
-      "requirements": ["..."],
-      "estimatedFee": 300.0,
-      "processingDays": 3,
-      "institution": {
-        "id": "...",
-        "code": "HAWASSA_TRADE",
-        "name": "Hawassa City Administration Trade Bureau",
-        "icon": "/city.jpg",
-        "floorRoomNumber": "Main Hall, Counter 4",
-        "contactPhone": "+251 46 220 1137"
-      }
-    }
-  ],
-  "meta": {
-    "total": 24,
-    "page": 1,
-    "limit": 20,
-    "totalPages": 2
-  }
+  "name": "Hawaasa Quchumi Gashshooti Dureeyye Biiro",
+  ...
 }
 ```
 
 ---
 
-### 5. Get Single Service by ID
+## 🛡️ Security, Rate Limits & Error Handling
 
-```http
-GET /api/services/:id?locale=en
+### Rate Limiting
+
+- **Chatbot (`POST /api/chat`)**: **30 requests / minute** per IP.
+- **General Endpoints (`/api/*`)**: **120 requests / minute** per IP.
+
+Each response contains rate-limit metadata headers:
+- `RateLimit-Limit`: Maximum quota for the window.
+- `RateLimit-Remaining`: Remaining calls available.
+- `RateLimit-Reset`: Seconds remaining until quota reset.
+
+### Error Response Schema
+
+When an error occurs (`400`, `403`, `429`, or `500`), the API returns:
+
+```json
+{
+  "reply": "Friendly message suitable for UI display",
+  "error": "Descriptive technical error message"
+}
 ```
 
-Returns single service object including its parent `institution` details.
+| HTTP Status | Trigger Condition | Code |
+| :---: | :--- | :--- |
+| `400` | Message is missing, empty, or exceeds 500 characters | `Message exceeds 500 characters.` |
+| `400` | Invalid locale parameter | `Unsupported locale specified.` |
+| `400` | Malformed JSON payload | `Invalid JSON payload` |
+| `403` | Unauthorized browser domain violating CORS | `Origin not allowed by CORS policy` |
+| `404` | Institution or Service ID not found | `Institution not found.` |
+| `429` | IP exceeded 30 chat requests / minute | `Too many requests. Rate limit exceeded.` |
+| `500` | Internal server or unhandled runtime error | `Internal server error` |
 
 ---
 
-*Last updated: October 2026 · Branch: `chatbot-integration`*
+## 💻 Frontend Integration Examples
 
+### React Hook (`useChatbot.js`)
+
+```jsx
+import { useState, useCallback } from "react";
+
+const CHAT_ENDPOINT = "http://10.20.254.64:5000/api/chat";
+
+export function useChatbot(locale = "en") {
+  const [messages, setMessages] = useState([]);
+  const [isThinking, setIsThinking] = useState(false);
+  const [error, setError] = useState(null);
+
+  const sendMessage = useCallback(async (userText) => {
+    const text = userText?.trim();
+    if (!text || text.length > 500) return;
+
+    // Append user message immediately
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    setIsThinking(true);
+    setError(null);
+
+    try {
+      const res = await fetch(CHAT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, locale }),
+      });
+
+      if (res.status === 429) {
+        throw new Error("Rate limit exceeded. Please wait a minute.");
+      }
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.reply || data.error);
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.reply, tier: data.tier }
+      ]);
+    } catch (err) {
+      setError(err.message || "Failed to communicate with MESOB.");
+    } finally {
+      setIsThinking(false);
+    }
+  }, [locale]);
+
+  return { messages, isThinking, error, sendMessage };
+}
+```
+
+### Complete UI Component with Markdown (`ChatWidget.jsx`)
+
+```jsx
+import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { useChatbot } from "./useChatbot";
+
+export function ChatWidget({ locale = "en" }) {
+  const [input, setInput] = useState("");
+  const { messages, isThinking, error, sendMessage } = useChatbot(locale);
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (!input.trim() || isThinking) return;
+    sendMessage(input);
+    setInput("");
+  };
+
+  return (
+    <div className="flex flex-col h-[500px] w-96 rounded-2xl shadow-2xl bg-white border border-slate-200 overflow-hidden font-sans">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
+        <h3 className="font-bold text-lg">MESOB Assistant</h3>
+        <p className="text-xs text-emerald-100">Hawassa Public Services & AI Guide</p>
+      </div>
+
+      {/* Message List */}
+      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50">
+        {messages.map((m, idx) => (
+          <div key={idx} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`p-3 max-w-[85%] rounded-2xl text-sm ${
+              m.role === "user"
+                ? "bg-emerald-600 text-white rounded-br-none"
+                : "bg-white text-slate-800 shadow-sm border border-slate-200 rounded-bl-none prose prose-sm"
+            }`}>
+              {/* Note: Assistant replies may contain markdown bullet lists & bold text */}
+              <ReactMarkdown>{m.content}</ReactMarkdown>
+            </div>
+          </div>
+        ))}
+        {isThinking && (
+          <div className="flex items-center space-x-1.5 text-slate-400 text-xs italic p-2">
+            <span className="animate-bounce">●</span>
+            <span className="animate-bounce delay-100">●</span>
+            <span className="animate-bounce delay-200">●</span>
+            <span>MESOB AI is checking service guides...</span>
+          </div>
+        )}
+        {error && (
+          <div className="p-2 text-xs bg-red-50 text-red-600 rounded border border-red-200 text-center">
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Input Field */}
+      <form onSubmit={onSubmit} className="p-3 border-t bg-white flex gap-2">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask a question..."
+          maxLength={500}
+          className="flex-1 px-3 py-2 text-sm border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+        <button
+          type="submit"
+          disabled={!input.trim() || isThinking}
+          className="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition"
+        >
+          Send
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+---
+
+## 🧪 Local Development & Testing
+
+### Prerequisites
+- **Node.js**: v20 or higher
+- **PostgreSQL**: Running instance with `DATABASE_URL` configured in `server/.env`
+
+### Quick Start
+
+```bash
+# 1. Clone repository
+git clone https://github.com/GurmesaAyele/hawassa-mesob.git
+cd hawassa-mesob
+
+# 2. Setup Server
+cd server
+npm install
+npx prisma generate
+npm run dev
+
+# Server will start on http://localhost:5000
+```
+
+### 🔬 Running Automated Tests
+
+The repository includes a comprehensive, 100% automated test suite validating security, rate limiting, CORS, input sanitization, and REST API contracts:
+
+```bash
+cd server
+npm test
+```
+
+```text
+▶ Security Headers & Server Identification
+  ✔ GET /api/health should include Helmet security headers and omit X-Powered-By
+▶ Input Validation & Body Sanitization (POST /api/chat)
+  ✔ Valid English, Amharic, Sidaamu Afoo queries return 200
+  ✔ Empty / Whitespace-only / 500+ char messages return 400
+  ✔ Unsupported locales & malformed JSON return 400
+▶ Scope Guard & Prompt Injection Defense
+  ✔ Off-topic inquiries trigger scope-guard refusal
+  ✔ System prompt leaks / injection attempts are securely deflected
+▶ CORS Origin Hardening
+  ✔ Trusted origins accepted; untrusted origins rejected with 403
+▶ Rate Limiting Enforcement
+  ✔ POST /api/chat enforces per-IP limits and returns RateLimit headers
+▶ Institutions & Services API Endpoints
+  ✔ GET /api/institutions returns multilingual service counts & pagination
+  ✔ GET /api/institutions/:id returns details + nested active services
+  ✔ GET /api/services returns catalog with parent institution metadata
+
+ℹ tests 25 | suites 6 | pass 25 | fail 0
+```
+
+---
+
+<div align="center">
+  <sub>Developed for Hawassa MESOB Center • Hawassa City Administration, Sidama Region, Ethiopia</sub>
+</div>
