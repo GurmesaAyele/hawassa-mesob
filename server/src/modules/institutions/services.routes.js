@@ -1,12 +1,29 @@
 import express from "express";
-import { listAllServices, getService } from "../institutions/institutions.controller.js";
+import {
+  listAllServices,
+  getService,
+  createService,
+  updateService,
+  deleteService,
+} from "./institutions.controller.js";
 
 const router = express.Router();
 
-// GET /api/services
+// ─── Global Service Routes ───────────────────────────────────────────────────
+// GET /api/services - Flat list of services across all institutions
 router.get("/", listAllServices);
 
-// GET /api/services/:id
+// POST /api/services - Create service (requires providerId in body)
+router.post("/", createService);
+
+// GET /api/services/:id - Get single service with parent institution
 router.get("/:id", getService);
+
+// PUT & PATCH /api/services/:id - Update service details
+router.put("/:id", updateService);
+router.patch("/:id", updateService);
+
+// DELETE /api/services/:id - Delete or deactivate service (?permanent=true for hard delete)
+router.delete("/:id", deleteService);
 
 export default router;
