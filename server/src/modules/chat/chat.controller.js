@@ -12,29 +12,67 @@ import { generateGeminiReply, buildSystemPrompt } from "./gemini.js";
  */
 export async function handleChatMessage(req, res) {
   try {
-    const { message, locale = "en" } = req.body || {};
-
-    // ─── Input Validation ──────────────────────────────────
-    if (!message || typeof message !== "string") {
+    // ─── Request Body Type Validation ───────────────────────────
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
       return res.status(400).json({
-        reply: "Please provide a valid message.",
+        reply: "Invalid request payload. Expected a JSON object.",
+        error: "Malformed or non-object request body.",
       });
     }
 
-    const trimmedMessage = message.trim();
-    if (trimmedMessage.length === 0) {
+    const { message, locale, sessionId } = req.body;
+
+    // ─── Message Validation & Sanitization ─────────────────────
+    if (typeof message !== "string") {
+      return res.status(400).json({
+        reply: "Please provide a valid message string.",
+        error: "Message must be a string.",
+      });
+    }
+
+    // Strip unprintable control characters (excluding standard whitespace)
+    const sanitizedMessage = message.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "").trim();
+
+    if (sanitizedMessage.length === 0) {
       return res.status(400).json({
         reply: "Please provide a non-empty message.",
+        error: "Message cannot be empty or whitespace-only.",
       });
     }
 
-    if (trimmedMessage.length > 500) {
+    if (sanitizedMessage.length > 500) {
       return res.status(400).json({
         reply: "Message is too long. Please keep it under 500 characters.",
+        error: "Message exceeds 500 characters.",
       });
     }
 
-    const validLocale = ["en", "am", "sid"].includes(locale) ? locale : "en";
+    // ─── Locale Validation (Strict allowlist) ───────────────────
+    const ALLOWED_LOCALES = ["en", "am", "sid"];
+    let validLocale = "en";
+
+    if (locale !== undefined) {
+      if (typeof locale !== "string" || !ALLOWED_LOCALES.includes(locale)) {
+        return res.status(400).json({
+          reply: "Invalid locale. Supported locales are 'en', 'am', or 'sid'.",
+          error: "Unsupported locale specified.",
+        });
+      }
+      validLocale = locale;
+    }
+
+    // ─── SessionId Validation (UUID format) ─────────────────────
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (sessionId !== undefined) {
+      if (typeof sessionId !== "string" || !UUID_REGEX.test(sessionId)) {
+        return res.status(400).json({
+          reply: "Invalid sessionId. Expected a valid UUID.",
+          error: "Invalid sessionId format.",
+        });
+      }
+    }
+
+    const trimmedMessage = sanitizedMessage;
 
     // ─── TIER 1.5: Off-Topic Scope Guard ─────────────────
     if (isOffTopicQuery(trimmedMessage)) {

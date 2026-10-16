@@ -508,6 +508,10 @@ export async function findFAQAnswer(query, locale = "en") {
   try {
     const faqs = await prisma.chatbotFAQ.findMany({
       where: { isActive: true },
+      select: {
+        question: true,
+        answer: true,
+      },
     });
 
     for (const faq of faqs) {
@@ -547,8 +551,25 @@ export async function searchServicesForContext(query, locale = "en") {
   let services = [];
   try {
     services = await prisma.service.findMany({
-      where: { isActive: true },
-      include: { provider: true },
+      where: {
+        isActive: true,
+        provider: { isActive: true },
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        requirements: true,
+        estimatedFee: true,
+        processingDays: true,
+        provider: {
+          select: {
+            name: true,
+            floorRoomNumber: true,
+            isActive: true,
+          },
+        },
+      },
     });
   } catch (err) {
     console.warn("DB service lookup failed, using static fallback:", err.message);
