@@ -1,4 +1,4 @@
-﻿# Hawassa MESOB Portal — Chatbot API Integration Guide
+# Hawassa MESOB Portal — Chatbot API Integration Guide
 
 > **For frontend developers building the chatbot window UI.**
 > Base URL on the local development network: `http://10.20.254.64:5000`
@@ -513,4 +513,141 @@ fetch("http://10.20.254.64:5000/api/chat", {
 
 ---
 
+## Institutions & Services API Reference
+
+The backend exposes full RESTful endpoints for institutions (service providers) and the public services they offer, with built-in trilingual localization (`en`, `am`, `sid`), search, and pagination.
+
+### 1. List All Institutions
+
+```http
+GET /api/institutions?locale=en&page=1&limit=20&search=
+```
+
+- **Query Parameters**:
+  - `locale`: `"en"` | `"am"` | `"sid"` (Default: `"en"`)
+  - `page`: Page number (Default: `1`)
+  - `limit`: Items per page, 1-50 (Default: `20`)
+  - `search`: Case-insensitive text search matching institution name
+
+- **Response (`200 OK`)**:
+```json
+{
+  "data": [
+    {
+      "id": "5935b034-cc1d-4504-ab08-b8e301827311",
+      "code": "HAWASSA_TRADE",
+      "name": "Hawassa City Administration Trade Bureau",
+      "icon": "/city.jpg",
+      "floorRoomNumber": "Main Hall, Counter 4",
+      "contactPhone": "+251 46 220 1137",
+      "serviceCount": 5
+    }
+  ],
+  "meta": {
+    "total": 6,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 1
+  }
+}
+```
+
+---
+
+### 2. Get Single Institution with its Services
+
+```http
+GET /api/institutions/:id?locale=en
+```
+
+- **Response (`200 OK`)**:
+```json
+{
+  "id": "5935b034-cc1d-4504-ab08-b8e301827311",
+  "code": "HAWASSA_TRADE",
+  "name": "Hawassa City Administration Trade Bureau",
+  "icon": "/city.jpg",
+  "floorRoomNumber": "Main Hall, Counter 4",
+  "contactPhone": "+251 46 220 1137",
+  "services": [
+    {
+      "id": "...",
+      "title": "Trade Name Amendment for Business Organizations",
+      "description": "Service description...",
+      "requirements": [
+        "National ID",
+        "Renewed passport, driver license or digital ID"
+      ],
+      "estimatedFee": 150.0,
+      "processingDays": 2
+    }
+  ]
+}
+```
+
+---
+
+### 3. Get Paginated Services for an Institution
+
+```http
+GET /api/institutions/:id/services?locale=en&page=1&limit=20
+```
+
+---
+
+### 4. Global Services Directory (All Institutions)
+
+```http
+GET /api/services?locale=en&page=1&limit=20&search=
+```
+
+- **Query Parameters**:
+  - `locale`: `"en"` | `"am"` | `"sid"` (Default: `"en"`)
+  - `page`: Page number (Default: `1`)
+  - `limit`: Items per page, 1-50 (Default: `20`)
+  - `search`: Filter services by title across all languages
+
+- **Response (`200 OK`)**:
+```json
+{
+  "data": [
+    {
+      "id": "...",
+      "title": "Commercial Registration",
+      "description": "...",
+      "requirements": ["..."],
+      "estimatedFee": 300.0,
+      "processingDays": 3,
+      "institution": {
+        "id": "...",
+        "code": "HAWASSA_TRADE",
+        "name": "Hawassa City Administration Trade Bureau",
+        "icon": "/city.jpg",
+        "floorRoomNumber": "Main Hall, Counter 4",
+        "contactPhone": "+251 46 220 1137"
+      }
+    }
+  ],
+  "meta": {
+    "total": 24,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 2
+  }
+}
+```
+
+---
+
+### 5. Get Single Service by ID
+
+```http
+GET /api/services/:id?locale=en
+```
+
+Returns single service object including its parent `institution` details.
+
+---
+
 *Last updated: October 2026 · Branch: `chatbot-integration`*
+
