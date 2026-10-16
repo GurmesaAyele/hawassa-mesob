@@ -8,12 +8,46 @@ const Navbar = () => {
 
   const languages = ['English', 'Amharic', 'Sidama'];
 
+  // Translations for navbar
+  const translations = {
+    English: {
+      home: 'Home',
+      institutions: 'Institutions',
+      services: 'Services',
+      contact: 'Contact',
+      serviceCatalogue: 'Service Catalogue',
+      aboutUs: 'About Us'
+    },
+    Amharic: {
+      home: 'ዋና ገጽ',
+      institutions: 'ተቋማት',
+      services: 'አገልግሎቶች',
+      contact: 'ያግኙን',
+      serviceCatalogue: 'የአገልግሎት ዝርዝር',
+      aboutUs: 'ስለ እኛ'
+    },
+    Sidama: {
+      home: 'Home', // TODO: Add Sidama translation
+      institutions: 'Institutions',
+      services: 'Services',
+      contact: 'Contact',
+      serviceCatalogue: 'Service Catalogue',
+      aboutUs: 'About Us'
+    }
+  };
+
   useEffect(() => {
     // Check for saved dark mode preference
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     setDarkMode(savedDarkMode);
     if (savedDarkMode) {
       document.documentElement.classList.add('dark');
+    }
+
+    // Check for saved language preference
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage) {
+      setLanguage(savedLanguage);
     }
   }, []);
 
@@ -33,6 +67,8 @@ const Navbar = () => {
     setLanguage(lang);
     setShowLanguageDropdown(false);
     localStorage.setItem('language', lang);
+    // Dispatch custom event for language change
+    window.dispatchEvent(new CustomEvent('languageChange', { detail: lang }));
   };
 
   const scrollToSection = (sectionId) => {
@@ -41,6 +77,8 @@ const Navbar = () => {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  const t = translations[language] || translations.English;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-16" style={{
@@ -62,37 +100,37 @@ const Navbar = () => {
             onClick={() => scrollToSection('home')}
             className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
-            Home
+            {t.home}
           </button>
           <button 
             onClick={() => scrollToSection('institutions')}
             className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
-            Institutions
+            {t.institutions}
           </button>
           <button 
             onClick={() => scrollToSection('services')}
             className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
-            Services
+            {t.services}
           </button>
           <button 
             onClick={() => scrollToSection('contact')}
             className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
-            Contact
+            {t.contact}
           </button>
           <button 
             onClick={() => scrollToSection('service-catalogue')}
             className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
-            Service Catalogue
+            {t.serviceCatalogue}
           </button>
           <button 
             onClick={() => scrollToSection('about-us')}
             className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
           >
-            About Us
+            {t.aboutUs}
           </button>
 
           {/* Dark Mode Toggle - White background */}

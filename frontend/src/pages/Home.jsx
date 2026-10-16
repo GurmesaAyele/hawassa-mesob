@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Chatbot from '../components/Chatbot';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
@@ -6,11 +6,55 @@ import heroImg from '../assets/hero.png';
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [language, setLanguage] = useState('English');
+
+  // Hero section translations
+  const heroTranslations = {
+    English: {
+      mainHeading: 'All Services, One Place',
+      subtitle: 'Serving Hawassa City Residents',
+      description: 'Access multiple city services faster, efficiently, and under one roof',
+      searchPlaceholder: 'Search for Services or Organizations'
+    },
+    Amharic: {
+      mainHeading: 'ሁሉም አገልግሎቶች ፣ በአንድ ቦታ',
+      subtitle: 'ለሀዋሳ ከተማ ነዋሪዎች',
+      description: 'በርካታ የከተማ አገልግሎቶችን በፍጥነት በተቀላጠፈ ሁኔታ በአንድ ጣራ ሥር ያግኙ',
+      searchPlaceholder: 'የመንግስት አገልግሎት ይፈልጉ'
+    },
+    Sidama: {
+      mainHeading: 'All Services, One Place', // TODO: Add Sidama translation
+      subtitle: 'Serving Hawassa City Residents',
+      description: 'Access multiple city services faster, efficiently, and under one roof',
+      searchPlaceholder: 'Search for Services or Organizations'
+    }
+  };
+
+  useEffect(() => {
+    // Check for saved language preference
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage) {
+      setLanguage(savedLanguage);
+    }
+
+    // Listen for language change events from Navbar
+    const handleLanguageChange = (event) => {
+      setLanguage(event.detail);
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+
+    return () => {
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
   };
+
+  const t = heroTranslations[language] || heroTranslations.English;
 
   return (
     <div className="min-h-screen">
@@ -44,17 +88,17 @@ const Home = () => {
 
             {/* Main Heading */}
             <h1 className="text-6xl font-bold text-white mb-4 leading-tight">
-              All Services, One Place
+              {t.mainHeading}
             </h1>
 
             {/* Subtitle */}
             <p className="text-2xl text-white mb-3">
-              Serving Hawassa City Residents
+              {t.subtitle}
             </p>
 
             {/* Description */}
             <p className="text-lg text-white/90 mb-6">
-              Access multiple city services faster, efficiently, and under one roof
+              {t.description}
             </p>
 
             {/* Search Bar */}
@@ -64,7 +108,7 @@ const Home = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for Services or Organizations"
+                  placeholder={t.searchPlaceholder}
                   className="w-full px-8 py-5 pr-16 rounded-full text-white placeholder-white/80 border-none focus:outline-none focus:ring-2 focus:ring-white/30 text-lg"
                   style={{ backgroundColor: '#294491' }}
                 />
