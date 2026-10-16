@@ -96,6 +96,57 @@ const Home = () => {
     }
   };
 
+  // Contact form translations
+  const contactTranslations = {
+    English: {
+      heading: 'Send Message',
+      nameLabel: 'Name',
+      namePlaceholder: 'Enter your name',
+      emailLabel: 'Email',
+      emailPlaceholder: 'Enter your email',
+      phoneLabel: 'Phone',
+      phonePlaceholder: 'Enter your phone number',
+      messageLabel: 'Message',
+      messagePlaceholder: 'Enter your message',
+      verificationText: "Type the word you see below to verify you're human:",
+      verificationPlaceholder: 'Enter the word',
+      submitBtn: 'Send Message',
+      required: '*'
+    },
+    Amharic: {
+      // TODO: Add Amharic translations below
+      heading: 'መልእክት ይላኩ', // Add translation here
+      nameLabel: 'ስም *', // Add translation here
+      namePlaceholder: 'ስምዎን ያስገቡ', // Add translation here
+      emailLabel: 'ኢሜይል *', // Add translation here
+      emailPlaceholder: 'ኢሜይልዎን ያስገቡ', // Add translation here
+      phoneLabel: 'ስልክ', // Add translation here
+      phonePlaceholder: 'ስልክ ቁጥርዎን ያስገቡ', // Add translation here
+      messageLabel: 'መልእክት *', // Add translation here
+      messagePlaceholder: 'መልእክትዎን ያስገቡ', // Add translation here
+      verificationText: "እርስዎ ሰው መሆንዎን ለማረጋገጥ ከዚህ በታች የሚታየውን ቃል ይፃፉ:", // Add translation here
+      verificationPlaceholder: 'ቃሉን ያስገቡ', // Add translation here
+      submitBtn: 'መልእክት ላክ', // Add translation here
+      required: '*' // Keep as is
+    },
+    Sidama: {
+      // TODO: Add Sidama translations below
+      heading: 'Send Message', // Add translation here
+      nameLabel: 'Name', // Add translation here
+      namePlaceholder: 'Enter your name', // Add translation here
+      emailLabel: 'Email', // Add translation here
+      emailPlaceholder: 'Enter your email', // Add translation here
+      phoneLabel: 'Phone', // Add translation here
+      phonePlaceholder: 'Enter your phone number', // Add translation here
+      messageLabel: 'Message', // Add translation here
+      messagePlaceholder: 'Enter your message', // Add translation here
+      verificationText: "Type the word you see below to verify you're human:", // Add translation here
+      verificationPlaceholder: 'Enter the word', // Add translation here
+      submitBtn: 'Send Message', // Add translation here
+      required: '*' // Keep as is
+    }
+  };
+
   useEffect(() => {
     // Check for saved language preference
     const savedLanguage = localStorage.getItem('language');
@@ -151,6 +202,7 @@ const Home = () => {
 
   const t = heroTranslations[language] || heroTranslations.English;
   const st = servicesTranslations[language] || servicesTranslations.English;
+  const ct = contactTranslations[language] || contactTranslations.English;
 
   return (
     <div className="min-h-screen">
@@ -388,14 +440,14 @@ const Home = () => {
         <div className="max-w-4xl mx-auto ml-20 relative z-10">
           {/* Contact Form */}
           <div className="rounded-3xl p-8" style={{ backgroundColor: '#111827' }}>
-            <h2 className="text-[38px] font-bold mb-6" style={{ color: '#F8FAFC' }}>Send Message</h2>
+            <h2 className="text-[38px] font-bold mb-6" style={{ color: '#F8FAFC' }}>{ct.heading}</h2>
             
             <form onSubmit={handleFormSubmit} className="space-y-5">
               {/* Name and Email Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
-                    Name <span style={{ color: '#EF4444' }}>*</span>
+                    {ct.nameLabel} <span style={{ color: '#EF4444' }}>{ct.required}</span>
                   </label>
                   <input
                     type="text"
@@ -403,7 +455,7 @@ const Home = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    placeholder="Enter your name"
+                    placeholder={ct.namePlaceholder}
                     className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
                     style={{ 
                       backgroundColor: '#1F2937',
@@ -415,7 +467,7 @@ const Home = () => {
                 </div>
                 <div>
                   <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
-                    Email <span style={{ color: '#EF4444' }}>*</span>
+                    {ct.emailLabel} <span style={{ color: '#EF4444' }}>{ct.required}</span>
                   </label>
                   <input
                     type="email"
@@ -423,7 +475,7 @@ const Home = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    placeholder="Enter your email"
+                    placeholder={ct.emailPlaceholder}
                     className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
                     style={{ 
                       backgroundColor: '#1F2937',
@@ -437,13 +489,13 @@ const Home = () => {
 
               {/* Phone */}
               <div>
-                <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>Phone</label>
+                <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>{ct.phoneLabel}</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="Enter your phone number"
+                  placeholder={ct.phonePlaceholder}
                   className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
                   style={{ 
                     backgroundColor: '#1F2937',
@@ -457,7 +509,7 @@ const Home = () => {
               {/* Message */}
               <div>
                 <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
-                  Message <span style={{ color: '#EF4444' }}>*</span>
+                  {ct.messageLabel} <span style={{ color: '#EF4444' }}>{ct.required}</span>
                 </label>
                 <textarea
                   name="message"
@@ -465,7 +517,7 @@ const Home = () => {
                   onChange={handleInputChange}
                   required
                   rows="4"
-                  placeholder="Enter your message"
+                  placeholder={ct.messagePlaceholder}
                   className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all resize-none"
                   style={{ 
                     backgroundColor: '#1F2937',
@@ -479,7 +531,7 @@ const Home = () => {
               {/* Human Verification */}
               <div className="rounded-xl p-5" style={{ backgroundColor: '#1F2937', borderColor: '#374151', borderWidth: '1px' }}>
                 <p className="text-center mb-3" style={{ color: '#E2E8F0', fontSize: '16px' }}>
-                  Type the word you see below to verify you're human:
+                  {ct.verificationText}
                 </p>
                 
                 {/* Verification Word Display */}
@@ -515,7 +567,7 @@ const Home = () => {
                   value={formData.verification}
                   onChange={handleInputChange}
                   required
-                  placeholder="Enter the word"
+                  placeholder={ct.verificationPlaceholder}
                   className="w-full px-4 py-2.5 rounded-xl border text-white text-center placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
                   style={{ 
                     backgroundColor: '#111827',
@@ -532,7 +584,7 @@ const Home = () => {
                 className="w-full py-3.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
                 style={{ backgroundColor: '#2563EB' }}
               >
-                Send Message
+                {ct.submitBtn}
               </button>
             </form>
           </div>
