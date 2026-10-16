@@ -7,6 +7,21 @@ import heroImg from '../assets/hero.png';
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [language, setLanguage] = useState('English');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+    verification: ''
+  });
+  const [verificationWord, setVerificationWord] = useState('');
+
+  // Generate random verification word on component mount
+  useEffect(() => {
+    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
+    const randomWord = words[Math.floor(Math.random() * words.length)];
+    setVerificationWord(randomWord);
+  }, []);
 
   // Hero section translations
   const heroTranslations = {
@@ -27,6 +42,57 @@ const Home = () => {
       subtitle: 'Hawassa Katama Mannu Oosate',
       description: 'Katama Oosuwa Baala, Albi Loosamme, Mittu Dargu Afiinni',
       searchPlaceholder: 'Gawajju Oosuwa woy Biiro Hasa'
+    }
+  };
+
+  // Seamless Public Services section translations
+  const servicesTranslations = {
+    English: {
+      seamless: 'Seamless',
+      publicServices: 'Public Services',
+      inCity: 'in Hawassa.',
+      accessDesc: 'Access government services from 9 public institutions in one place.',
+      exploreBtn: 'Explore Services',
+      learnBtn: 'Learn More',
+      // Feature cards
+      digitalTitle: 'Digital Services',
+      digitalDesc: 'Apply for permits online',
+      supportTitle: 'Citizen Support',
+      supportDesc: '24/7 assistance available',
+      processingTitle: 'Quick Processing',
+      processingDesc: 'Fast and efficient service'
+    },
+    Amharic: {
+      // TODO: Add Amharic translations below
+      seamless: 'ምቹ', // Add translation here
+      publicServices: 'የሕዝብ አገልግሎት', // Add translation here
+      inCity: 'በሀዋሳ ', // Add translation here
+      accessDesc: '18 የመንግሥት ተቋማት አገልግሎቶችን በአንድ ማዕከል ያግኙ:: ', // Add translation here
+      exploreBtn: 'አገልግሎቶችን ይመልከቱ', // Add translation here
+      learnBtn: 'ተጨማሪ ይመልከቱ', // Add translation here
+      // Feature cards
+      digitalTitle: 'ድጅታል አገልግሎቶች', // Add translation here
+      digitalDesc: 'በመረበ መቀመጫ ፍቃድ ያመልክቱ', // Add translation here
+      supportTitle: 'የዜጋ ድጋፍ', // Add translation here
+      supportDesc: '24/7 ድጋፍ ይገኛል', // Add translation here
+      processingTitle: 'ፈጣን አገልግሎት', // Add translation here
+      processingDesc: 'ፈጣን እና ቀልጣፋ አገልግሎት በአንድ ቦታ' // Add translation here
+    },
+    Sidama: {
+      // TODO: Add Sidama translations below
+      seamless: 'Seamless', // Add translation here
+      publicServices: 'Public Services', // Add translation here
+      inCity: 'in Hawassa.', // Add translation here
+      accessDesc: 'Access government services from 9 public institutions in one place.', // Add translation here
+      exploreBtn: 'Explore Services', // Add translation here
+      learnBtn: 'Learn More', // Add translation here
+      // Feature cards
+      digitalTitle: 'Digital Services', // Add translation here
+      digitalDesc: 'Apply for permits online', // Add translation here
+      supportTitle: 'Citizen Support', // Add translation here
+      supportDesc: '24/7 assistance available', // Add translation here
+      processingTitle: 'Quick Processing', // Add translation here
+      processingDesc: 'Fast and efficient service' // Add translation here
     }
   };
 
@@ -54,6 +120,28 @@ const Home = () => {
     console.log('Searching for:', searchQuery);
   };
 
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    if (formData.verification.toUpperCase() !== verificationWord) {
+      alert('Verification failed. Please enter the correct word.');
+      return;
+    }
+    console.log('Form submitted:', formData);
+    alert('Message sent successfully!');
+    // Reset form
+    setFormData({ name: '', email: '', phone: '', message: '', verification: '' });
+    // Generate new verification word
+    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
+    setVerificationWord(words[Math.floor(Math.random() * words.length)]);
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -62,6 +150,7 @@ const Home = () => {
   };
 
   const t = heroTranslations[language] || heroTranslations.English;
+  const st = servicesTranslations[language] || servicesTranslations.English;
 
   return (
     <div className="min-h-screen">
@@ -144,97 +233,97 @@ const Home = () => {
       </section>
 
       {/* Seamless Public Services Section */}
-      <section className="relative py-24 px-6 overflow-hidden" style={{ backgroundColor: '#172231' }}>
+      <section className="relative py-20 px-6 overflow-hidden" style={{ backgroundColor: '#172231' }}>
         {/* Background Glow Effects */}
         <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]"></div>
         <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left Column - Text Content */}
             <div>
-              <h2 className="text-[clamp(3rem,5vw,4.5rem)] font-[800] leading-tight mb-6">
-                <span style={{ color: '#F8FAFC' }}>Seamless</span>
+              <h2 className="text-[clamp(2.5rem,4.5vw,3.75rem)] font-[800] leading-tight mb-5">
+                <span style={{ color: '#F8FAFC' }}>{st.seamless}</span>
                 <br />
-                <span style={{ color: '#2563EB' }}>Public Services</span>
+                <span style={{ color: '#2563EB' }}>{st.publicServices}</span>
                 <br />
-                <span style={{ color: '#F8FAFC' }}>in Hawassa.</span>
+                <span style={{ color: '#F8FAFC' }}>{st.inCity}</span>
               </h2>
               
-              <p className="text-[clamp(1.25rem,2vw,1.75rem)] mb-8" style={{ color: '#CBD5E1' }}>
-                Access government services from 9 public institutions in one place.
+              <p className="text-[clamp(1.125rem,1.75vw,1.5rem)] mb-7" style={{ color: '#CBD5E1' }}>
+                {st.accessDesc}
               </p>
 
               {/* Buttons */}
               <div className="flex gap-4">
                 <button 
                   onClick={() => scrollToSection('service-catalogue')}
-                  className="px-8 py-4 rounded-xl font-semibold text-[22px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
+                  className="px-7 py-3.5 rounded-xl font-semibold text-[19px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
                   style={{ backgroundColor: '#2563EB' }}
                 >
-                  Explore Services →
+                  {st.exploreBtn} →
                 </button>
                 <button 
                   onClick={() => scrollToSection('services')}
-                  className="px-8 py-4 rounded-xl font-semibold text-[22px] transition-all duration-200 hover:translate-y-[-2px]"
+                  className="px-7 py-3.5 rounded-xl font-semibold text-[19px] transition-all duration-200 hover:translate-y-[-2px]"
                   style={{ 
                     color: '#CBD5E1', 
                     border: '1px solid #334155',
                     backgroundColor: 'transparent'
                   }}
                 >
-                  Learn More
+                  {st.learnBtn}
                 </button>
               </div>
             </div>
 
             {/* Right Column - Feature Panel */}
-            <div className="rounded-3xl p-8 border" style={{ 
+            <div className="rounded-2xl p-6 border" style={{ 
               backgroundColor: '#1F2A39',
               borderColor: '#334155'
             }}>
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Digital Services Card */}
-                <div className="p-6 rounded-2xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#1E3A5F' }}>
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-lg" style={{ backgroundColor: '#2563EB' }}>
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#1E3A5F' }}>
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: '#2563EB' }}>
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-[22px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>Digital Services</h3>
-                      <p className="text-[19px]" style={{ color: '#CBD5E1' }}>Apply for permits online</p>
+                      <h3 className="text-[19px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>{st.digitalTitle}</h3>
+                      <p className="text-[16px]" style={{ color: '#CBD5E1' }}>{st.digitalDesc}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Citizen Support Card */}
-                <div className="p-6 rounded-2xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#1E4D3B' }}>
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-lg" style={{ backgroundColor: '#10B981' }}>
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#1E4D3B' }}>
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: '#10B981' }}>
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-[22px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>Citizen Support</h3>
-                      <p className="text-[19px]" style={{ color: '#CBD5E1' }}>24/7 assistance available</p>
+                      <h3 className="text-[19px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>{st.supportTitle}</h3>
+                      <p className="text-[16px]" style={{ color: '#CBD5E1' }}>{st.supportDesc}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Quick Processing Card */}
-                <div className="p-6 rounded-2xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#3B2D5C' }}>
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-lg" style={{ backgroundColor: '#8B5CF6' }}>
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="p-5 rounded-xl transition-all duration-200 hover:translate-x-1" style={{ backgroundColor: '#3B2D5C' }}>
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-lg" style={{ backgroundColor: '#8B5CF6' }}>
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-[22px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>Quick Processing</h3>
-                      <p className="text-[19px]" style={{ color: '#CBD5E1' }}>Fast and efficient service</p>
+                      <h3 className="text-[19px] font-semibold mb-1" style={{ color: '#F8FAFC' }}>{st.processingTitle}</h3>
+                      <p className="text-[16px]" style={{ color: '#CBD5E1' }}>{st.processingDesc}</p>
                     </div>
                   </div>
                 </div>
@@ -289,67 +378,158 @@ const Home = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="min-h-screen bg-gray-100 dark:bg-gray-900 py-20 px-6 transition-colors">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Contact Us</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Get in touch with us for any inquiries
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Contact Info */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Contact Information</h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="bg-[#3d5a99] p-3 rounded-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">Email</p>
-                    <p className="text-gray-600 dark:text-gray-300">info@hawassamob.gov.et</p>
-                  </div>
+      <section id="contact" className="min-h-screen py-20 px-6 relative overflow-hidden" style={{ 
+        background: 'linear-gradient(135deg, #172231 0%, #1C2839 100%)'
+      }}>
+        {/* Background Glow Effects */}
+        <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/5 rounded-full blur-[100px]"></div>
+
+        <div className="max-w-3xl mx-auto relative z-10">
+          {/* Contact Form */}
+          <div className="rounded-3xl p-10" style={{ backgroundColor: '#111827' }}>
+            <h2 className="text-[46px] font-bold mb-8" style={{ color: '#F8FAFC' }}>Send Message</h2>
+            
+            <form onSubmit={handleFormSubmit} className="space-y-6">
+              {/* Name and Email Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-[23px] mb-3" style={{ color: '#E2E8F0' }}>
+                    Name <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter your name"
+                    className="w-full px-5 py-4 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
+                    style={{ 
+                      backgroundColor: '#1F2937',
+                      borderColor: '#374151',
+                      borderWidth: '1px'
+                    }}
+                  />
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="bg-[#3d5a99] p-3 rounded-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">Phone</p>
-                    <p className="text-gray-600 dark:text-gray-300">+251 46 XXX XXXX</p>
-                  </div>
+                <div>
+                  <label className="block text-[23px] mb-3" style={{ color: '#E2E8F0' }}>
+                    Email <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter your email"
+                    className="w-full px-5 py-4 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
+                    style={{ 
+                      backgroundColor: '#1F2937',
+                      borderColor: '#374151',
+                      borderWidth: '1px'
+                    }}
+                  />
                 </div>
               </div>
-            </div>
 
-            {/* Contact Form */}
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Send Message</h3>
-              <form className="space-y-4">
+              {/* Phone */}
+              <div>
+                <label className="block text-[23px] mb-3" style={{ color: '#E2E8F0' }}>Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="Enter your phone number"
+                  className="w-full px-5 py-4 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
+                  style={{ 
+                    backgroundColor: '#1F2937',
+                    borderColor: '#374151',
+                    borderWidth: '1px'
+                  }}
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-[23px] mb-3" style={{ color: '#E2E8F0' }}>
+                  Message <span style={{ color: '#EF4444' }}>*</span>
+                </label>
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  required
+                  rows="5"
+                  placeholder="Enter your message"
+                  className="w-full px-5 py-4 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all resize-none"
+                  style={{ 
+                    backgroundColor: '#1F2937',
+                    borderColor: '#374151',
+                    borderWidth: '1px'
+                  }}
+                />
+              </div>
+
+              {/* Human Verification */}
+              <div className="rounded-xl p-6" style={{ backgroundColor: '#1F2937', borderColor: '#374151', borderWidth: '1px' }}>
+                <p className="text-center mb-4" style={{ color: '#E2E8F0', fontSize: '18px' }}>
+                  Type the word you see below to verify you're human:
+                </p>
+                
+                {/* Verification Word Display */}
+                <div className="flex justify-center mb-4">
+                  <div className="bg-white px-8 py-4 rounded-lg">
+                    <span className="text-3xl font-bold tracking-wider" style={{ 
+                      color: '#000',
+                      fontFamily: 'monospace',
+                      letterSpacing: '8px'
+                    }}>
+                      {verificationWord}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
+                      setVerificationWord(words[Math.floor(Math.random() * words.length)]);
+                    }}
+                    className="ml-3 p-3 rounded-full hover:bg-white/10 transition-colors"
+                    style={{ backgroundColor: '#2563EB' }}
+                  >
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Verification Input */}
                 <input
                   type="text"
-                  placeholder="Your Name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3d5a99] outline-none"
+                  name="verification"
+                  value={formData.verification}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter the word"
+                  className="w-full px-5 py-3 rounded-xl border text-white text-center placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
+                  style={{ 
+                    backgroundColor: '#111827',
+                    borderColor: '#374151',
+                    borderWidth: '1px'
+                  }}
                 />
-                <input
-                  type="email"
-                  placeholder="Your Email"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3d5a99] outline-none"
-                />
-                <textarea
-                  placeholder="Your Message"
-                  rows="4"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3d5a99] outline-none"
-                />
-                <button className="w-full bg-[#3d5a99] text-white py-3 rounded-lg font-semibold hover:bg-[#2d4a7f] transition">
-                  Send Message
-                </button>
-              </form>
-            </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full py-4 rounded-xl font-semibold text-[20px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
+                style={{ backgroundColor: '#2563EB' }}
+              >
+                Send Message
+              </button>
+            </form>
           </div>
         </div>
       </section>
