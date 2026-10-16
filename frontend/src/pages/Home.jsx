@@ -385,16 +385,16 @@ const Home = () => {
         <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px]"></div>
         <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/5 rounded-full blur-[100px]"></div>
 
-        <div className="max-w-3xl mx-auto relative z-10">
+        <div className="max-w-4xl mx-auto ml-20 relative z-10">
           {/* Contact Form */}
-          <div className="rounded-3xl p-10" style={{ backgroundColor: '#111827' }}>
-            <h2 className="text-[46px] font-bold mb-8" style={{ color: '#F8FAFC' }}>Send Message</h2>
+          <div className="rounded-3xl p-8" style={{ backgroundColor: '#111827' }}>
+            <h2 className="text-[38px] font-bold mb-6" style={{ color: '#F8FAFC' }}>Send Message</h2>
             
-            <form onSubmit={handleFormSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} className="space-y-5">
               {/* Name and Email Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-[23px] mb-3" style={{ color: '#E2E8F0' }}>
+                  <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
                     Name <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
@@ -404,16 +404,17 @@ const Home = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="Enter your name"
-                    className="w-full px-5 py-4 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
+                    className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
                     style={{ 
                       backgroundColor: '#1F2937',
                       borderColor: '#374151',
-                      borderWidth: '1px'
+                      borderWidth: '1px',
+                      fontSize: '16px'
                     }}
                   />
                 </div>
                 <div>
-                  <label className="block text-[23px] mb-3" style={{ color: '#E2E8F0' }}>
+                  <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
                     Email <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
@@ -423,11 +424,12 @@ const Home = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="Enter your email"
-                    className="w-full px-5 py-4 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
+                    className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
                     style={{ 
                       backgroundColor: '#1F2937',
                       borderColor: '#374151',
-                      borderWidth: '1px'
+                      borderWidth: '1px',
+                      fontSize: '16px'
                     }}
                   />
                 </div>
@@ -435,25 +437,26 @@ const Home = () => {
 
               {/* Phone */}
               <div>
-                <label className="block text-[23px] mb-3" style={{ color: '#E2E8F0' }}>Phone</label>
+                <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>Phone</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
                   placeholder="Enter your phone number"
-                  className="w-full px-5 py-4 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
+                  className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
                   style={{ 
                     backgroundColor: '#1F2937',
                     borderColor: '#374151',
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    fontSize: '16px'
                   }}
                 />
               </div>
 
               {/* Message */}
               <div>
-                <label className="block text-[23px] mb-3" style={{ color: '#E2E8F0' }}>
+                <label className="block text-[19px] mb-2" style={{ color: '#E2E8F0' }}>
                   Message <span style={{ color: '#EF4444' }}>*</span>
                 </label>
                 <textarea
@@ -461,30 +464,31 @@ const Home = () => {
                   value={formData.message}
                   onChange={handleInputChange}
                   required
-                  rows="5"
+                  rows="4"
                   placeholder="Enter your message"
-                  className="w-full px-5 py-4 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all resize-none"
                   style={{ 
                     backgroundColor: '#1F2937',
                     borderColor: '#374151',
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    fontSize: '16px'
                   }}
                 />
               </div>
 
               {/* Human Verification */}
-              <div className="rounded-xl p-6" style={{ backgroundColor: '#1F2937', borderColor: '#374151', borderWidth: '1px' }}>
-                <p className="text-center mb-4" style={{ color: '#E2E8F0', fontSize: '18px' }}>
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#1F2937', borderColor: '#374151', borderWidth: '1px' }}>
+                <p className="text-center mb-3" style={{ color: '#E2E8F0', fontSize: '16px' }}>
                   Type the word you see below to verify you're human:
                 </p>
                 
                 {/* Verification Word Display */}
-                <div className="flex justify-center mb-4">
-                  <div className="bg-white px-8 py-4 rounded-lg">
-                    <span className="text-3xl font-bold tracking-wider" style={{ 
+                <div className="flex justify-center mb-3">
+                  <div className="bg-white px-6 py-3 rounded-lg">
+                    <span className="text-2xl font-bold tracking-wider" style={{ 
                       color: '#000',
                       fontFamily: 'monospace',
-                      letterSpacing: '8px'
+                      letterSpacing: '6px'
                     }}>
                       {verificationWord}
                     </span>
@@ -495,10 +499,10 @@ const Home = () => {
                       const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
                       setVerificationWord(words[Math.floor(Math.random() * words.length)]);
                     }}
-                    className="ml-3 p-3 rounded-full hover:bg-white/10 transition-colors"
+                    className="ml-3 p-2.5 rounded-full hover:bg-white/10 transition-colors"
                     style={{ backgroundColor: '#2563EB' }}
                   >
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                   </button>
@@ -512,11 +516,12 @@ const Home = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter the word"
-                  className="w-full px-5 py-3 rounded-xl border text-white text-center placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl border text-white text-center placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all"
                   style={{ 
                     backgroundColor: '#111827',
                     borderColor: '#374151',
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    fontSize: '16px'
                   }}
                 />
               </div>
@@ -524,7 +529,7 @@ const Home = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-4 rounded-xl font-semibold text-[20px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
+                className="w-full py-3.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg"
                 style={{ backgroundColor: '#2563EB' }}
               >
                 Send Message
