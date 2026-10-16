@@ -42,7 +42,7 @@ const corsOptions = {
     }
     return callback(new Error(`Origin '${origin}' not allowed by CORS policy`), false);
   },
-  methods: ["GET", "POST", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
   maxAge: 86400,
