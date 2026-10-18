@@ -106,7 +106,7 @@ const Navbar = () => {
           <img 
             src={logo} 
             alt="Hawassa Mesob Logo" 
-            className="h-14 w-14"
+            className="h-14 w-14 rounded-full object-cover"
             style={{ animation: 'spin-slow 8s linear infinite' }}
           />
         </button>
