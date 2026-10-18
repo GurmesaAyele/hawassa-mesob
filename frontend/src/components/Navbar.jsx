@@ -152,12 +152,12 @@ const Navbar = () => {
           {/* Dark Mode Toggle - Light in light mode, dark slate in dark mode, swap icons */}
           <button 
             onClick={toggleDarkMode}
-            className="ml-6 p-2 rounded-full bg-white dark:bg-[#374151] hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            className="ml-6 p-2.5 rounded-full bg-white dark:bg-[#374151] hover:bg-gray-200 dark:hover:bg-gray-500 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
           >
             {darkMode ? (
               // Show SUN icon in dark mode (to switch to light)
               <svg 
-                className="w-4 h-4 text-gray-800 dark:text-white" 
+                className="w-5 h-5 text-gray-800 dark:text-white" 
                 fill="currentColor" 
                 viewBox="0 0 20 20"
               >
@@ -170,7 +170,7 @@ const Navbar = () => {
             ) : (
               // Show MOON icon in light mode (to switch to dark)
               <svg 
-                className="w-4 h-4 text-gray-800" 
+                className="w-5 h-5 text-gray-800" 
                 fill="currentColor" 
                 viewBox="0 0 20 20"
               >
@@ -179,23 +179,17 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Language Selector - Pill shape with globe icon */}
+          {/* Language Selector - Pill shape with globe emoji */}
           <div className="relative ml-2">
             <button 
               onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#374151] text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 font-medium transition-colors whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#374151] text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-500 hover:scale-105 font-medium transition-all duration-200 whitespace-nowrap shadow-sm hover:shadow-md"
               style={{ borderRadius: '9999px' }}
             >
-              {/* Globe Icon */}
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path 
-                  fillRule="evenodd" 
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" 
-                  clipRule="evenodd" 
-                />
-              </svg>
+              {/* Globe Emoji */}
+              <span className="text-base">🌐</span>
               <span className="text-sm">{language}</span>
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path 
                   fillRule="evenodd" 
                   d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
