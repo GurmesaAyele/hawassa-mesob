@@ -82,15 +82,20 @@ const VIPTicket = () => {
   return (
     <>
       {/* VIP Ticket Button - Left Side */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 left-6 z-50 p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-200"
-        style={{ backgroundColor: '#CB9D2A' }}
-      >
-        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-        </svg>
-      </button>
+      <div className="fixed bottom-6 left-6 z-50 flex flex-col items-center gap-2">
+        <span className="text-xs font-medium px-2 py-1 rounded text-white shadow-lg" style={{ backgroundColor: '#CB9D2A' }}>
+          VIP Ticket
+        </span>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-200"
+          style={{ backgroundColor: '#CB9D2A' }}
+        >
+          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+          </svg>
+        </button>
+      </div>
 
       {/* VIP Ticket Modal */}
       {isOpen && (
