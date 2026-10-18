@@ -149,22 +149,15 @@ const Navbar = () => {
             {t.aboutUs}
           </button>
 
-          {/* Dark Mode Toggle - White background */}
+          {/* Dark Mode Toggle - Light in light mode, dark slate in dark mode, swap icons */}
           <button 
             onClick={toggleDarkMode}
-            className="ml-6 p-2.5 rounded-full bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+            className="ml-6 p-2 rounded-full bg-white dark:bg-[#374151] hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
           >
             {darkMode ? (
+              // Show SUN icon in dark mode (to switch to light)
               <svg 
-                className="w-5 h-5 text-black dark:text-white" 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
-              >
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
-            ) : (
-              <svg 
-                className="w-5 h-5 text-gray-800" 
+                className="w-4 h-4 text-gray-800 dark:text-white" 
                 fill="currentColor" 
                 viewBox="0 0 20 20"
               >
@@ -174,16 +167,27 @@ const Navbar = () => {
                   clipRule="evenodd" 
                 />
               </svg>
+            ) : (
+              // Show MOON icon in light mode (to switch to dark)
+              <svg 
+                className="w-4 h-4 text-gray-800" 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
             )}
           </button>
 
-          {/* Language Selector - White background */}
+          {/* Language Selector - Pill shape with globe icon */}
           <div className="relative ml-2">
             <button 
               onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-white dark:bg-black text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 font-medium transition-colors whitespace-nowrap"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#374151] text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 font-medium transition-colors whitespace-nowrap"
+              style={{ borderRadius: '9999px' }}
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              {/* Globe Icon */}
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path 
                   fillRule="evenodd" 
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" 
@@ -191,7 +195,7 @@ const Navbar = () => {
                 />
               </svg>
               <span className="text-sm">{language}</span>
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path 
                   fillRule="evenodd" 
                   d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
