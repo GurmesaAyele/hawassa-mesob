@@ -101,12 +101,13 @@ const Navbar = () => {
       background: 'linear-gradient(to right, #294491 0%, #203B87 45%, #756951 72%, #CB9D2A 100%)'
     }}>
       <div className="flex items-center justify-between h-full px-6">
-        {/* Logo */}
+        {/* Logo - Spinning slowly */}
         <button onClick={() => scrollToSection('home')} className="flex items-center gap-2">
           <img 
             src={logo} 
             alt="Hawassa Mesob Logo" 
-            className="h-10 w-10 animate-spin-slow"
+            className="h-14 w-14"
+            style={{ animation: 'spin-slow 8s linear infinite' }}
           />
         </button>
 
