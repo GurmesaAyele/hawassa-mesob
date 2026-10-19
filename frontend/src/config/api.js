@@ -11,6 +11,19 @@ export const API_CONFIG = {
     // Expected response format: Array of institution objects
     // [{ id, name, logo?, description?, bgColor?, services?: [{ id, name, description?, duration?, cost?, requirements? }] }]
     INSTITUTIONS: '/api/institutions',
+    
+    // Expected response format: Array of news objects
+    // [{ id, title, content, date, image?, author? }]
+    NEWS: '/api/news',
+    
+    // Expected response format: Array of video objects
+    // [{ id, title, youtubeUrl, description?, thumbnail?, date? }]
+    VIDEOS: '/api/videos',
+    
+    // Expected response format: Array of announcement objects
+    // [{ id, title, content, date, priority?, type? }]
+    ANNOUNCEMENTS: '/api/announcements',
+    
     SERVICES: '/api/services',
     CHATBOT: 'http://10.20.254.64:5000/api/chat', // Your existing chatbot API
     VIP_TICKET: '/api/vip-ticket',

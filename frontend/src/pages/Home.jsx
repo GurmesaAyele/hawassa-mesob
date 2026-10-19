@@ -4,6 +4,9 @@ import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
 import InstitutionCard from '../components/InstitutionCard';
 import InstitutionModal from '../components/InstitutionModal';
+import NewsSection from '../components/NewsSection';
+import VideosSection from '../components/VideosSection';
+import AnnouncementsSection from '../components/AnnouncementsSection';
 import { API_CONFIG, apiCall } from '../config/api';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
@@ -732,6 +735,15 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* News Section */}
+      <NewsSection />
+
+      {/* Videos Section */}
+      <VideosSection />
+
+      {/* Announcements Section */}
+      <AnnouncementsSection />
 
       {/* About Us Section */}
       <section id="about-us" className="min-h-screen bg-gray-100 dark:bg-gray-900 py-20 px-6 transition-colors">
