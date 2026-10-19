@@ -4,9 +4,6 @@ import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
 import InstitutionCard from '../components/InstitutionCard';
 import InstitutionModal from '../components/InstitutionModal';
-import NewsSection from '../components/NewsSection';
-import VideosSection from '../components/VideosSection';
-import AnnouncementsSection from '../components/AnnouncementsSection';
 import { API_CONFIG, apiCall } from '../config/api';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
@@ -732,43 +729,6 @@ const Home = () => {
           </p>
           <div className="text-center">
             <p className="text-gray-600 dark:text-gray-300 text-lg">Service catalogue content coming soon...</p>
-          </div>
-        </div>
-      </section>
-
-      {/* News Section */}
-      <NewsSection />
-
-      {/* Videos Section */}
-      <VideosSection />
-
-      {/* Announcements Section */}
-      <AnnouncementsSection />
-
-      {/* About Us Section */}
-      <section id="about-us" className="min-h-screen bg-gray-100 dark:bg-gray-900 py-20 px-6 transition-colors">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">About Us</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Learn more about Hawassa Mesob
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
-              <div className="text-5xl mb-4">🎯</div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Mission</h3>
-              <p className="text-gray-600 dark:text-gray-300">To provide efficient and accessible government services to all Hawassa City residents.</p>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
-              <div className="text-5xl mb-4">👁️</div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Our Vision</h3>
-              <p className="text-gray-600 dark:text-gray-300">A digitally connected city where every resident has easy access to essential services.</p>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
-              <div className="text-5xl mb-4">⭐</div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Core Values</h3>
-              <p className="text-gray-600 dark:text-gray-300">Efficiency, Security, and Accessibility in all our services.</p>
-            </div>
           </div>
         </div>
       </section>

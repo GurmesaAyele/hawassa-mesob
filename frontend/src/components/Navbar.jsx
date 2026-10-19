@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/images/messob_logo.png';
 
 const Navbar = () => {
   const [language, setLanguage] = useState('English');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [showAboutUsDropdown, setShowAboutUsDropdown] = useState(false);
   const [darkMode, setDarkMode] = useState(true); // Default to true (dark mode on)
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const languages = ['English', 'Amharic', 'Sidama'];
 
@@ -89,11 +91,34 @@ const Navbar = () => {
   };
 
   const scrollToSection = (sectionId) => {
+    // If not on home page, navigate to home first
+    if (location.pathname !== '/') {
+      navigate('/', { state: { scrollTo: sectionId } });
+      return;
+    }
+
+    // If on home page, scroll to section
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+  };
+
+  // Handle scroll on navigation from other pages
+  useEffect(() => {
+    if (location.state?.scrollTo) {
+      setTimeout(() => {
+        const element = document.getElementById(location.state.scrollTo);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [location]);
 
   const t = translations[language] || translations.English;
 
@@ -102,8 +127,8 @@ const Navbar = () => {
       background: 'linear-gradient(to right, #294491 0%, #203B87 45%, #756951 72%, #CB9D2A 100%)'
     }}>
       <div className="flex items-center justify-between h-full px-6">
-        {/* Logo - Spinning slowly */}
-        <button onClick={() => scrollToSection('home')} className="flex items-center gap-2">
+        {/* Logo */}
+        <button onClick={() => handleNavigation('/')} className="flex items-center gap-2">
           <img 
             src={logo} 
             alt="Hawassa Mesob Logo" 
@@ -139,65 +164,19 @@ const Navbar = () => {
             {t.contact}
           </button>
           <button 
-            onClick={() => scrollToSection('service-catalogue')}
+            onClick={() => handleNavigation('/service-catalogue')}
             className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
           >
             {t.serviceCatalogue}
           </button>
           
-          {/* About Us with Dropdown */}
-          <div 
-            className="relative"
-            onMouseEnter={() => setShowAboutUsDropdown(true)}
-            onMouseLeave={() => setShowAboutUsDropdown(false)}
+          {/* About Us - Navigate to separate page */}
+          <button 
+            onClick={() => handleNavigation('/about-us')}
+            className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
           >
-            <button 
-              onClick={() => scrollToSection('about-us')}
-              className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap flex items-center gap-1"
-            >
-              {t.aboutUs}
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path 
-                  fillRule="evenodd" 
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-                  clipRule="evenodd" 
-                />
-              </svg>
-            </button>
-
-            {/* Dropdown Menu */}
-            {showAboutUsDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 animate-fadeIn">
-                <button
-                  onClick={() => {
-                    scrollToSection('news');
-                    setShowAboutUsDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  News
-                </button>
-                <button
-                  onClick={() => {
-                    scrollToSection('videos');
-                    setShowAboutUsDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Videos
-                </button>
-                <button
-                  onClick={() => {
-                    scrollToSection('announcements');
-                    setShowAboutUsDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Announcements
-                </button>
-              </div>
-            )}
-          </div>
+            {t.aboutUs}
+          </button>
 
           {/* Dark Mode Toggle - Light in light mode, dark slate in dark mode, swap icons */}
           <button 
