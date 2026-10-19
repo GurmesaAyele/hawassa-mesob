@@ -2,6 +2,7 @@ import Navbar from '../components/Navbar';
 import NewsSection from '../components/NewsSection';
 import VideosSection from '../components/VideosSection';
 import AnnouncementsSection from '../components/AnnouncementsSection';
+import MapLocationSection from '../components/MapLocationSection';
 import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
 
@@ -30,6 +31,9 @@ const AboutUs = () => {
 
       {/* Announcements Section */}
       <AnnouncementsSection />
+
+      {/* Map & Headquarters Location Section */}
+      <MapLocationSection />
 
       {/* Footer Section (Optional) */}
       <section className="bg-[#1a1f2e] py-12 px-6">

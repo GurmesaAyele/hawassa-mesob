@@ -4,6 +4,10 @@ import helmet from "helmet";
 import chatRoutes from "./modules/chat/chat.routes.js";
 import institutionRoutes from "./modules/institutions/institutions.routes.js";
 import serviceRoutes from "./modules/institutions/services.routes.js";
+import videoRoutes from "./modules/videos/videos.routes.js";
+import mapRoutes, { contactRouter } from "./modules/map/map.routes.js";
+import newsRoutes from "./modules/news/news.routes.js";
+import announcementRoutes from "./modules/announcements/announcements.routes.js";
 import { generalRateLimiter } from "./middleware/rate-limiter.js";
 
 const app = express();
@@ -66,6 +70,12 @@ app.get("/api/health", (req, res) => {
 app.use("/api/chat", chatRoutes);
 app.use("/api/institutions", institutionRoutes);
 app.use("/api/services", serviceRoutes);
+app.use("/api/videos", videoRoutes);
+app.use("/api/map", mapRoutes);
+app.use("/api/location", mapRoutes);
+app.use("/api/contact", contactRouter);
+app.use("/api/news", newsRoutes);
+app.use("/api/announcements", announcementRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────
 app.use((req, res) => {
