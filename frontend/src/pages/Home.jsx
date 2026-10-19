@@ -720,19 +720,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Service Catalogue Section */}
-      <section id="service-catalogue" className="min-h-screen bg-white dark:bg-gray-800 py-20 px-6 transition-colors">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Service Catalogue</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Browse our comprehensive service catalogue
-          </p>
-          <div className="text-center">
-            <p className="text-gray-600 dark:text-gray-300 text-lg">Service catalogue content coming soon...</p>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-[#1a1d2e] text-white py-12 px-6">
         <div className="max-w-7xl mx-auto text-center">
