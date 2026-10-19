@@ -19,8 +19,8 @@ async function main() {
         code: inst.code,
         name: inst.name,
         icon: inst.logoUrl,
-        floorRoomNumber: inst.floorRoomNumber || ("Main Hall, Counter " + (Math.floor(Math.random() * 15) + 1)),
-        contactPhone: inst.contactPhone || ("+251 46 220 " + (1100 + Math.floor(Math.random() * 50))),
+        floorRoomNumber: inst.floorRoomNumber || null,
+        contactPhone: inst.contactPhone || null,
         services: {
           create: inst.services.map((s) => ({
             id: s.id,

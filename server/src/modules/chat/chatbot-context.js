@@ -590,7 +590,7 @@ export async function searchServicesForContext(query, locale = "en") {
         processingDays: s.processingDays,
         provider: {
           name: inst.name,
-          floorRoomNumber: inst.floorRoomNumber || "Main Hall, Counter 1-15",
+          floorRoomNumber: inst.floorRoomNumber || null,
         },
       }))
     );
@@ -633,13 +633,14 @@ export async function searchServicesForContext(query, locale = "en") {
         .filter(Boolean)
         .join(", ");
 
+      const floorInfo = service.provider?.floorRoomNumber ? `\nFloor/Room: ${service.provider.floorRoomNumber}` : "";
+
       return `Service: ${title}
 Provider: ${provider}
 Description: ${desc}
 Requirements: ${reqList || "N/A"}
 Fee: ${service.estimatedFee ? `${service.estimatedFee} ETB` : "Free"}
-Processing: ${service.processingDays ? `${service.processingDays} business days` : "1 business day"}
-Floor/Room: ${service.provider.floorRoomNumber || "Main Hall, Service Counter"}`;
+Processing: ${service.processingDays ? `${service.processingDays} business days` : "1 business day"}${floorInfo}`;
     })
     .join("\n\n---\n\n");
 }
