@@ -5,25 +5,73 @@ export const FALLBACK_FAQS = [
   {
     keywords: ["hello", "hi", "hey", "greetings", "selam", "ሰላም", "keero", "keer", "morning", "afternoon"],
     answer: {
-      en: "Hello! Welcome to the Hawassa MESOB Center Assistant. How can I assist you today? You can ask about our 13 public institutions, services (e.g. Sidama Bank, CBE, TIN number, construction permits, trade licenses), or VIP ticket bookings.",
-      am: "ሰላም! ወደ ሀዋሳ መሶብ ማዕከል ረዳት እንኳን ደህና መጡ። ዛሬ እንዴት ልረዳዎ እችላለሁ? ስለ 13ቱ ተቋማት፣ አገልግሎቶች (ለምሳሌ ሲዳማ ባንክ፣ ንግድ ባንክ፣ የቲን ቁጥር፣ የግንባታ ፈቃድ፣ የንግድ ፈቃድ) ወይም ስለ ቪአይፒ ቲኬት መጠየቅ ይችላሉ።",
-      sid: "Keero! Hawaasa MESOOBE Bayichi Kaa'laanchoho bagaan daggini. Techo ma garinni kaa'lo'ne? 13 gashshootu biirooti agurrote (lawishshaho Sidaama Baanke, Daldalu Baanke, TIN kiiro, minate eegeera) woy VIP tikkeetete xa'ma dandiitinanni.",
+      en: "Hello! Welcome to the Hawassa MESOB Center Assistant. How can I assist you today? You can ask about our 13 public institutions, services (e.g. Ethiopian Origin ID, Fayda National ID, Trade licenses, Electric recharge, Telebirr, CBE, Sidama Bank, TIN registration, Postal services), or VIP ticket bookings.",
+      am: "ሰላም! ወደ ሀዋሳ መሶብ ማዕከል ረዳት እንኳን ደህና መጡ። ዛሬ እንዴት ልረዳዎ እችላለሁ? ስለ 13ቱ ተቋማት፣ አገልግሎቶች (ለምሳሌ የትውልደ ኢትዮጵያውያን መታወቂያ፣ ፋይዳ፣ ንግድ ፈቃድ፣ ኤሌክትሪክ ካርድ፣ ቴሌብር፣ ንግድ ባንክ፣ ሲዳማ ባንክ፣ ቲን ቁጥር) ወይም ስለ ቪአይፒ ቲኬት መጠየቅ ይችላሉ።",
+      sid: "Keero! Hawaasa MESOOBE Bayichi Kaa'laanchoho bagaan daggini. Techo ma garinni kaa'lo'ne? 13 gashshootu biirooti agurrote (lawishshaho Itiyoophiyu Dhalote Wolooma, Fayda, Daldalu Eegeera, Elektirike, Telebirre, Baanke, TIN kiiro) woy VIP tikkeetete xa'ma dandiitinanni.",
     },
   },
   {
-    keywords: ["sidama bank", "bank", "banking", "ሲዳማ ባንክ", "ባንክ", "sidaama baanke", "baanke", "cbe", "commercial bank"],
+    keywords: ["origin id", "yellow card", "ethiopian origin", "ቢጫ ካርድ", "የትውልደ ኢትዮጵያውያን መታወቂያ", "bicha kaarde"],
     answer: {
-      en: "**Banking Services (Sidama Bank & CBE)**\nLocation: Hawassa MESOB Center Main Hall, Counters 7 & 8\n\nRequirements:\n1. Valid National ID (Fayda / Kebele Resident ID)\n2. Two passport-size photos for new account opening\n3. Registered mobile phone\n\nFee: Free for account opening\nProcessing time: 10–15 minutes\n\nServices: Account opening, government revenue & fee payments, money transfers, and digital banking.",
-      am: "**የባንክ አገልግሎቶች (ሲዳማ ባንክ እና የኢትዮጵያ ንግድ ባንክ)**\nአድራሻ: የሀዋሳ መሶብ ማዕከል ዋና አዳራሽ፣ መስኮት 7 እና 8\n\nየሚያስፈልጉት:\n1. የታደሰ መታወቂያ (ፋይዳ / የቀበሌ መታወቂያ)\n2. ለሂሳብ መክፈቻ 2 ጉርድ ፎቶግራፎች\n3. ንቁ የስልክ ቁጥር\n\nክፍያ: ለሂሳብ መክፈት ነፃ\nየሚፈጅበት ጊዜ: ከ 10-15 ደቂቃ",
-      sid: "**Baankete Agurrote (Sidaama Baanke fi CBE)**\nBayicho: Hawaasa MESOOBE Bayichi Waana Huuro, Masqoote 7 fi 8\n\nHasiissannori:\n1. Fayda woy Qabaleete wolooma\n2. Herrego fa'nate 2 suwisa\n3. Bilbila\n\nWaaga: Herrego fa'nate baatooshshu nookkiha\nYanna: 10–15 daqiiqa",
+      en: "**Ethiopian Origin ID (Yellow Card)**\nProvider: Immigration and Citizenship Service (ICS)\nLocation: Hawassa MESOB Center\n\nKey Requirements:\n1. Completed application form\n2. Valid ordinary passport (valid > 6 months)\n3. Copy of entry visa & date stamp\n4. Machine-readable Ethiopian passport or authenticated birth certificate\n5. Parents' Ethiopian ID/passport (if parents are Ethiopian citizens)\n6. Recent passport-sized photograph\n\nFee: 300 USD (Regular) / 400 USD (Urgent)\nNote: In-person appearance is mandatory (proxy is not permitted). Daily penalty applies for late renewal.",
+      am: "**የትውልደ ኢትዮጵያውያን መታወቂያ (ቢጫ ካርድ)**\nአቅራቢ፦ የኢሚግሬሽንና ዜግነት አገልግሎት\nአድራሻ፦ የሀዋሳ መሶብ ማዕከል\n\nዋና ዋና መስፈርቶች፦\n1. የተሞላ የማመልከቻ ቅጽ\n2. ከ6 ወር በላይ የሚያገለግል ህጋዊ ፓስፖርት\n3. የመግቢያ ቪዛ ቅጂ እና የቀን ማህተም\n4. በማሽን የሚነበብ የኢትዮጵያ ፓስፖርት ወይም የተረጋገጠ የልደት ሰርተፍኬት\n5. የወላጆች የኢትዮጵያ መታወቂያ/ፓስፖርት ቅጂ\n6. የቅርብ ጊዜ የፓስፖርት መጠን ፎቶግራፍ\n\nክፍያ፦ 300 USD (መደበኛ) / 400 USD (አጣዳፊ)\nማስታወሻ፦ በአካል መቅረብ ግዴታ ነው (በውክልና አይፈቀድም)። በወቅቱ ካልታደሰ የቀን ቅጣት አለው።",
+      sid: "**Itiyoophiyu Dhalote Wolooma Kaarde (Bicha Kaarde)**\nBiiro: Imigreeshiinete fi Lamroomu Agurro\nBayicho: Hawaasa MESOOBE Bayicho\n\nHasiissannori:\n1. Wonshinoha huuccattote borro\n2. 6 aganira sa'e loosasira dandaanno seeramu paaspoorte\n3. E'ote viiza kopppe fi yannate xaphpho\n4. Maashineni nabbabbanno paaspoorte woy ilote wolooma\n5. Annu/Amatu wolooma kopppe\n6. Muli yannara ka'inoha paaspoorte foote\n\nWaaga: 300 USD (Qara) / 400 USD (Daafurrote)\nUmikki daate hasiisanno (riqiwotenni di-uyinanni).",
     },
   },
   {
     keywords: ["fayda", "fayida", "national id", "id card", "national identity", "ፋይዳ", "ብሔራዊ መታወቂያ", "መታወቂያ", "wolooma", "dagate wolooma", "fayda wolooma"],
     answer: {
-      en: "**National ID (Fayda) Enrollment**\nLocation: Hawassa MESOB Center, Counters 3 & 4 (Biometric Desk)\n\nRequirements:\n1. Valid Kebele Resident ID or Passport / Birth Certificate\n2. In-person biometric capture (digital photo, fingerprints, and iris scan)\n3. Active mobile phone number for OTP verification\n\nFee: Free of charge (100% Free)\nProcessing time: 15–20 minutes (Digital ID number delivered immediately via SMS)",
-      am: "**የብሔራዊ ዲጂታል መታወቂያ (ፋይዳ) ምዝገባ**\nአድራሻ: የሀዋሳ መሶብ ማዕከል፣ መስኮት 3 እና 4 (የባዮሜትሪክስ ክፍል)\n\nየሚያስፈልጉት:\n1. የታደሰ የቀበሌ መታወቂያ ወይም ፓስፖርት / የልደት ምስክር ወረቀት\n2. በአካል በመገኘት የጣት አሻራ፣ የፊት ፎቶ እና የአይን ባዮሜትሪክስ መስጠት\n3. ንቁ የስልክ ቁጥር ለኤስኤምኤስ ማረጋገጫ\n\nክፍያ: ሙሉ በሙሉ ነፃ (0 ብር)\nየሚፈጅበት ጊዜ: ከ 15-20 ደቂቃ",
-      sid: "**Daganna Fayda Wolooma Borreessiro**\nBayicho: Hawaasa MESOOBE Bayicho, Masqoote 3 fi 4\n\nHasiissannori:\n1. Qabaleete wolooma woy Paaspoorte/Ilote wolooma\n2. Umikki daate aanoho agadha\n3. Hasiissanno bilbila\n\nWaaga: Baatooshshu nookkiha (100% Free)\nYanna: 15–20 daqiiqa",
+      en: "**National ID (Fayda) Enrollment**\nLocation: Hawassa MESOB Center (Biometric Enrollment Desk)\n\nRequirements:\n1. Valid Kebele Resident ID or Passport / Birth Certificate / Student ID / Driving License\n2. In-person biometric capture (digital photo, 10 fingerprints, and iris scan)\n3. Active mobile phone number for OTP verification\n\nFee: 100% Free of charge (0 ETB)\nProcessing time: 8–10 minutes (Digital ID FIN delivered immediately via SMS)",
+      am: "**የብሔራዊ ዲጂታል መታወቂያ (ፋይዳ) ምዝገባ**\nአድራሻ: የሀዋሳ መሶብ ማዕከል (የባዮሜትሪክስ ምዝገባ)\n\nየሚያስፈልጉት:\n1. የታደሰ የቀበሌ መታወቂያ / ፓስፖርት / የልደት ምስክር ወረቀት / የተማሪ መታወቂያ / መንጃ ፈቃድ\n2. በአካል በመገኘት የጣት አሻራ፣ የፊት ፎቶ እና የአይን ባዮሜትሪክስ መስጠት\n3. ንቁ የስልክ ቁጥር ለኤስኤምኤስ ማረጋገጫ\n\nክፍያ: ሙሉ በሙሉ ነፃ (0 ብር)\nየሚፈጅበት ጊዜ: ከ 8–10 ደቂቃ",
+      sid: "**Daganna Fayda Wolooma Borreessiro**\nBayicho: Hawaasa MESOOBE Bayicho\n\nHasiissannori:\n1. Qabaleete wolooma woy Paaspoorte / Ilote wolooma / Rosu wolooma\n2. Umikki daate aanoho agadha\n3. Hasiissanno bilbila\n\nWaaga: Baatooshshu nookkiha (100% Free)\nYanna: 8–10 daqiiqa",
+    },
+  },
+  {
+    keywords: ["electricity", "electric", "power", "eeu", "recharge", "ኤሌክትሪክ", "ቆጣሪ", "መብራት", "elektirike"],
+    answer: {
+      en: "**Electricity Prepaid Meter Recharge**\nProvider: Ethiopian Electric Utility (EEU)\nLocation: Hawassa MESOB Center\n\nRequirement: Prepaid Electricity Recharge Card / Meter Card\nFee: Free of charge (0 ETB service fee)\nProcessing time: 2 minutes (Instant token issuance)",
+      am: "**የቅድመ ክፍያ ኤሌክትሪክ ካርድ መሙላት**\nአቅራቢ፦ የኢትዮጵያ ኤሌክትሪክ አገልግሎት\nአድራሻ፦ የሀዋሳ መሶብ ማዕከል\n\nየሚያስፈልገው፦ የቅድመ ክፍያ ኤሌክትሪክ ቆጣሪ ካርድ\nክፍያ፦ ነፃ (የአገልግሎት ክፍያ የለውም)\nየሚፈጅበት ጊዜ፦ 2 ደቂቃ (ወዲያውኑ ይሰጣል)",
+      sid: "**Balaxe Baantanni Elektirike Kaarde Wonsha**\nBiiro: Itiyoophiyu Elektirike Agurro\nBayicho: Hawaasa MESOOBE Bayicho\n\nHasiissannori: Balaxe baantanni elektirike kaarde\nWaaga: Baatooshshu nookkiha (0 ETB)\nYanna: 2 daqiiqa",
+    },
+  },
+  {
+    keywords: ["sidama bank", "bank", "banking", "ሲዳማ ባንክ", "ባንክ", "sidaama baanke", "baanke", "cbe", "commercial bank"],
+    answer: {
+      en: "**Banking Services (Sidama Bank & Commercial Bank of Ethiopia)**\nLocation: Hawassa MESOB Center Main Hall\n\nRequirements:\n1. Valid National ID (Fayda / Renewed Resident ID or Passport)\n2. Passport-size photographs\n3. Active mobile number registered in applicant's name\n4. Initial deposit for account opening\n\nFee: Free for account opening & digital banking setup\nProcessing time: 5–25 minutes",
+      am: "**የባንክ አገልግሎቶች (ሲዳማ ባንክ እና የኢትዮጵያ ንግድ ባንክ)**\nአድራሻ: የሀዋሳ መሶብ ማዕከል ዋና አዳራሽ\n\nየሚያስፈልጉት:\n1. የታደሰ መታወቂያ (ፋይዳ / የቀበሌ መታወቂያ ወይም ፓስፖርት)\n2. የፓስፖርት መጠን ፎቶግራፍ\n3. በአመልካች ስም የተመዘገበ ንቁ የስልክ ቁጥር\n4. ለሂሳብ መክፈቻ የመጀመሪያ ተቀማጭ ገንዘብ\n\nክፍያ: ነፃ\nየሚፈጅበት ጊዜ: ከ 5–25 ደቂቃ",
+      sid: "**Baankete Agurrote (Sidaamu Baanke fi CBE)**\nBayicho: Hawaasa MESOOBE Bayicho\n\nHasiissannori:\n1. Fayda woy Qabaleete wolooma woy Paaspoorte\n2. Paaspoorte kiiro foote\n3. Loosanno bilbila\n4. Umi qusate woxe\n\nWaaga: Baatooshshu nookkiha (Free)\nYanna: 5–25 daqiiqa",
+    },
+  },
+  {
+    keywords: ["tin", "tax", "revenues", "ግብር", "ቲን", "gibira"],
+    answer: {
+      en: "**Taxpayer TIN Issuance**\nProvider: Hawassa City Revenue Authority\nLocation: Hawassa MESOB Center\n\nRequirements:\n1. Valid National ID / Passport\n2. Business registration certificate (for businesses)\n\nFee: Free of charge (0 ETB)\nProcessing time: 10 minutes",
+      am: "**የግብር ከፋይ መለያ ቁጥር (ቲን) አሰጣጥ**\nአቅራቢ: የሀዋሳ ከተማ ገቢዎች ባለስልጣን\nአድራሻ: የሀዋሳ መሶብ ማዕከል\n\nየሚያስፈልጉት:\n1. የታደሰ ብሔራዊ መታወቂያ ወይም ፓስፖርት\n2. የንግድ ምዝገባ ምስክር ወረቀት (ለንግድ ድርጅቶች)\n\nክፍያ: ነፃ (0 ብር)\nየሚፈጅበት ጊዜ: 10 ደቂቃ",
+      sid: "**Gibirshu Badate Kiiro (TIN) Uya**\nBiiro: Hawaasa Katamu Gibiru Biiro\nBayicho: Hawaasa MESOOBE Bayicho\n\nHasiissannori:\n1. Daganna Wolooma woy Paaspoorte\n2. Daldalu borreessiro (daldalu diriyeetira)\n\nWaaga: Baatooshshu nookkiha (Free)\nYanna: 10 daqiiqa",
+    },
+  },
+  {
+    keywords: ["telebirr", "telecom", "ethio telecom", "ቴሌብር", "ቴሌኮም", "telebirri"],
+    answer: {
+      en: "**Ethio Telecom & Telebirr Services**\nProvider: Ethio Telecom\nLocation: Hawassa MESOB Center\n\nServices:\n1. Telebirr Service: Registration, tier upgrade, and PIN assistance (Free, 5 min)\n2. Enterprise Service: Enterprise license, TIN, registration paper, official stamp with application letter (Free, 5 min)",
+      am: "**የኢትዮ ቴሌኮም እና የቴሌብር አገልግሎቶች**\nአቅራቢ፦ ኢትዮ ቴሌኮም\nአድራሻ፦ የሀዋሳ መሶብ ማዕከል\n\nአገልግሎቶች:\n1. የቴሌብር አገልግሎት፦ ምዝገባ፣ የሂሳብ ደረጃ ማሻሻያ እና የይለፍ ቃል እርዳታ (ነፃ፣ 5 ደቂቃ)\n2. የድርጅት አገልግሎት፦ የድርጅት ፈቃድ፣ TIN፣ የምዝገባ ሰነድ እና ማህተም የተደረገበት ደብዳቤ (ነፃ፣ 5 ደቂቃ)",
+      sid: "**Itiyo Telekoome fi Telebirri Agurrote**\nBiiro: Itiyo Telekoome\nBayicho: Hawaasa MESOOBE Bayicho\n\nAgurubba:\n1. Telebirri Agurro: Wolooma ledo borreessa fi pini soorra (Free, 5 daqiiqa)\n2. Diriyeetete Agurro: Diriyeetete eegeera, TIN kakkalooshsha fi maashsha ledo (Free, 5 daqiiqa)",
+    },
+  },
+  {
+    keywords: ["trade", "license", "business registration", "ንግድ ፈቃድ", "ንግድ ምዝገባ", "daldalu"],
+    answer: {
+      en: "**Trade and Market Services**\nProvider: Trade and Market Services\nLocation: Hawassa MESOB Center\n\nServices:\n1. Business Registration: Request, 3x4 Photo, TIN, National ID (102 ETB, 15 min)\n2. License Renewal: Request & Tax Clearance (102 ETB, 15 min)\n3. Registering New Business: Application, 3x4 Photo, TIN, National ID (102 ETB, 15 min)\n4. Giving Business Name: 3 proposed names, 3x4 Photo, TIN, National ID (127 ETB, 20 min)\n5. Verify Names: 3 names, 3x4 Photo, TIN, National ID (27 ETB, 20 min)\n6. Modify License: Application, National ID, 3x4 Photo (82 ETB, 10 min)\n7. Amending Registration: Application, National ID, 3x4 Photo (102 ETB, 15 min)",
+      am: "**የንግድና ገበያ አገልግሎት**\nአቅራቢ፦ የንግድና ገበያ መምሪያ\nአድራሻ፦ የሀዋሳ መሶብ ማዕከል\n\nአገልግሎቶች፦\n1. የንግድ ምዝገባ፦ ማመልከቻ፣ 3x4 ፎቶ፣ TIN፣ ብሔራዊ መታወቂያ (102 ብር፣ 15 ደቂቃ)\n2. የንግድ ፈቃድ ማደስ፦ ማመልከቻ እና የታክስ ክሊራንስ (102 ብር፣ 15 ደቂቃ)\n3. አዲስ ንግድ ምዝገባ፦ ማመልከቻ፣ 3x4 ፎቶ፣ TIN፣ መታወቂያ (102 ብር፣ 15 ደቂቃ)\n4. የንግድ ስም ማውጣት፦ 3 አማራጭ ስሞች፣ 3x4 ፎቶ፣ TIN፣ መታወቂያ (127 ብር፣ 20 ደቂቃ)\n5. ስም ማረጋገጥ፦ 3 አማራጭ ስሞች፣ ፎቶ፣ TIN፣ መታወቂያ (27 ብር፣ 20 ደቂቃ)\n6. የንግድ ፈቃድ ማሻሻል፦ ማመልከቻ፣ መታወቂያ፣ ፎቶ (82 ብር፣ 10 ደቂቃ)\n7. የንግድ ምዝገባ ማሻሻያ፦ ማመልከቻ፣ መታወቂያ፣ ፎቶ (102 ብር፣ 15 ደቂቃ)",
+      sid: "**Daldalu fi Gabaate Agurro**\nBiiro: Daldalu fi Gabaate Biiro\nBayicho: Hawaasa MESOOBE Bayicho\n\nAgurubba:\n1. Daldalu Borreessiro: Huuccatto, 3x4 foote, TIN, Wolooma (102 ETB, 15 daqiiqa)\n2. Eegeera Haaroonsa: Huuccatto fi Gibirshu woraqata (102 ETB, 15 daqiiqa)\n3. Haaro Daldala Borreessa: Huuccatto, 3x4 foote, TIN, Wolooma (102 ETB, 15 daqiiqa)\n4. Daldalu Su'ma Fusha: 3 su'mma, 3x4 foote, TIN, Wolooma (127 ETB, 20 daqiiqa)\n5. Eegeera Soorira: Huuccatto, Wolooma, Foote (82 ETB, 10 daqiiqa)",
+    },
+  },
+  {
+    keywords: ["post", "postal", "ems", "examination", "ፖስታ", "ፈተና", "postaho"],
+    answer: {
+      en: "**Ethiopian Postal Service**\nProvider: Ethiopian Postal Service\nLocation: Hawassa MESOB Center\n\nServices:\n1. National Examination Document Handling: National ID / Passport, support letters, recipient address (EMS: 450 ETB, ~15 min)\n2. National ID (NID) Card Printing & Distribution: Delivery and collection of physical Fayda ID cards",
+      am: "**የኢትዮጵያ ፖስታ አገልግሎት**\nአቅራቢ፦ የኢትዮጵያ ፖስታ አገልግሎት\nአድራሻ፦ የሀዋሳ መሶብ ማዕከል\n\nአገልግሎቶች፦\n1. የብሔራዊ ፈተናዎች ሰነድ አገልግሎት፦ መታወቂያ/ፓስፖርት፣ የድጋፍ ደብዳቤ፣ የተቀባይ አድራሻ (EMS: 450 ብር፣ 15 ደቂቃ)\n2. የብሔራዊ መታወቂያ (ፋይዳ) ካርድ ህትመትና ስርጭት፦ የታተሙ ካርዶችን ማድረስ እና ማሰራጨት",
+      sid: "**Itiyoophiyu Postaho Agurro**\nBiiro: Itiyoophiyu Postaho Agurro\nBayicho: Hawaasa MESOOBE Bayicho\n\nAgurubba:\n1. Daganna Qara Fantooshshu Borro Agurro: Wolooma/paaspoorte, sokkote borro (EMS: 450 ETB, 15 daqiiqa)\n2. Fayda Wolooma Kaarde Attaminanna Beehate Agurro",
     },
   },
   {
@@ -56,14 +104,6 @@ export const FALLBACK_FAQS = [
       en: "**Contact Hawassa MESOB Center**\nLocation: Municipal Roundabout, Hawassa City\n\nPhone: +251 46 220 1100 / +251 46 220 1101\nEmail: info@mesobhawassa.gov.et",
       am: "**የሀዋሳ መሶብ ማዕከል የእውቂያ አድራሻ**\nአድራሻ: ማዘጋጃ ቤት አደባባይ አጠገብ፣ ሀዋሳ ከተማ\n\nስልክ: +251 46 220 1100 / +251 46 220 1101\nኢሜይል: info@mesobhawassa.gov.et",
       sid: "**Hawaasa MESOOBE Bayicho Xaaddanno Doogo**\nBayicho: Katamu Biiro roond-abaawtete mule\n\nBilbila: +251 46 220 1100 / +251 46 220 1101\nE-pposte: info@mesobhawassa.gov.et",
-    },
-  },
-  {
-    keywords: ["tin", "tax", "revenues", "ግብር", "ቲን", "gibira"],
-    answer: {
-      en: "**Taxpayer TIN Issuance**\nProvider: Hawassa City Revenues Authority\nLocation: Hawassa MESOB Center, Counter 6\n\nRequirements:\n1. Duly filled TIN application form\n2. Valid National ID Card (Fayda / Kebele Resident ID)\n\nFee: Free of charge (0 ETB)\nProcessing time: Same day (Immediate issuance)",
-      am: "**የግብር ከፋይ መለያ ቁጥር (ቲን) አሰጣጥ**\nአቅራቢ: የሀዋሳ ከተማ ገቢዎች ቢሮ\nአድራሻ: የሀዋሳ መሶብ ማዕከል፣ መስኮት 6\n\nየሚያስፈልጉት:\n1. የተሞላ የቲን ማመልከቻ ቅጽ\n2. የታደሰ ብሔራዊ መታወቂያ (ፋይዳ / የቀበሌ መታወቂያ)\n\nክፍያ: ነፃ (0 ብር)\nየሚፈጅበት ጊዜ: በዕለቱ (ወዲያውኑ ይሰጣል)",
-      sid: "**Gibirshu Badate Kiiro (TIN) Uya**\nBiiro: Hawaasa Katamu Gibiru Biiro\nBayicho: Hawaasa MESOOBE Bayicho, Masqoote 6\n\nHasiissannori:\n1. TIN borro\n2. Fayda woy Qabaleete wolooma\n\nWaaga: Baatooshshu nookkiha (Free)\nYanna: Mittu barri giddo",
     },
   },
 ];
@@ -221,10 +261,21 @@ const SPECIFIC_INQUIRY_PATTERNS = [
   /\binvestor(s)?\b/i,
   /\bcompany\b/i,
   /\bplc\b/i,
-  /\bsole proprietorship\b/i,
   /\benterprise\b/i,
   /\bassociation\b/i,
   /\bnon-resident\b/i,
+  /\bvisa\b/i,
+  /\bwork permit\b/i,
+  /\bforeign employment\b/i,
+  /\belectric(ity)?\b/i,
+  /\brecharge\b/i,
+  /\b(prepaid )?meter\b/i,
+  /\btoken\b/i,
+  /\bpost(al)?\b/i,
+  /\bems\b/i,
+  /\bexamination\b/i,
+  /\btrade name\b/i,
+  /\bnickname\b/i,
 
   // ── English: Turnaround time, urgency, & tracking ──
   /\bhow long\b/i,
@@ -580,17 +631,17 @@ export async function searchServicesForContext(query, locale = "en") {
       inst.services.map((s) => ({
         id: s.id,
         title: s.title,
-        description: {
+        description: s.description || {
           en: `Official government service provided at Hawassa MESOB Center for ${inst.name.en}.`,
           am: `በሀዋሳ መሶብ ማዕከል በ${inst.name.am} የሚሰጥ ይፋዊ የመንግስት አገልግሎት።`,
           sid: `Hawaasa MESOOBE Bayicho ${inst.name.sid} uyitanno seeramu agurrote.`,
         },
-        requirements: s.requirements.map((r) => r.requirement),
+        requirements: s.requirements.map((r) => r.requirement || r),
         estimatedFee: s.estimatedFee,
         processingDays: s.processingDays,
         provider: {
           name: inst.name,
-          floorRoomNumber: "Main Hall, Counter 1-15",
+          floorRoomNumber: inst.floorRoomNumber || null,
         },
       }))
     );
@@ -599,9 +650,9 @@ export async function searchServicesForContext(query, locale = "en") {
   const scored = services
     .map((service) => {
       let score = 0;
-      const title = (service.title || {})[locale] || "";
-      const description = (service.description || {})[locale] || "";
-      const providerName = (service.provider.name || {})[locale] || "";
+      const title = (service.title || {})[locale] || (service.title || {}).en || "";
+      const description = (service.description || {})[locale] || (service.description || {}).en || "";
+      const providerName = (service.provider?.name || {})[locale] || (service.provider?.name || {}).en || "";
 
       if (title.toLowerCase().includes(lowerQuery) || lowerQuery.includes(title.toLowerCase())) score += 5;
       if (providerName.toLowerCase().includes(lowerQuery) || lowerQuery.includes(providerName.toLowerCase())) score += 5;
@@ -614,6 +665,16 @@ export async function searchServicesForContext(query, locale = "en") {
         if (description.toLowerCase().includes(word)) score += 1;
       }
 
+      const requirements = service.requirements || [];
+      const reqText = requirements
+        .map((r) => (typeof r === "object" ? r[locale] || r.en || "" : r))
+        .join(" ")
+        .toLowerCase();
+      if (reqText.includes(lowerQuery)) score += 3;
+      for (const word of queryWords) {
+        if (reqText.includes(word)) score += 1;
+      }
+
       return { service, score };
     })
     .filter((s) => s.score > 0)
@@ -624,22 +685,35 @@ export async function searchServicesForContext(query, locale = "en") {
 
   return scored
     .map(({ service }) => {
-      const title = (service.title || {})[locale] || "";
-      const desc = (service.description || {})[locale] || "";
-      const provider = (service.provider.name || {})[locale] || "";
+      const title = (service.title || {})[locale] || (service.title || {}).en || "";
+      const desc = (service.description || {})[locale] || (service.description || {}).en || "";
+      const provider = (service.provider?.name || {})[locale] || (service.provider?.name || {}).en || "";
       const requirements = service.requirements || [];
       const reqList = requirements
-        .map((r) => (typeof r === "object" ? r[locale] || "" : r))
+        .map((r) => (typeof r === "object" ? r[locale] || r.en || "" : r))
         .filter(Boolean)
-        .join(", ");
+        .join("; ");
+
+      const floorInfo = service.provider?.floorRoomNumber ? `\nFloor/Room: ${service.provider.floorRoomNumber}` : "";
+
+      let feeDisplay = "Inquire at center";
+      if (service.estimatedFee === 0) {
+        feeDisplay = "Free of charge (0 ETB)";
+      } else if (service.estimatedFee !== null && service.estimatedFee !== undefined) {
+        feeDisplay = `${service.estimatedFee} ETB`;
+      }
+
+      let procDisplay = "Same-day service / see description";
+      if (service.processingDays !== null && service.processingDays !== undefined) {
+        procDisplay = service.processingDays === 1 ? "Same-day (1 business day)" : `${service.processingDays} business days`;
+      }
 
       return `Service: ${title}
 Provider: ${provider}
 Description: ${desc}
 Requirements: ${reqList || "N/A"}
-Fee: ${service.estimatedFee ? `${service.estimatedFee} ETB` : "Free"}
-Processing: ${service.processingDays ? `${service.processingDays} business days` : "1 business day"}
-Floor/Room: ${service.provider.floorRoomNumber || "Main Hall, Service Counter"}`;
+Fee: ${feeDisplay}
+Processing Time: ${procDisplay}${floorInfo}`;
     })
     .join("\n\n---\n\n");
 }
