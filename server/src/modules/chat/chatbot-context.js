@@ -580,17 +580,17 @@ export async function searchServicesForContext(query, locale = "en") {
       inst.services.map((s) => ({
         id: s.id,
         title: s.title,
-        description: {
+        description: s.description || {
           en: `Official government service provided at Hawassa MESOB Center for ${inst.name.en}.`,
           am: `በሀዋሳ መሶብ ማዕከል በ${inst.name.am} የሚሰጥ ይፋዊ የመንግስት አገልግሎት።`,
           sid: `Hawaasa MESOOBE Bayicho ${inst.name.sid} uyitanno seeramu agurrote.`,
         },
-        requirements: s.requirements.map((r) => r.requirement),
+        requirements: s.requirements.map((r) => r.requirement || r),
         estimatedFee: s.estimatedFee,
         processingDays: s.processingDays,
         provider: {
           name: inst.name,
-          floorRoomNumber: "Main Hall, Counter 1-15",
+          floorRoomNumber: inst.floorRoomNumber || "Main Hall, Counter 1-15",
         },
       }))
     );
