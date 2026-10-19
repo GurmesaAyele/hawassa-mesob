@@ -1,706 +1,725 @@
 // Hawassa MESOB Center Authentic Institutions & Services Data
-// Sourced from live Hawassa MESOB repository: 13 institutions, 21 services, 85 requirements
+// Sourced from live Hawassa MESOB Center portal (https://hawassamesobcenter.et/#services)
+// Exactly 13 verified institutions, 24 operational services, and complete document requirements
 
 export const HAWASSA_INSTITUTIONS = [
   {
-    "id": "5935b034-cc1d-4504-ab08-b8e301827311",
+    "id": "edc96fcf-432d-4d9d-a9df-9a5f5b7078e2",
     "name": {
-      "en": "Hawassa City Administration Trade Bureau",
-      "am": "የሀዋሳ ከተማ አስተዳደር ንግድ ቢሮ",
-      "sid": "Hawaasa Katamu Gashshooti Daldalu Biiro"
+      "en": "Immigration and Citizenship Service",
+      "am": "የኢሚግሬሽንና ዜግነት አገልግሎት",
+      "sid": "Imigreeshiinete fi Lamroomu Agurro"
+    },
+    "code": "ICS",
+    "logoUrl": "/immigration.png",
+    "services": [
+      {
+        "id": "1bff5669-64e8-44b2-a5e9-105d537a1b29",
+        "title": {
+          "en": "Ethiopian Origin ID",
+          "am": "የትውልደ ኢትዮጵያውያን መታወቂያ (ቢጫ ካርድ)",
+          "sid": "Itiyoophiyu Dhalote Wolooma Kaarde (Bicha Kaarde)"
+        },
+        "description": {
+          "en": "Issuance and renewal of Ethiopian Origin ID Card (Yellow Card). Mandatory fee: 300 USD regular / 400 USD urgent. In-person application only (proxy not permitted). Daily penalty applies for late renewals.",
+          "am": "የትውልደ ኢትዮጵያውያን መታወቂያ ካርድ (ቢጫ ካርድ) አሰጣጥ እና እድሳት። መደበኛ ክፍያ 300 ዶላር፣ አጣዳፊ 400 ዶላር። በአካል መቅረብ ግዴታ ነው (በውክልና አይፈቀድም)። በወቅቱ ካልታደሰ የቀን ቅጣት አለው።",
+          "sid": "Itiyoophiyu dhalote wolooma kaarde (Bicha Kaarde) uya fi haaroonsa. Waagu 300 USD qara, 400 USD daafurrote. Umikki daate hasiisanno (riqiwotenni didandaamanno)."
+        },
+        "requirements": [
+          {
+            "id": "e7955468-e91c-4131-a5e1-3485e399bc89",
+            "requirement": {
+              "en": "Properly filled out application form.",
+              "am": "በትክክል የተሞላ የማመልከቻ ቅጽ።",
+              "sid": "Garunni wonshinoha huuccattote borro."
+            }
+          },
+          {
+            "id": "6af20287-d55e-4f54-aa6a-b90a5c812e3e",
+            "requirement": {
+              "en": "An ordinary passport valid for more than 6 months.",
+              "am": "ከ6 ወር በላይ የሚያገለግል መደበኛ ፓስፖርት።",
+              "sid": "6 aganira sa'e loosasira dandaanno qaru paaspoorte."
+            }
+          },
+          {
+            "id": "5e8a67ae-0b05-4f25-a4f9-a5eaa6e10b92",
+            "requirement": {
+              "en": "Copy of entry visa (If it’s e-visa, visa print out) and date stamp. If tourist visa extended before, copy of the last extended visa.",
+              "am": "የመግቢያ ቪዛ ቅጂ (ኢ-ቪዛ ከሆነ የታተመ ቪዛ) እና የቀን ማህተም። የቱሪስት ቪዛ ከዚህ በፊት ተራዝሞ ከሆነ የመጨረሻው የተራዘመው ቪዛ ቅጂ።",
+              "sid": "E'ote viiza kopppe (e-viiza ikkiro attamino viiza) fi yannate xaphpho. Turiizimete viiza balaxe dheerinsiro jeefote dheerinsiro kopppe."
+            }
+          },
+          {
+            "id": "e36969ec-1077-4454-ae4d-727851f764f5",
+            "requirement": {
+              "en": "Machine-readable Ethiopian passport or Authenticated birth certificate.",
+              "am": "በማሽን የሚነበብ የኢትዮጵያ ፓስፖርት ወይም የተረጋገጠ የልደት ምስክር ወረቀት።",
+              "sid": "Maashineni nabbabbanno Itiyoophiyu paaspoorte woy buuxamino ilote wolooma."
+            }
+          },
+          {
+            "id": "eaa19020-4d65-4ce5-ac22-f09f4c78ab26",
+            "requirement": {
+              "en": "If mother or father is Ethiopian citizen: copy of their Kebele ID or passport.",
+              "am": "እናት ወይም አባት የኢትዮጵያ ዜጋ ከሆኑ፦ የቀበሌ መታወቂያቸው ወይም የፓስፖርት ቅጂ።",
+              "sid": "Amaa woy anna Itiyoophiyu dagoomu wolooma heedhuro: qabaleete wolooma woy paaspoorte kopppe."
+            }
+          },
+          {
+            "id": "4dd92fe4-6253-452b-a4fa-dcd35a9954ea",
+            "requirement": {
+              "en": "If foreign citizenship held but previously issued Kebele ID: copy of Kebele ID (father and grandfather names must match).",
+              "am": "የውጭ ዜግነት ኖሯቸው ከዚህ ቀደም የቀበሌ መታወቂያ ተሰጥቷቸው ከነበረ፦ የመታወቂያው ቅጂ (የአባትና የአያት ስም በመታወቂያው ላይ ካለው ጋር መመሳሰል አለበት)።",
+              "sid": "Gobbate wolooma heedhe balaxe qabaleete wolooma afidhinoonniha ikkiro: woloomu kopppe (annunna beetu annu su'mi taashshama noosi)."
+            }
+          },
+          {
+            "id": "abd89a96-79a4-4da6-a8e1-7772aa91db96",
+            "requirement": {
+              "en": "One recent passport-sized photograph.",
+              "am": "አንድ የቅርብ ጊዜ የፓስፖርት መጠን ፎቶግራፍ።",
+              "sid": "Mitte muli yannara ka'inoha paaspoorte kiiro foote."
+            }
+          },
+          {
+            "id": "a0f03eb3-66da-47c9-aa82-4003a28b6ffb",
+            "requirement": {
+              "en": "Born in Ethiopia with birth registered in foreign country (e.g. Eritrea/Somalia): court decisions and supporting documents including parents' Ethiopian IDs or passports.",
+              "am": "ኢትዮጵያ ውስጥ ተወልደው የትውልድ ቦታቸው በውጭ ሀገር (ለምሳሌ ኤርትራ ወይም ሶማሊያ) የተመዘገበ፦ የፍርድ ቤት ውሳኔዎችና የወላጆች የኢትዮጵያ መታወቂያ ወይም ፓስፖርት ቅጂዎችን ጨምሮ ደጋፊ ሰነዶች።",
+              "sid": "Itiyoophiyu giddo ilame gobbate badhino (lawishshaho Eertira woy Somaaliya): yoote murrooti borronna annu/amatu paaspoorte woy wolooma kopppe."
+            }
+          },
+          {
+            "id": "cf4b379d-7abf-44b3-aaf9-5fc29ff8c7c7",
+            "requirement": {
+              "en": "If child under 18: legal adoption document and adoptive parent's passport copy.",
+              "am": "ልጁ ከ18 ዓመት በታች ከሆነ፦ ህጋዊ የጉዲፈቻ ሰነድ እና የአሳዳጊው ወላጅ ፓስፖርት ቅጂ።",
+              "sid": "Beettu 18 diro woroonni ikkiro: seeramu gudifachu borronna gashshaanchu paaspoorte kopppe."
+            }
+          },
+          {
+            "id": "cd328b6e-2e2d-4426-aadb-569bd4e2e358",
+            "requirement": {
+              "en": "In case of name change: certified legal court decision (translated into Amharic or English by authorized entity if in another language).",
+              "am": "የስም ለውጥ ካለ፦ የተረጋገጠ የፍርድ ቤት ውሳኔ (ቋንቋው አማርኛ ወይም እንግሊዝኛ ካልሆነ በህጋዊ አካል የተተረጎመ)።",
+              "sid": "Su'ma soorrate ikkiro: buuxamino yoote murrooti borro (Amaaru woy Ingilizete afoo ikka hoowiro seeramu qoli borro)."
+            }
+          },
+          {
+            "id": "b8d60f36-b443-41fe-a8b9-ff29446f92b8",
+            "requirement": {
+              "en": "If family documents unavailable due to death: official death certificate is mandatory.",
+              "am": "በሞት ምክንያት የቤተሰብ ሰነዶች የማይገኙ ከሆነ፦ የሞት ምስክር ወረቀት ማቅረብ ግዴታ ነው።",
+              "sid": "Reyotenni daafira maate borro hoongiro: reyote kakkalooshshu woraqata shollisha hasiissanno."
+            }
+          },
+          {
+            "id": "aab1cc0a-408d-4330-a8e9-914889cf5d3b",
+            "requirement": {
+              "en": "Proof of mandatory service fee (300 USD regular / 400 USD urgent). In-person submission only (proxy not permitted).",
+              "am": "የአገልግሎት ክፍያ ደረሰኝ (ለመደበኛ 300 ዶላር፣ ለአጣዳፊ 400 ዶላር)። በአካል መቅረብ ግዴታ ነው (በውክልና አይፈቀድም)።",
+              "sid": "Waagu kakkalooshshu woraqata (300 USD qara, 400 USD daafurrote). Umikki daate hasiisanno (riqiwotenni didandaamanno)."
+            }
+          }
+        ],
+        "estimatedFee": null,
+        "processingDays": null
+      },
+      {
+        "id": "848068c1-c90e-4f8a-aaa9-c6b2a6a4a0d7",
+        "title": {
+          "en": "Visa Application",
+          "am": "የቪዛ ማመልከቻ",
+          "sid": "Viizaho Huuccatto"
+        },
+        "description": {
+          "en": "Application support and facilitation for business, conference, and entry visas to Ethiopia.",
+          "am": "ወደ ኢትዮጵያ ለመግባት የንግድ፣ የስብሰባ እና አጠቃላይ የቪዛ ማመልከቻዎችን ማረጋገጥ እና ማስተናገድ።",
+          "sid": "Itiyoophiyu giddora e'anno daldalu, gambooshshu fi xaphooma viizara huuccatto buuxisate agurro."
+        },
+        "requirements": [
+          {
+            "id": "ae8d8c43-00d5-464d-ab43-d31f6c5c1aa0",
+            "requirement": {
+              "en": "Valid passport with at least six months of validity",
+              "am": "ቢያንስ ለስድስት ወራት የሚያገለግል ህጋዊ ፓስፖርት",
+              "sid": "Sa'u 6 aganira loosasira dandaanno seeramu paaspoorte"
+            }
+          },
+          {
+            "id": "8fa1c3d2-3b02-4460-a6e5-ae0879ed37fa",
+            "requirement": {
+              "en": "Completed visa application form",
+              "am": "በትክክል የተሞላ የቪዛ ማመልከቻ ቅጽ",
+              "sid": "Wonshinoha viizaho huuccattote borro"
+            }
+          },
+          {
+            "id": "b3490c14-c41c-46e5-ae0d-d6c2c5df2d87",
+            "requirement": {
+              "en": "Two recent passport-sized photographs",
+              "am": "ሁለት የቅርብ ጊዜ የፓስፖርት መጠን ፎቶግራፎች",
+              "sid": "Lame muli yannara ka'inoha paaspoorte kiiro foote"
+            }
+          },
+          {
+            "id": "d8b58a97-6dbc-4ecb-aa42-20c68f277200",
+            "requirement": {
+              "en": "An invitation letter from a business partner or organization in Ethiopia",
+              "am": "በኢትዮጵያ ውስጥ ካለ የንግድ አጋር ወይም ድርጅት የተላከ የግብዣ ደብዳቤ",
+              "sid": "Itiyoophiyu giddo noo daldalu jaalinni woy diriyeetenni koyishshote sokko"
+            }
+          },
+          {
+            "id": "7f26c442-b098-4d99-ae1a-071e80e97008",
+            "requirement": {
+              "en": "Proof of business activities (e.g. conference details, business contracts)",
+              "am": "የንግድ ስራ ማስረጃዎች (ለምሳሌ የስብሰባ ዝርዝር፣ የንግድ ውሎች)",
+              "sid": "Daldalu loosi kakkalooshsha (lawishshaho gambooshshu mashkkaammo, daldalu maaro)"
+            }
+          },
+          {
+            "id": "1108d586-26a8-45f8-a3d9-16258813e548",
+            "requirement": {
+              "en": "Payment of the applicable visa fee",
+              "am": "ተገቢውን የቪዛ አገልግሎት ክፍያ መክፈል",
+              "sid": "Hasiissanno viizaho baatooshshe baata"
+            }
+          },
+          {
+            "id": "b8eb0dc1-bb65-4a4e-a302-bfa62de310ac",
+            "requirement": {
+              "en": "Additional documents if requested by the Ethiopian Embassy or Consulate",
+              "am": "በኢትዮጵያ ኤምባሲ ወይም ቆንስላ ተጨማሪ ሰነዶች ከተጠየቁ ማቅረብ",
+              "sid": "Itiyoophiyu ambaasedenni woy koonsoleetenni hasiissanno leellishi yiniro shollisha"
+            }
+          }
+        ],
+        "estimatedFee": null,
+        "processingDays": null
+      },
+      {
+        "id": "2353aa4b-bbcf-4845-a033-3b17f7fdc9b9",
+        "title": {
+          "en": "Work Permit",
+          "am": "የስራ ፈቃድ",
+          "sid": "Loosu Eegeera"
+        },
+        "description": {
+          "en": "Work permit issuance and verification for foreign expatriates, international organizations, and NGO staff.",
+          "am": "ለውጭ ሀገር ዜጎች፣ ለአለም አቀፍ ድርጅቶች እና ለኤንጂኦ ሰራተኞች የስራ ፈቃድ አሰጣጥ እና ማረጋገጫ።",
+          "sid": "Gobbate mannihira, alamete diriyootanna NGO loosasira loosu eegeera uya."
+        },
+        "requirements": [
+          {
+            "id": "887f6a62-6851-4575-a409-e23a26f7e915",
+            "requirement": {
+              "en": "Valid 6-month passport of the applicant",
+              "am": "የአመልካቹ ለ6 ወር የሚያገለግል ህጋዊ ፓስፖርት",
+              "sid": "Huccattooshshu 6 aganira loosasira dandaanno seeramu paaspoorte"
+            }
+          },
+          {
+            "id": "e9bf3014-ed19-4d1c-a6ea-88d5c620ee05",
+            "requirement": {
+              "en": "Two recent passport-sized photographs",
+              "am": "ሁለት የቅርብ ጊዜ የፓስፖርት መጠን ፎቶግራፎች",
+              "sid": "Lame muli yannara ka'inoha paaspoorte kiiro foote"
+            }
+          },
+          {
+            "id": "034ab7f4-dc6d-4741-ae0e-8e4a126032a5",
+            "requirement": {
+              "en": "Employment contract or appointment letter from the employer / NGO",
+              "am": "ከቀጣሪ ድርጅት ወይም ከኤንጂኦ የተሰጠ የስራ ውል ወይም የቅጥር ደብዳቤ",
+              "sid": "Loosiisaanchunni woy NGO-tenni uyinoha loosu maaro woy eegote sokko"
+            }
+          },
+          {
+            "id": "b95fd50d-c8a1-4ab7-a57d-5e7d76a52d5c",
+            "requirement": {
+              "en": "Proof of the NGO's registration and authorization to operate in Ethiopia",
+              "am": "ድርጅቱ ወይም ኤንጂኦው በኢትዮጵያ ውስጥ እንዲሰራ ህጋዊ ፍቃድ ያለው መሆኑን የሚያረጋግጥ ሰነድ",
+              "sid": "NGO Itiyoophiyu giddo loosate seeramu eegeera afi'rinota buuxisanno borro"
+            }
+          },
+          {
+            "id": "f972e282-fbfd-41c3-a6ea-b598548b102b",
+            "requirement": {
+              "en": "Police clearance certificate from the applicant's country of origin",
+              "am": "ከአመልካቹ የትውልድ ሀገር የተሰጠ ከወንጀል ነፃ የመሆን (የፖሊስ) ማስረጃ",
+              "sid": "Huccattooshshu gobbanni uyinoha seera qorophote (poolisete) kakkalooshshu woraqata"
+            }
+          },
+          {
+            "id": "573124ee-db3d-4197-a243-ce51b6a5cc26",
+            "requirement": {
+              "en": "Proof of relevant qualifications and professional experience",
+              "am": "አግባብነት ያለው የትምህርት ማስረጃ እና የስራ ልምድ ማረጋገጫ",
+              "sid": "Loosaho hasiissanno rosu kakkalooshshanna loosu dandaanyo"
+            }
+          },
+          {
+            "id": "edc0c5b8-f9c4-4bef-ad93-1c73562e4b5c",
+            "requirement": {
+              "en": "Payment of the applicable work permit fee",
+              "am": "ተገቢውን የስራ ፈቃድ ክፍያ መክፈል",
+              "sid": "Hasiissanno loosu eegeeri baatooshshe baata"
+            }
+          },
+          {
+            "id": "62d34234-654f-407c-a105-dc82e949651a",
+            "requirement": {
+              "en": "Completed work permit application form",
+              "am": "በትክክል የተሞላ የስራ ፈቃድ ማመልከቻ ቅጽ",
+              "sid": "Wonshinoha loosu eegeeri huuccattote borro"
+            }
+          },
+          {
+            "id": "5289630b-b7c4-44ff-a471-f3e31a986684",
+            "requirement": {
+              "en": "Additional documents if requested by immigration authorities",
+              "am": "በኢሚግሬሽን ባለስልጣናት ተጨማሪ ሰነዶች ከተጠየቁ ማቅረብ",
+              "sid": "Imigreeshiinete gashshooti leellishi yiniro hasiissanno borro shollisha"
+            }
+          }
+        ],
+        "estimatedFee": null,
+        "processingDays": null
+      }
+    ]
+  },
+  {
+    "id": "c2590f1a-eeae-46a0-a31b-ee13d315e818",
+    "name": {
+      "en": "Ethiopian Postal Service",
+      "am": "የኢትዮጵያ ፖስታ አገልግሎት",
+      "sid": "Itiyoophiyu Postaho Agurro"
+    },
+    "code": "ETHIO_POST",
+    "logoUrl": "/post.png",
+    "services": [
+      {
+        "id": "457d08c9-be16-4de4-a172-2e17f9e262c3",
+        "title": {
+          "en": "National Examination Document Handling",
+          "am": "የብሔራዊ ፈተናዎች ሰነድ አገልግሎት",
+          "sid": "Daganna Qara Fantooshshu Borro Agurro"
+        },
+        "description": {
+          "en": "Booking, express handling, and delivery of national examination documents and educational certificates. Processing time is ~15 minutes depending on document/shipment size. EMS fee: 450 ETB; some standard services free.",
+          "am": "የብሔራዊ ፈተናዎች ሰነዶች፣ ማስረጃዎች እና ሰርተፍኬቶችን በፖስታ የማድረስና የመያዝ አገልግሎት። እንደ ሰነዱ መጠን እስከ 15 ደቂቃ ይወስዳል። የEMS ክፍያ 450 ብር ሲሆን አንዳንድ አገልግሎቶች ክፍያ የላቸውም።",
+          "sid": "Daganna fantooshshu borro postatenni sayisate agurro. 15 daqiiqa geeshsha adhitanno. EMS waagu 450 ETB."
+        },
+        "requirements": [
+          {
+            "id": "e9d11717-5906-44d2-a554-f220f00c8473",
+            "requirement": {
+              "en": "National ID or Passport",
+              "am": "ብሔራዊ መታወቂያ ወይም ፓስፖርት",
+              "sid": "Daganna Wolooma woy Paaspoorte"
+            }
+          },
+          {
+            "id": "aa42963d-91fc-47e7-ae6b-15bfdbfa4ce9",
+            "requirement": {
+              "en": "Support letters for registration or booking",
+              "am": "ለምዝገባ ወይም ቦታ ለመያዝ የድጋፍ ደብዳቤዎች",
+              "sid": "Borreessate woy qara buuxisate sokkote borro"
+            }
+          },
+          {
+            "id": "31854584-0db3-4767-a954-505bcf05d3b3",
+            "requirement": {
+              "en": "Full recipient address and contact details",
+              "am": "የተቀባዩ ሙሉ አድራሻ እና የስልክ አድራሻ",
+              "sid": "Adhaanchu wo'ma teessonna bilbilu kiiro"
+            }
+          }
+        ],
+        "estimatedFee": 450,
+        "processingDays": 1
+      },
+      {
+        "id": "7a086be4-3b48-47bb-a873-be379a9bf696",
+        "title": {
+          "en": "National ID (NID) Card Printing & Distribution",
+          "am": "የብሔራዊ መታወቂያ (ፋይዳ) ካርድ ህትመትና ስርጭት",
+          "sid": "Fayda Wolooma Kaarde Attaminanna Beehate Agurro"
+        },
+        "description": {
+          "en": "Printing and distribution of physical Fayda National Digital ID cards in collaboration with the National ID Program.",
+          "am": "ከብሔራዊ መታወቂያ ፕሮግራም ጋር በመተባበር የታተሙ የፋይዳ ካርዶችን ለዜጎች ህትመትና የማሰራጨት አገልግሎት።",
+          "sid": "Daganna Fayda Wolooma Kaarde attama fi mannaho turo agurro."
+        },
+        "requirements": [
+          {
+            "id": "2122b16a-d9df-443d-a58c-6c1ccf10f27c",
+            "requirement": {
+              "en": "National ID (Fayda) Registration Slip or FIN Number (to be added)",
+              "am": "የብሔራዊ መታወቂያ (ፋይዳ) የምዝገባ ወረቀት ወይም የፋይዳ ቁጥር (FIN) (የሚጨመር)",
+              "sid": "Fayda Wolooma Borreessirote Woraqata woy FIN Kiiro (leellishinanni)"
+            }
+          }
+        ],
+        "estimatedFee": null,
+        "processingDays": null
+      }
+    ]
+  },
+  {
+    "id": "c844b4ce-f115-4401-a6ed-a41cd4e9bfee",
+    "name": {
+      "en": "Trade and Market Services",
+      "am": "የንግድና ገበያ አገልግሎት",
+      "sid": "Daldalu fi Gabaate Agurro"
     },
     "code": "HAWASSA_TRADE",
     "logoUrl": "/city.jpg",
     "services": [
       {
-        "id": "ad371da7-39cf-449e-b732-aa19da7f7e8c",
+        "id": "00e2b64f-3441-4f7b-a068-8f15b9e7dbe0",
         "title": {
-          "en": "Amendment of Trade Name for Business Associations",
-          "am": "ለንግድ ማህበራት የንግድ ስም ማሻሻያ",
-          "sid": "Daldalu Maahibara Daldalu Su'ma Soorira"
+          "en": "Business Registration",
+          "am": "የንግድ ምዝገባ",
+          "sid": "Daldalu Borreessiro"
+        },
+        "description": {
+          "en": "Official commercial register entry for business enterprises operating in Hawassa City. Processing time: 15 minutes.",
+          "am": "በሀዋሳ ከተማ ውስጥ ለሚሰሩ የንግድ ድርጅቶች ይፋዊ የንግድ ምዝገባ። የሚፈጅበት ጊዜ፡ 15 ደቂቃ።",
+          "sid": "Hawaasa Katamira no daldala borreessate agurro. 15 daqiiqa adhitanno."
         },
         "requirements": [
           {
-            "id": "fcf1ddca-9b73-4dc4-99b5-bc03137724bb",
+            "id": "c54d3c3b-12a1-4ffa-a040-d35c6936857c",
             "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
+              "en": "Request application form",
+              "am": "የማመልከቻ ቅጽ",
+              "sid": "Huuccattote borro"
             }
           },
           {
-            "id": "6e78345e-b14b-45e1-ad73-cf6886c35abf",
+            "id": "8e78b8a1-98df-43d3-aac6-a22d8a1e2864",
             "requirement": {
-              "en": "Selected Member's Identification (renewed): Passport, Driver's License, Government Office ID, or Ethiopian Digital ID Card of the member authorized to approve the trade name amendment.",
-              "am": "የተመረጠው አባል መታወቂያ (የታደሰ)፦ ፓስፖርት፣ መንጃ ፈቃድ፣ የመንግስት ተቋም መታወቂያ፣ ወይም የንግድ ስም ማሻሻያውን ለማፅደቅ ስልጣን ያለው አባል የኢትዮጵያ ዲጂታል መታወቂያ ካርድ",
-              "sid": "Doortamino Miyame Wolooma (haaroonsamino): Paaspoorte, Moteere Eegeera, Loosu Biiro Wolooma, woy Itiyoophiyu Dijitaale Wolooma Kaarde."
+              "en": "3x4 Passport Photo",
+              "am": "3x4 የፓስፖርት መጠን ፎቶግራፍ",
+              "sid": "3x4 Paaspoorte kiiro foote"
             }
           },
           {
-            "id": "e1166f34-96ad-46a4-9a8c-5f7d31dadd8c",
+            "id": "3c167d65-8724-418c-a70c-f54676d5597e",
             "requirement": {
-              "en": "Draft Meeting Minutes: Unapproved (preliminary) minutes of the meeting where the decision to change the name was made.",
-              "am": "ረቂቅ የስብሰባ ቃለ-ጉባኤ፦ ስሙን ለመቀየር ውሳኔ የተላለፈበት ያልጸደቀ ስብሰባ ቃለ-ጉባኤ",
-              "sid": "Draft Meeting Minutes: Su'ma soorrate mixo aana gambooshshu yaado."
-            }
-          }
-        ],
-        "estimatedFee": 150,
-        "processingDays": 2
-      },
-      {
-        "id": "c13a82c4-6009-405d-96d4-cd05e0a11b0b",
-        "title": {
-          "en": "Approval of Preliminary Accounts for Associations",
-          "am": "ለማህበራት የመጀመሪያ ሂሳቦች ማፅደቅ",
-          "sid": "Maahibaraho Umi Kiiro Buuxisa"
-        },
-        "requirements": [
-          {
-            "id": "5c090c23-6759-4aba-ae75-964f508ca10a",
-            "requirement": {
-              "en": "-Founding Document: Approved Memorandum of Association.",
-              "am": "የመመስረቻ ጽሑፍ፦ የጸደቀ የመመስረቻ ጽሑፍና መተዳደሪያ ደንብ",
-              "sid": "Xaphoomu Borro: Fa'ninoha Qaru Borro fi Biirote Seera."
-            }
-          },
-          {
-            "id": "b408da84-fa35-476c-a2a7-bb9a6e253038",
-            "requirement": {
-              "en": "-Manager’s Photo: Passport-sized photograph taken within the last 6 months (clearly showing identity).",
-              "am": "የስራ አስኪያጅ ፎቶ፦ ባለፉት 6 ወራት ውስጥ የተነሳ የፓስፖርት መጠን ፎቶግራፍ",
-              "sid": "Manager’s Photo: Galte 6 agana giddo ka'inoha Paaspoorte Foote."
-            }
-          },
-          {
-            "id": "10de1dd7-12cb-4c3a-ab43-219a8739846c",
-            "requirement": {
-              "en": "-Tax Registration: Official Taxpayer Identification Number (TIN) Certificate for the entity.",
-              "am": "የግብር ምዝገባ፦ የድርጅቱ ይፋዊ የግብር ከፋይ መለያ ቁጥር (TIN) ሰርተፍኬት",
-              "sid": "Tax Registration: Ejensete Gibirshu Badate Kiiro (TIN) Kakkalooshsha."
-            }
-          },
-          {
-            "id": "eddaffd4-181e-4352-92e2-b566b42b63c6",
-            "requirement": {
-              "en": "Bank Confirmation Letter ",
-              "am": "የባንክ ማረጋገጫ ደብዳቤ",
-              "sid": "Baankete Kakkalooshshu Sokko"
-            }
-          },
-          {
-            "id": "465cf33e-1a65-43a9-b09d-cb3b05af243b",
-            "requirement": {
-              "en": "For a PLC: total registered capital deposited into a closed account.",
-              "am": "ለኃ/የተ/የግ/ማህበር፦ አጠቃላይ የተመዘገበው ካፒታል ዝግ በሆነ የባንክ ሂሳብ ውስጥ የተቀመጠበት",
-              "sid": "For a PLC: Xaphoomu miinju woxe cufamino herro aana kakkalamino."
-            }
-          },
-          {
-            "id": "2f84ed82-3f2d-457c-ad2d-1345b7b13e84",
-            "requirement": {
-              "en": "In-Kind Contributions (if applicable): Official valuation document from an authorized body.",
-              "am": "የዓይነት አስተዋጽዖ (አስፈላጊ ከሆነ)፦ ስልጣን ካለው አካል ይፋዊ የዋጋ ግምት ሰነድ",
-              "sid": "In-Kind Contributions: Qaru gashshooti aana baaso kakkalooshshu woraqata."
-            }
-          },
-          {
-            "id": "753e5d1d-52e2-43e7-bec6-fcb8f80304a1",
-            "requirement": {
-              "en": "For a Share Company: at least 25% (1/4) of registered capital deposited into a closed account.",
-              "am": "ለአክሲዮን ማህበር፦ ቢያንስ 25% (1/4) የተመዘገበው ካፒታል ዝግ በሆነ የባንክ ሂሳብ ውስጥ የተቀመጠበት",
-              "sid": "For a Share Company: 25% miinju woxe cufamino herro aana kakkalamino."
-            }
-          },
-          {
-            "id": "d28d9dd1-3aef-4a4c-ade4-c45d0517c1d9",
-            "requirement": {
-              "en": "-Managers Identification (renewed): Passport, Driver’s License, Government Office ID, or Ethiopian Digital ID.",
-              "am": "የስራ አስኪያጅ መታወቂያ (የታደሰ)፦ ፓስፖርት፣ መንጃ ፈቃድ፣ የመንግስት ተቋም መታወቂያ ወይም የኢትዮጵያ ዲጂታል መታወቂያ",
-              "sid": "Managers Identification (renewed): Paaspoorte, Moteere Eegeera woy Dijitaale Wolooma."
-            }
-          },
-          {
-            "id": "cc4a6bb3-e9cc-4892-8427-1cbe0f105f9c",
-            "requirement": {
-              "en": "-If Using a Representative: Legal Power of Attorney + the representative’s renewed ID (Passport, Driver’s License, Office ID, or Ethiopian Digital ID).",
-              "am": "በህጋዊ ወኪል በኩል ከሆነ፦ ህጋዊ የውክልና ስልጣን + የታደሰ የወኪሉ መታወቂያ (ፓስፖርት፣ መንጃ ፈቃድ፣ መ/ቤት መታወቂያ፣ ወይም ዲጂታል መታወቂያ)",
-              "sid": "If Using a Representative: Seeramu Riqiwote Borro + Riqiwaanchu Wolooma."
-            }
-          }
-        ],
-        "estimatedFee": 150,
-        "processingDays": 2
-      },
-      {
-        "id": "809e5b83-63f2-4978-baf3-6852eb8e899b",
-        "title": {
-          "en": "Approval of Preliminary Accounts for Individuals",
-          "am": "ለግለሰቦች የመጀመሪያ ሂሳቦች ማፅደቅ",
-          "sid": "Mittu-mittunku Mannira Umi Kiiro Buuxisa"
-        },
-        "requirements": [
-          {
-            "id": "55c7430f-361e-480f-a9d6-06a0e97d6cce",
-            "requirement": {
-              "en": "Passport sized photo",
-              "am": "የፓስፖርት መጠን ፎቶግራፍ",
-              "sid": "Paaspoorte Kiiro Foote"
-            }
-          },
-          {
-            "id": "90b356c3-311e-4417-97c4-74a2b3e9c1bc",
-            "requirement": {
-              "en": "TIN (Tax payer Identification Number)",
+              "en": "Taxpayer Identification Number (TIN)",
               "am": "የግብር ከፋይ መለያ ቁጥር (TIN)",
               "sid": "Gibirshu Badate Kiiro (TIN)"
             }
           },
           {
-            "id": "4fa90a3e-f974-49b1-8e45-a90b33d255ed",
+            "id": "59d08eff-9b92-4c97-a088-f7818b9a317f",
             "requirement": {
-              "en": "National ID",
+              "en": "National ID Card",
               "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "6efc43e1-b43c-403c-ac07-52c69931b412",
-            "requirement": {
-              "en": "If Using a Representative: Legal Power of Attorney + renewed ID (Passport, Office ID, or Ethiopian Digital ID) for both the representative and the appointer.",
-              "am": "በህጋዊ ወኪል በኩል ከሆነ፦ ህጋዊ የውክልና ማስረጃ + ለወካዩና ለተወካዩ የታደሰ መታወቂያ (ፓስፖርት፣ መ/ቤት መታወቂያ፣ ወይም ዲጂታል መታወቂያ)",
-              "sid": "Riqiwaanchunni ikkirono: Seeramu Riqiwote Borro + haaroonsamino Wolooma woraqata riqiwaanchunna annaho."
+              "sid": "Daganna Wolooma Borreessiro"
             }
           }
         ],
-        "estimatedFee": 150,
-        "processingDays": 2
+        "estimatedFee": 102,
+        "processingDays": 1
       },
       {
-        "id": "65af83dc-9cb8-467f-897c-d74ebbfa5e7e",
+        "id": "633360b3-53f1-4812-a39c-6712c656124d",
         "title": {
-          "en": "Issuance of Trade Registration Certificate for Individual Traders and Business Associations",
-          "am": "ለግለሰብ ነጋዴዎች እና ለንግድ ማህበራት የንግድ ምዝገባ ማረጋገጫ ማውጣት",
-          "sid": "Daldalu Borreessiro Kakkalooshshu Woraqata Uya"
+          "en": "Business License Renewal Service",
+          "am": "የንግድ ፈቃድ ማደስ አገልግሎት",
+          "sid": "Daldalu Eegeera Haaroonsate Agurro"
+        },
+        "description": {
+          "en": "Annual renewal service for existing trade licenses upon submission of tax clearance. Processing time: 15 minutes.",
+          "am": "የግብር ክሊራንስ በማቅረብ ነባር የንግድ ፈቃድን የማደስ አገልግሎት። የሚፈጅበት ጊዜ፡ 15 ደቂቃ።",
+          "sid": "Gibirshu kakkalooshshi garinni daldalu eegeera haaroonsate agurro. 15 daqiiqa adhitanno."
         },
         "requirements": [
           {
-            "id": "88bdee0e-0297-4754-a82f-a0f9a0478f6b",
+            "id": "101179dc-4aa3-47bf-a62a-d6b1d0cad7eb",
             "requirement": {
-              "en": "Applicant's Identification  Ethiopian Digital ID Card.",
-              "am": "የአመልካች መታወቂያ፦ የኢትዮጵያ ዲጂታል መታወቂያ ካርድ (ፋይዳ)",
-              "sid": "Applicant's Identification: Itiyoophiyu Dijitaale Fayda Wolooma Kaarde."
+              "en": "Submitting a formal renewal request",
+              "am": "ይፋዊ የዕድሳት ማመልከቻ ማቅረብ",
+              "sid": "Haaroonsate huuccatto shollisha"
             }
           },
           {
-            "id": "9fedbd6e-a7c7-4dbc-8b11-63c28c4b9c22",
+            "id": "58c35adb-f758-4328-a0d0-d17ddac20250",
             "requirement": {
-              "en": "For Foreign Citizens (non-Ethiopian origin): Valid Investment Permit (in addition to the above).",
-              "am": "ለውጭ ሀገር ዜጎች (ትውልደ ኢትዮጵያዊ ላልሆኑ)፦ ህጋዊ የኢንቨስትመንት ፈቃድ (ከላይ ከተጠቀሱት በተጨማሪ)",
-              "sid": "For Foreign Citizens: Seeramu Investermentete Eegeera."
-            }
-          },
-          {
-            "id": "3b5938d4-59fd-4741-8258-a4965cb1259c",
-            "requirement": {
-              "en": "For Foreign Citizens of Ethiopian Origin (domestic investors): Identification card issued by Immigration confirming this status.",
-              "am": "ትውልደ ኢትዮጵያውያን የውጭ ሀገር ዜጎች (የሀገር ውስጥ ባለሀብቶች)፦ ከኢሚግሬሽን ይህንን የሚያረጋግጥ የተሰጠ መታወቂያ",
-              "sid": "For Foreign Citizens of Ethiopian Origin: Imigreeshiinete wolooma woraqata."
-            }
-          },
-          {
-            "id": "872135ea-b6f0-4e5d-a6e4-fb34412732a9",
-            "requirement": {
-              "en": "Tax Registration: Official Taxpayer Identification Number (TIN) Certificate",
-              "am": "የግብር ምዝገባ፦ ይፋዊ የግብር ከፋይ መለያ ቁጥር (TIN) ሰርተፍኬት",
-              "sid": "Tax Registration: Official TIN Kakkalooshshu Woraqata."
-            }
-          },
-          {
-            "id": "a91cc44d-610c-4e63-992c-fcb6229e22d4",
-            "requirement": {
-              "en": "Applicant's Photo: Passport-sized photograph taken within the last 6 months (clearly showing identity).",
-              "am": "የአመልካች ፎቶ፦ ባለፉት 6 ወራት ውስጥ የተነሳ (ማንነትን በግልጽ የሚያሳይ) የፓስፖርት መጠን ፎቶግራፍ",
-              "sid": "Huccatooshshu Ka'inohu Foote: Galte 6 agana giddo ka'inoha Paaspoorte Foote."
-            }
-          },
-          {
-            "id": "493bdf93-5879-479b-8e95-c3e5fe627452",
-            "requirement": {
-              "en": "If Using a Representative: Legal Power of Attorney + renewed ID (Passport, Driver's License, Office ID, or Ethiopian Digital ID) for both the representative and the appointer.",
-              "am": "ተወካይ በመጠቀም ሁኔታ ውስጥ፦ ህጋዊ የውክልና ስልጣን ደብዳቤ + ለሁለቱም ተወካዩ እና አስመራጩ (ውክልና ሰጪው) የታደሰ መታወቂያ (ፓስፖርት፣ መንጃ ፈቃድ፣ የቢሮ መታወቂያ፣ ወይም የኢትዮጵያ ዲጂታል መታወቂያ",
-              "sid": "Riqiwaanchunni ikkirono: Seeramu Riqiwote Borro + haaroonsamino Wolooma woraqata riqiwaanchunna annaho."
+              "en": "Obtaining and submitting tax clearance certificate",
+              "am": "የግብር ክሊራንስ ሰርተፍኬት ማግኘትና ማቅረብ",
+              "sid": "Gibirshu kakkalooshshu woraqata afi'ranna shollisha"
             }
           }
         ],
-        "estimatedFee": 150,
-        "processingDays": 2
+        "estimatedFee": 102,
+        "processingDays": 1
       },
       {
-        "id": "bdb952e5-3d8a-4891-8885-960242ead73d",
+        "id": "ed175d7a-1588-4948-af7a-f5762da3e5a4",
         "title": {
-          "en": "Trade Name Registration for Business Associations",
-          "am": "ለንግድ ማህበራት የንግድ ስም ምዝገባ",
-          "sid": "Daldalu Maahibara Daldalu Su'ma Borreessa"
+          "en": "Registering a New Business",
+          "am": "አዲስ ንግድ ምዝገባ",
+          "sid": "Haaro Daldala Borreessa"
+        },
+        "description": {
+          "en": "Initial licensing and commercial registration for newly established enterprises and sole proprietors. Processing time: 15 minutes.",
+          "am": "ለአዳዲስ ነጋዴዎች እና የንግድ ድርጅቶች የመጀመሪያ ምዝገባ። የሚፈጅበት ጊዜ፡ 15 ደቂቃ።",
+          "sid": "Haaro daldalaho umi borreessiro uya. 15 daqiiqa adhitanno."
         },
         "requirements": [
           {
-            "id": "340ba524-eeca-4695-883d-0178ea89c2c5",
+            "id": "3b6705f0-8890-4433-a284-8d78d9e22068",
+            "requirement": {
+              "en": "Application request",
+              "am": "የማመልከቻ ጥያቄ",
+              "sid": "Huuccattote borro"
+            }
+          },
+          {
+            "id": "16886d94-d01d-4b63-adb2-2d2f3aa1d5f4",
+            "requirement": {
+              "en": "3x4 Photo",
+              "am": "3x4 ፎቶግራፍ",
+              "sid": "3x4 Foote"
+            }
+          },
+          {
+            "id": "7a3dcfb5-aed6-4a33-a74e-8829f32f36bf",
+            "requirement": {
+              "en": "Taxpayer Identification Number (TIN)",
+              "am": "የግብር ከፋይ መለያ ቁጥር (TIN)",
+              "sid": "Gibirshu Badate Kiiro (TIN)"
+            }
+          },
+          {
+            "id": "87d91b63-9df2-4481-a5be-b36540cbafe4",
             "requirement": {
               "en": "National ID",
               "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "4082de09-28d2-4086-9a59-566731b545b1",
-            "requirement": {
-              "en": "Passport sized photo",
-              "am": "የፓስፖርት መጠን ፎቶግራፍ",
-              "sid": "Paaspoorte Kiiro Foote"
-            }
-          },
-          {
-            "id": "67343611-0951-4cc6-ae74-50730a9fc691",
-            "requirement": {
-              "en": "Proposed Names: A list of three alternative names for the organization (for availability checking).",
-              "am": "የቀረቡ አማራጭ ስሞች፦ ለድርጅቱ የቀረቡ ሦስት አማራጭ ስሞች ዝርዝር (ተቀባይነቱን ለማረጋገጥ)",
-              "sid": "Proposed Names: Sasenta shollishshino su'mma xaphphoomu borro."
-            }
-          },
-          {
-            "id": "d7f25cf4-83db-4b38-810e-867580ef25f1",
-            "requirement": {
-              "en": "Draft Founding Document: Unapproved (preliminary) Memorandum of Association.",
-              "am": "ረቂቅ የመመስረቻ ሰነድ፦ ያልጸደቀ ረቂቅ የመመስረቻ ጽሑፍ",
-              "sid": "Draft Founding Document: Fa'ninokkiha Qaru Borro."
+              "sid": "Daganna Wolooma"
             }
           }
         ],
-        "estimatedFee": 150,
-        "processingDays": 2
+        "estimatedFee": 102,
+        "processingDays": 1
+      },
+      {
+        "id": "471243d2-3e28-4e99-aff9-b4626ab6d97a",
+        "title": {
+          "en": "Giving Business Name",
+          "am": "የንግድ ስም ማውጣት",
+          "sid": "Daldalu Su'ma Fusha"
+        },
+        "description": {
+          "en": "Trade name search, clearance, and formal reservation for new business entities. Processing time: 20 minutes.",
+          "am": "ለንግድ ድርጅቶች የንግድ ስም ማረጋገጥ እና መመዝገብ። የሚፈጅበት ጊዜ፡ 20 ደቂቃ።",
+          "sid": "Daldalu su'ma buuxisatenna borreessate agurro. 20 daqiiqa adhitanno."
+        },
+        "requirements": [
+          {
+            "id": "4536b315-c4f4-47ea-acdd-1729ef360787",
+            "requirement": {
+              "en": "3x4 Photo",
+              "am": "3x4 ፎቶግራፍ",
+              "sid": "3x4 Foote"
+            }
+          },
+          {
+            "id": "99603d70-9794-4e21-afc3-d70d5be864db",
+            "requirement": {
+              "en": "Taxpayer Identification Number (TIN)",
+              "am": "የግብር ከፋይ መለያ ቁጥር (TIN)",
+              "sid": "Gibirshu Badate Kiiro (TIN)"
+            }
+          },
+          {
+            "id": "3b5bdb7b-92e2-40b3-a6b5-101fca6e8876",
+            "requirement": {
+              "en": "National ID",
+              "am": "ብሔራዊ መታወቂያ",
+              "sid": "Daganna Wolooma"
+            }
+          },
+          {
+            "id": "ad1bbb97-3991-45b7-abee-d6ba8aa25044",
+            "requirement": {
+              "en": "3 proposed business names as options",
+              "am": "3 አማራጭ የንግድ ስሞች",
+              "sid": "3 Doortamino daldalu su'mma"
+            }
+          }
+        ],
+        "estimatedFee": 127,
+        "processingDays": 1
+      },
+      {
+        "id": "c400b794-a972-4348-abd7-118d92bf2f52",
+        "title": {
+          "en": "Verify First Name and Nickname",
+          "am": "የመጀመሪያ ስም እና ቅጽል ስም ማረጋገጥ",
+          "sid": "Umi Su'manna Su'mu Gafote Buuxisa"
+        },
+        "description": {
+          "en": "Official identity and alias verification for commercial activities and registered trade names. Processing time: 20 minutes.",
+          "am": "የመጀመሪያ ስም እና የንግድ ቅጽል ስም ትክክለኛነት ማረጋገጫ። የሚፈጅበት ጊዜ፡ 20 ደቂቃ።",
+          "sid": "Umi su'manna daldalu su'ma buuxisate agurro. 20 daqiiqa adhitanno."
+        },
+        "requirements": [
+          {
+            "id": "d59d60b5-aa7b-470e-a8cf-affffa425864",
+            "requirement": {
+              "en": "3x4 Photo",
+              "am": "3x4 ፎቶግራፍ",
+              "sid": "3x4 Foote"
+            }
+          },
+          {
+            "id": "d8fb31b2-2f04-40a2-a190-4cecb18c4a90",
+            "requirement": {
+              "en": "Taxpayer Identification Number (TIN)",
+              "am": "የግብር ከፋይ መለያ ቁጥር (TIN)",
+              "sid": "Gibirshu Badate Kiiro (TIN)"
+            }
+          },
+          {
+            "id": "71a63d15-7afd-4f77-a270-19d2c6a9b798",
+            "requirement": {
+              "en": "National ID",
+              "am": "ብሔራዊ መታወቂያ",
+              "sid": "Daganna Wolooma"
+            }
+          },
+          {
+            "id": "4053cccd-fc0b-474f-a48c-b27778ba0be3",
+            "requirement": {
+              "en": "3 names as options",
+              "am": "3 አማራጭ ስሞች",
+              "sid": "3 Su'mma qolshaho"
+            }
+          }
+        ],
+        "estimatedFee": 27,
+        "processingDays": 1
+      },
+      {
+        "id": "d023a350-9a83-428d-a1b0-97cee9b610bf",
+        "title": {
+          "en": "Modify a Business License",
+          "am": "የንግድ ፈቃድ ማሻሻል",
+          "sid": "Daldalu Eegeera Soorira"
+        },
+        "description": {
+          "en": "Modification of business address, operational category, or ownership details on an existing trade license. Processing time: 10 minutes.",
+          "am": "በነባር የንግድ ፈቃድ ላይ የስራ መስክ፣ አድራሻ ወይም ዝርዝር መረጃዎችን ማሻሻል። የሚፈጅበት ጊዜ፡ 10 ደቂቃ።",
+          "sid": "Daldalu eegeera aana noo mashkkaammo soorirate agurro. 10 daqiiqa adhitanno."
+        },
+        "requirements": [
+          {
+            "id": "82acdbf0-17ad-49c0-ac42-d007af16a9b6",
+            "requirement": {
+              "en": "Submit an application",
+              "am": "የማመልከቻ ጥያቄ ማቅረብ",
+              "sid": "Huuccattote borro shollisha"
+            }
+          },
+          {
+            "id": "ff9e254a-0f85-422f-a9f6-2ae4a982fcd9",
+            "requirement": {
+              "en": "National ID",
+              "am": "ብሔራዊ መታወቂያ",
+              "sid": "Daganna Wolooma"
+            }
+          },
+          {
+            "id": "75b86241-fbdd-4dfc-a295-75736c35fb43",
+            "requirement": {
+              "en": "3x4 photograph",
+              "am": "3x4 ፎቶግራፍ",
+              "sid": "3x4 Foote"
+            }
+          }
+        ],
+        "estimatedFee": 82,
+        "processingDays": 1
+      },
+      {
+        "id": "43b07485-9286-4f9c-aadb-d98216f95733",
+        "title": {
+          "en": "Amending a Business Registration",
+          "am": "የንግድ ምዝገባ ማሻሻያ",
+          "sid": "Daldalu Borreessiro Soorira"
+        },
+        "description": {
+          "en": "Official amendment to commercial register entries (e.g. capital change, shareholder change, or branch addition). Processing time: 15 minutes.",
+          "am": "በንግድ መዝገብ ላይ ካፒታልን ወይም ህጋዊ መረጃዎችን የማሻሻል አገልግሎት። የሚፈጅበት ጊዜ፡ 15 ደቂቃ።",
+          "sid": "Daldalu borreessirote aana miinju woxe woy seeramu mashkkaammo soorira. 15 daqiiqa adhitanno."
+        },
+        "requirements": [
+          {
+            "id": "6ba408a4-c72e-4b71-a5c2-e4a8baca2921",
+            "requirement": {
+              "en": "Submit an application",
+              "am": "የማመልከቻ ጥያቄ ማቅረብ",
+              "sid": "Huuccattote borro shollisha"
+            }
+          },
+          {
+            "id": "3b83baab-ba3b-478c-a7b7-d7f117b30456",
+            "requirement": {
+              "en": "National ID",
+              "am": "ብሔራዊ መታወቂያ",
+              "sid": "Daganna Wolooma"
+            }
+          },
+          {
+            "id": "19a42f57-1d27-494a-ac0f-9d816e4a6bd2",
+            "requirement": {
+              "en": "3x4 photograph",
+              "am": "3x4 ፎቶግራፍ",
+              "sid": "3x4 Foote"
+            }
+          }
+        ],
+        "estimatedFee": 102,
+        "processingDays": 1
       }
     ]
   },
   {
-    "id": "853d157a-d492-4361-b64c-9157cf7946cf",
+    "id": "ed89253e-7731-4f58-ab9b-5474b1146c8e",
     "name": {
-      "en": "Commercial Bank of Ethiopia",
-      "am": "የኢትዮጵያ ንግድ ባንክ",
-      "sid": "Itiyoophiyu Daldalu Baanke"
+      "en": "Ethiopian Electric Utility",
+      "am": "የኢትዮጵያ ኤሌክትሪክ አገልግሎት",
+      "sid": "Itiyoophiyu Elektirike Agurro"
     },
-    "code": "CBE",
-    "logoUrl": "/cbe.jpeg",
-    "services": []
-  },
-  {
-    "id": "4dea7a9d-cc03-4e9d-bcd4-d94cac34fb61",
-    "name": {
-      "en": "Hawassa City Administration Construction Permit and Control Authority",
-      "am": "የሀዋሳ ከተማ አስተዳደር የግንባታ ፈቃድ እና ቁጥጥር ባለስልጣን",
-      "sid": "Hawaasa Katamu Gashshooti Minate Eegeera fi Qoropho Ejense"
-    },
-    "code": "HAWASSA_CONSTRUCTION",
-    "logoUrl": "/city.jpg",
+    "code": "EEU",
+    "logoUrl": "/eeu.png",
     "services": [
       {
-        "id": "7771dcc1-4f7f-44b7-80b9-393802fd07d9",
+        "id": "5d49b7d5-f92a-4564-a85f-64baa633c1bf",
         "title": {
-          "en": "Issuing construction permits for residential extensions/expansions",
-          "am": "ለመኖሪያ ቤቶች ቅጥያ እና ማስፋፊያ የግንባታ ፈቃዶችን ማውጣት",
-          "sid": "Heeranoote Minate Lophphote Minate Eegeera Uya"
+          "en": "Electricity Prepaid Recharge",
+          "am": "የቅድመ ክፍያ ኤሌክትሪክ ካርድ መሙላት",
+          "sid": "Balaxe Baantanni Elektirike Kaarde Wonsha"
+        },
+        "description": {
+          "en": "Recharge prepaid electricity meter cards and token top-ups for residential and commercial customers. Processing time: 2 minutes. Free service.",
+          "am": "የቅድመ ክፍያ የኤሌክትሪክ ቆጣሪ ካርድ መሙላት እና ቶከን ማግኘት። የሚፈጅበት ጊዜ፡ 2 ደቂቃ። ነፃ አገልግሎት።",
+          "sid": "Elektirike kootare kaarde wonshatenna tookine afi'rate agurro. 2 daqiiqa adhitanno. Waagu nookkiha."
         },
         "requirements": [
           {
-            "id": "81e095ac-0a40-4745-9166-542a6e82e808",
+            "id": "628db25c-b71a-40e3-a6de-f62e1ba4ed43",
             "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "f83ad52b-6a33-414c-88f4-22d5845ce495",
-            "requirement": {
-              "en": "Property deed/ownership document",
-              "am": "የይዞታ/ባለቤትነት ማረጋገጫ ሰነድ",
-              "sid": "Baattoote/Mino Annimma Woraqata"
-            }
-          },
-          {
-            "id": "3b958af6-b363-4369-bcb9-9ad9469be5e5",
-            "requirement": {
-              "en": "Architectural drawings and blueprints",
-              "am": "የአርክቴክቸር ፕላን እና ዲዛይን",
-              "sid": "Arkitekichere Pilaane fi Dizaayne"
-            }
-          },
-          {
-            "id": "76acc3d2-02e0-4a67-b5f7-cb615b23d808",
-            "requirement": {
-              "en": "Land survey certificate",
-              "am": "የመሬት ልኬት ማረጋገጫ ሰርተፍኬት",
-              "sid": "Baattoote Keero Kakkalooshsha"
-            }
-          },
-          {
-            "id": "cbdb26ed-6674-4fc4-8764-c2708045216c",
-            "requirement": {
-              "en": "Building cost estimate (BOQ)",
-              "am": "የግንባታ ወጪ ግምት (BOQ)",
-              "sid": "Minate Baaso Kakkalooshsha (BOQ)"
-            }
-          }
-        ],
-        "estimatedFee": 350,
-        "processingDays": 2
-      },
-      {
-        "id": "9845d4fa-2ebf-4c87-9f51-f628b8b279c4",
-        "title": {
-          "en": "Issuing extension/expansion permits for commercial and mixed-use buildings",
-          "am": "ለንግድና ድብልቅ ሕንፃዎች ቅጥያ እና ማስፋፊያ የግንባታ ፈቃዶችን ማውጣት",
-          "sid": "Daldalu fi Xaphoomu Minna Lophphote Eegeera Uya"
-        },
-        "requirements": [
-          {
-            "id": "1b215dce-f2f4-4a3a-a024-c746c8240a54",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "da69e227-9905-4b99-a90d-fe5b956dfc52",
-            "requirement": {
-              "en": "Property deed/ownership document",
-              "am": "የይዞታ/ባለቤትነት ማረጋገጫ ሰነድ",
-              "sid": "Baattoote/Mino Annimma Woraqata"
-            }
-          },
-          {
-            "id": "b94fa9cb-4ffe-41cc-af24-8ea7c5a88c97",
-            "requirement": {
-              "en": "Architectural drawings and blueprints",
-              "am": "የአርክቴክቸር ፕላን እና ዲዛይን",
-              "sid": "Arkitekichere Pilaane fi Dizaayne"
-            }
-          },
-          {
-            "id": "1607a7ba-c729-43e7-964f-ab684eb5220c",
-            "requirement": {
-              "en": "Land survey certificate",
-              "am": "የመሬት ልኬት ማረጋገጫ ሰርተፍኬት",
-              "sid": "Baattoote Keero Kakkalooshsha"
-            }
-          },
-          {
-            "id": "bda83cec-ce24-4194-bf1c-18a9da194d54",
-            "requirement": {
-              "en": "Building cost estimate (BOQ)",
-              "am": "የግንባታ ወጪ ግምት (BOQ)",
-              "sid": "Minate Baaso Kakkalooshsha (BOQ)"
-            }
-          }
-        ],
-        "estimatedFee": 350,
-        "processingDays": 2
-      },
-      {
-        "id": "dcd984e9-1084-40a5-bcc9-11018fbb2bb8",
-        "title": {
-          "en": "Issuing new commercial and mixed-use building construction permits",
-          "am": "ለአዳዲስ የንግድ እና ተደባለቀ አገልግሎት ሕንፃዎች የግንባታ ፈቃዶችን ማውጣት።",
-          "sid": "Haaro Daldalu Minate Minate Eegeera Uya"
-        },
-        "requirements": [
-          {
-            "id": "34d1f89a-0734-499c-b431-86001ccd359f",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "cf543721-ec1b-4805-9f68-177b47324b36",
-            "requirement": {
-              "en": "Property deed/ownership document",
-              "am": "የይዞታ/ባለቤትነት ማረጋገጫ ሰነድ",
-              "sid": "Baattoote/Mino Annimma Woraqata"
-            }
-          },
-          {
-            "id": "b4fc5377-a75e-4b6c-b3ec-2262478ea8ae",
-            "requirement": {
-              "en": "Architectural drawings and blueprints",
-              "am": "የአርክቴክቸር ፕላን እና ዲዛይን",
-              "sid": "Arkitekichere Pilaane fi Dizaayne"
-            }
-          },
-          {
-            "id": "9e936943-e1ba-45cf-8a63-6dd3671ecb0f",
-            "requirement": {
-              "en": "Land survey certificate",
-              "am": "የመሬት ልኬት ማረጋገጫ ሰርተፍኬት",
-              "sid": "Baattoote Keero Kakkalooshsha"
-            }
-          },
-          {
-            "id": "372cfe8d-6c74-40b6-9f7c-bc56cfb22a65",
-            "requirement": {
-              "en": "Building cost estimate (BOQ)",
-              "am": "የግንባታ ወጪ ግምት (BOQ)",
-              "sid": "Minate Baaso Kakkalooshsha (BOQ)"
-            }
-          }
-        ],
-        "estimatedFee": 350,
-        "processingDays": 2
-      },
-      {
-        "id": "2b3a2a67-6674-4a97-b5c0-4cedf42c2196",
-        "title": {
-          "en": "Issuing new residential building construction permits",
-          "am": "ለአዳዲስ የመኖሪያ ቤቶች የግንባታ ፈቃዶችን ማውጣት።",
-          "sid": "Haaro Heeranoote Minate Minate Eegeera Uya"
-        },
-        "requirements": [
-          {
-            "id": "1fdab1e9-644e-487a-b161-b1cef4f5d1d9",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "ff2d2f9d-13de-4cbb-aefd-d2688e8081fa",
-            "requirement": {
-              "en": "Property deed/ownership document",
-              "am": "የይዞታ/ባለቤትነት ማረጋገጫ ሰነድ",
-              "sid": "Baattoote/Mino Annimma Woraqata"
-            }
-          },
-          {
-            "id": "bf768d74-c7cd-4563-bbf3-475f2ec68c50",
-            "requirement": {
-              "en": "Architectural drawings and blueprints",
-              "am": "የአርክቴክቸር ፕላን እና ዲዛይን",
-              "sid": "Arkitekichere Pilaane fi Dizaayne"
-            }
-          },
-          {
-            "id": "4f9412d8-53df-4960-bde0-f19ddb98054f",
-            "requirement": {
-              "en": "Land survey certificate",
-              "am": "የመሬት ልኬት ማረጋገጫ ሰርተፍኬት",
-              "sid": "Baattoote Keero Kakkalooshsha"
-            }
-          },
-          {
-            "id": "4f4c37ad-123f-4a67-a0ce-56c367a3f173",
-            "requirement": {
-              "en": "Building cost estimate (BOQ)",
-              "am": "የግንባታ ወጪ ግምት (BOQ)",
-              "sid": "Minate Baaso Kakkalooshsha (BOQ)"
-            }
-          }
-        ],
-        "estimatedFee": 350,
-        "processingDays": 2
-      },
-      {
-        "id": "673b7988-c1c5-45de-a4f0-7fafec40ae99",
-        "title": {
-          "en": "Approving building cost estimates (BOQ)",
-          "am": "የሕንፃ ግንባታ ወጪ ግምት (BOQ) ማጽደቅ",
-          "sid": "Minate Baaso Kakkalooshsha (BOQ) Qoropha"
-        },
-        "requirements": [
-          {
-            "id": "adc10984-8861-45d7-8e3b-0974237a9a23",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "87fc6373-948a-42f0-a76f-020ca9c431b7",
-            "requirement": {
-              "en": "Property deed/ownership document",
-              "am": "የይዞታ/ባለቤትነት ማረጋገጫ ሰነድ",
-              "sid": "Baattoote/Mino Annimma Woraqata"
-            }
-          },
-          {
-            "id": "3f4a7950-53a5-439a-8861-ec3f1b6514a6",
-            "requirement": {
-              "en": "Building cost estimate (BOQ)",
-              "am": "የግንባታ ወጪ ግምት (BOQ)",
-              "sid": "Minate Baaso Kakkalooshsha (BOQ)"
-            }
-          }
-        ],
-        "estimatedFee": 150,
-        "processingDays": 3
-      }
-    ]
-  },
-  {
-    "id": "1c589b69-351f-4927-953c-e4ffe88caf00",
-    "name": {
-      "en": "Hawassa City Administration Housing & Development Bureau",
-      "am": "የሀዋሳ ከተማ አስተዳደር መኖሪያ ቤቶችና ልማት ቢሮ",
-      "sid": "Hawaasa Katamu Gashshooti Minna fi Lophpho Biiro"
-    },
-    "code": "HAWASSA_HOUSING",
-    "logoUrl": "/city.jpg",
-    "services": [
-      {
-        "id": "f3727a52-acd1-4060-8904-690925620351",
-        "title": {
-          "en": "Housing permits",
-          "am": "የመኖሪያ ቤት ፈቃዶች",
-          "sid": "Mino Minate Eegeera"
-        },
-        "requirements": [
-          {
-            "id": "7e81052f-67fe-4486-a138-c0985aae8224",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "641a9c5d-bc83-44ef-8c1f-a6e8fed0f4ed",
-            "requirement": {
-              "en": "Proof of residence",
-              "am": "የነዋሪነት ማረጋገጫ",
-              "sid": "Heeranoote Kakkalooshsha"
-            }
-          },
-          {
-            "id": "88f8615b-4adf-4e6b-88a5-24a554477ff3",
-            "requirement": {
-              "en": "Application form",
-              "am": "የማመልከቻ ቅጽ",
-              "sid": "Konne Borro Forme"
-            }
-          }
-        ],
-        "estimatedFee": 350,
-        "processingDays": 2
-      },
-      {
-        "id": "d44ad830-5015-463f-b218-7d2ffe9a39b3",
-        "title": {
-          "en": "Development project updates",
-          "am": "የልማት ፕሮጀክት መረጃዎች",
-          "sid": "Lophphote Pirojekite Mashkkaammo"
-        },
-        "requirements": [
-          {
-            "id": "20c49f1f-4c81-4f81-a042-e04459faf716",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "23e84a68-2631-4e53-8a17-7e161584238d",
-            "requirement": {
-              "en": "Proof of residence",
-              "am": "የነዋሪነት ማረጋገጫ",
-              "sid": "Heeranoote Kakkalooshsha"
-            }
-          },
-          {
-            "id": "b88ac2e7-8bec-4203-952b-c193ca77a10b",
-            "requirement": {
-              "en": "Application form",
-              "am": "የማመልከቻ ቅጽ",
-              "sid": "Konne Borro Forme"
-            }
-          }
-        ],
-        "estimatedFee": 150,
-        "processingDays": 2
-      },
-      {
-        "id": "a6742ddf-fd86-46b2-9ed3-76cbb4d43d3a",
-        "title": {
-          "en": "Residential service support for citizens",
-          "am": "ለዜጎች የመኖሪያ አገልግሎት ድጋፍ",
-          "sid": "Heeranote Minu Kaa'lo Agurrote"
-        },
-        "requirements": [
-          {
-            "id": "e8c78cfa-525f-48a4-87a8-2173d79c1f0b",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "0415470f-1cd1-4489-9bc0-5c614a4ce326",
-            "requirement": {
-              "en": "Proof of residence",
-              "am": "የነዋሪነት ማረጋገጫ",
-              "sid": "Heeranoote Kakkalooshsha"
-            }
-          },
-          {
-            "id": "4a20b657-e9f4-4564-9c7d-d7aa79b4954f",
-            "requirement": {
-              "en": "Application form",
-              "am": "የማመልከቻ ቅጽ",
-              "sid": "Konne Borro Forme"
-            }
-          }
-        ],
-        "estimatedFee": 150,
-        "processingDays": 2
-      }
-    ]
-  },
-  {
-    "id": "50f207a7-4d1a-4d83-a5d8-bae33174ebba",
-    "name": {
-      "en": "Hawassa City Administration Revenue Bureau",
-      "am": "የሀዋሳ ከተማ አስተዳደር ገቢዎች ቢሮ",
-      "sid": "Hawaasa Katamu Gashshooti Gibiru Biiro"
-    },
-    "code": "HAWASSA_REVENUE",
-    "logoUrl": "/city.jpg",
-    "services": [
-      {
-        "id": "2288a411-8c7b-4c47-94fb-193c3d46ceed",
-        "title": {
-          "en": "Taxpayer TIN / Taxpayer Identification Number / Issuance",
-          "am": "የግብር ከፋይ መለያ ቁጥር (TIN) ማውጣት",
-          "sid": "Gibirshu Badate Kiiro (TIN) Uya"
-        },
-        "requirements": [
-          {
-            "id": "ef1eb10a-146c-4576-8fd8-d9fdee506e6a",
-            "requirement": {
-              "en": "Taxpayer Identification Number (TIN) application",
-              "am": "የግብር ከፋይ መለያ ቁጥር (TIN) ማመልከቻ",
-              "sid": "Gibirshu Badate Kiiro (TIN) Huuccatto"
-            }
-          },
-          {
-            "id": "be291fe4-7ca2-4cc1-bb10-3f03a1a0f0e3",
-            "requirement": {
-              "en": "National ID Card (Fayda)",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
+              "en": "Prepaid Electricity Recharge Card / Meter Card",
+              "am": "የቅድመ ክፍያ ኤሌክትሪክ ቆጣሪ ካርድ",
+              "sid": "Balaxe baantanni elektirike kaarde"
             }
           }
         ],
@@ -710,378 +729,464 @@ export const HAWASSA_INSTITUTIONS = [
     ]
   },
   {
-    "id": "dabbd72c-e85f-4dde-ac10-525ccd608b07",
+    "id": "1a1b136a-d9b0-48a9-a8c5-30af4e322426",
     "name": {
-      "en": "Hawassa City Land Administration And Investment Bureau",
-      "am": "የሀዋሳ ከተማ አስተዳደር መሬት አስተዳደር እና ኢንቨስትመንት ቢሮ",
-      "sid": "Hawaasa Katamu Baattoote Gashshooti fi Investermentete Biiro"
+      "en": "Urban Development and Construction",
+      "am": "የከተማ ልማትና ኮንስትራክሽን መምሪያ",
+      "sid": "Katamu Lophphonna Konistiraakshiine Biiro"
+    },
+    "code": "URBAN_DEV_CONSTRUCTION",
+    "logoUrl": "/city.jpg",
+    "services": []
+  },
+  {
+    "id": "45ca60a7-0b05-4c6f-a849-5249610a2761",
+    "name": {
+      "en": "Land Administration and Investment",
+      "am": "የመሬት አስተዳደርና ኢንቨስትመንት መምሪያ",
+      "sid": "Baattoote Gashshootinna Investermente Biiro"
     },
     "code": "HAWASSA_LAND",
     "logoUrl": "/city.jpg",
+    "services": []
+  },
+  {
+    "id": "502e64b4-1097-4e70-a347-cae73efd9d37",
+    "name": {
+      "en": "Labor and Skill Services",
+      "am": "የስራና ክህሎት አገልግሎት",
+      "sid": "Loosunna Dandote Agurro"
+    },
+    "code": "LABOR_AND_SKILLS",
+    "logoUrl": "/city.jpg",
     "services": [
       {
-        "id": "4a127692-989f-42a8-9bcf-e6b059a2e2e3",
+        "id": "6bc7b09b-3570-4af7-ad5c-3206f9ea8364",
         "title": {
-          "en": "Issuing construction permits for residential extensions/expansions",
-          "am": "ለመኖሪያ ቤቶች ቅጥያ እና ማስፋፊያ የግንባታ ፈቃዶችን ማውጣት",
-          "sid": "Heeranoote Minate Lophphote Minate Eegeera Uya"
+          "en": "Enterprise Registration Service",
+          "am": "የኢንተርፕራይዝ ምዝገባ አገልግሎት",
+          "sid": "Interpiraayize Borreessate Agurro"
+        },
+        "description": {
+          "en": "Registration and formalization for small and medium enterprises (SMEs) and youth cooperatives. Processing time: 20 minutes.",
+          "am": "አነስተኛና ጥቃቅን ኢንተርፕራይዞችን እና የህብረት ስራ ማህበራትን የመመዝገብ አገልግሎት። የሚፈጅበት ጊዜ፡ 20 ደቂቃ።",
+          "sid": "Shiimmaaddu daldalu diriyoota borreessate agurro. 20 daqiiqa adhitanno."
         },
         "requirements": [
           {
-            "id": "b6795018-c9e3-45bd-bf67-b699f5444e41",
+            "id": "0d0b32f2-9e48-4991-ac70-cd6569cfdc93",
             "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "434089ea-172e-469b-8380-16d3ffc9d175",
-            "requirement": {
-              "en": "Property deed/ownership document",
-              "am": "የይዞታ/ባለቤትነት ማረጋገጫ ሰነድ",
-              "sid": "Baattoote/Mino Annimma Woraqata"
-            }
-          },
-          {
-            "id": "73e04488-f778-45c8-ba8c-7763497e33d7",
-            "requirement": {
-              "en": "Architectural drawings and blueprints",
-              "am": "የአርክቴክቸር ፕላን እና ዲዛይን",
-              "sid": "Arkitekichere Pilaane fi Dizaayne"
-            }
-          },
-          {
-            "id": "bdf48546-830b-41f6-a95a-2f68640229f4",
-            "requirement": {
-              "en": "Land survey certificate",
-              "am": "የመሬት ልኬት ማረጋገጫ ሰርተፍኬት",
-              "sid": "Baattoote Keero Kakkalooshsha"
-            }
-          },
-          {
-            "id": "bb8bf51a-2b94-42fc-b638-66266c747a40",
-            "requirement": {
-              "en": "Building cost estimate (BOQ)",
-              "am": "የግንባታ ወጪ ግምት (BOQ)",
-              "sid": "Minate Baaso Kakkalooshsha (BOQ)"
+              "en": "Enterprise application and documentation (to be added)",
+              "am": "የኢንተርፕራይዝ ማመልከቻና ሰነዶች (የሚጨመር)",
+              "sid": "Interpiraayizete huuccattote borro (leellishinanni)"
             }
           }
         ],
-        "estimatedFee": 350,
-        "processingDays": 2
+        "estimatedFee": null,
+        "processingDays": 1
       },
       {
-        "id": "0e99d09a-2279-4d48-9622-a770a8ec5bf9",
+        "id": "eebe3432-95fb-409b-a425-ac6dda0ce1e7",
         "title": {
-          "en": "Approving building cost estimates (BOQ)",
-          "am": "የሕንፃ ግንባታ ወጪ ግምት (BOQ) ማጽደቅ",
-          "sid": "Minate Baaso Kakkalooshsha (BOQ) Qoropha"
+          "en": "Foreign Employment Registration Service",
+          "am": "የውጭ ሀገር የስራ ስምሪት ምዝገባ",
+          "sid": "Gobbate Loosu Eegote Borreessiro"
+        },
+        "description": {
+          "en": "Government registration and verification for citizens seeking legal foreign employment opportunities. Processing time: 30 minutes. 100% Free.",
+          "am": "ህጋዊ የውጭ ሀገር የስራ ስምሪት ምዝገባ አገልግሎት። የሚፈጅበት ጊዜ፡ 30 ደቂቃ። ሙሉ በሙሉ ነፃ አገልግሎት።",
+          "sid": "Seeramu gobbate loosu eego borreessa. 30 daqiiqa adhitanno. Waagu nookkiha."
         },
         "requirements": [
           {
-            "id": "bdca2341-2cef-4eec-a93e-a33015769dd0",
+            "id": "b58232bb-bfc8-49ae-a85e-7416b7abfd59",
             "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "ead0ce88-3027-4bdc-9b00-ac53c9467236",
-            "requirement": {
-              "en": "Property deed/ownership document",
-              "am": "የይዞታ/ባለቤትነት ማረጋገጫ ሰነድ",
-              "sid": "Baattoote/Mino Annimma Woraqata"
-            }
-          },
-          {
-            "id": "07b1c42a-58bc-4cbe-9dbc-c86f533ceb62",
-            "requirement": {
-              "en": "Building cost estimate (BOQ)",
-              "am": "የግንባታ ወጪ ግምት (BOQ)",
-              "sid": "Minate Baaso Kakkalooshsha (BOQ)"
+              "en": "National ID (Fayda / Resident ID)",
+              "am": "ብሔራዊ መታወቂያ (ፋይዳ / የቀበሌ መታወቂያ)",
+              "sid": "Daganna Wolooma (Fayda / Qabale)"
             }
           }
         ],
-        "estimatedFee": 150,
-        "processingDays": 3
+        "estimatedFee": 0,
+        "processingDays": 1
       },
       {
-        "id": "4b17d2c3-fcfd-450a-ae26-870fbbfa6a1e",
+        "id": "9b9c78d2-4433-4c61-a258-2cb4ed81bb6a",
         "title": {
-          "en": "Issuing extension/expansion permits for commercial and mixed-use buildings",
-          "am": "ለንግድና ድብልቅ ሕንፃዎች ቅጥያ እና ማስፋፊያ የግንባታ ፈቃዶችን ማውጣት",
-          "sid": "Daldalu fi Xaphoomu Minna Lophphote Eegeera Uya"
+          "en": "Finger Printing Service",
+          "am": "የጣት አሻራ አገልግሎት",
+          "sid": "Qubbi Malaate (Ashaara) Kaassate Agurro"
+        },
+        "description": {
+          "en": "Biometric fingerprint scanning and documentation for labor clearance and identification. Processing time: 30 minutes. Free of charge.",
+          "am": "ለስራ ስምሪት እና ለደህንነት ማረጋገጫ የጣት አሻራ መውሰድ። የሚፈጅበት ጊዜ፡ 30 ደቂቃ። አገልግሎቱ ነፃ ነው።",
+          "sid": "Loosunna buuxisate qubbi malaate (ashaara) kaassa. 30 daqiiqa adhitanno. Waagu nookkiha."
         },
         "requirements": [
           {
-            "id": "13a1e6f2-c745-491e-9ad4-49926c279434",
+            "id": "18907ad1-9961-4aed-a8d3-2d8d2e334699",
             "requirement": {
               "en": "National ID",
               "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "55ffbc62-e2cd-4298-bbb6-bc96dbe3242d",
-            "requirement": {
-              "en": "Property deed/ownership document",
-              "am": "የይዞታ/ባለቤትነት ማረጋገጫ ሰነድ",
-              "sid": "Baattoote/Mino Annimma Woraqata"
-            }
-          },
-          {
-            "id": "e15bd09d-af23-4059-bb3a-e4f25f16ae40",
-            "requirement": {
-              "en": "Architectural drawings and blueprints",
-              "am": "የአርክቴክቸር ፕላን እና ዲዛይን",
-              "sid": "Arkitekichere Pilaane fi Dizaayne"
-            }
-          },
-          {
-            "id": "c66d1e0c-7db3-43a1-8360-4376df06e4ae",
-            "requirement": {
-              "en": "Land survey certificate",
-              "am": "የመሬት ልኬት ማረጋገጫ ሰርተፍኬት",
-              "sid": "Baattoote Keero Kakkalooshsha"
-            }
-          },
-          {
-            "id": "31b2fe8b-7d3f-4e61-a951-8672f633d302",
-            "requirement": {
-              "en": "Building cost estimate (BOQ)",
-              "am": "የግንባታ ወጪ ግምት (BOQ)",
-              "sid": "Minate Baaso Kakkalooshsha (BOQ)"
+              "sid": "Daganna Wolooma"
             }
           }
         ],
-        "estimatedFee": 350,
-        "processingDays": 2
+        "estimatedFee": 0,
+        "processingDays": 1
       }
     ]
   },
   {
-    "id": "446bb6b6-57aa-4fcf-ac84-fdccad171f0f",
+    "id": "42a2b49d-4a5b-495b-a3b6-97ce440cd3aa",
     "name": {
-      "en": "Sidama Bank",
-      "am": "ሲዳማ ባንክ",
-      "sid": "Sidaama Baanke"
+      "en": "Revenue Authority",
+      "am": "የገቢዎች ባለስልጣን",
+      "sid": "Gibiru Biiro"
     },
-    "code": "SIDAMA_BANK",
-    "logoUrl": "/sidama bank.webp",
+    "code": "HAWASSA_REVENUE",
+    "logoUrl": "/city.jpg",
+    "services": [
+      {
+        "id": "a73c718d-0a3c-4a89-a9d1-8543721703d7",
+        "title": {
+          "en": "Tax Payer Registration (TIN)",
+          "am": "የግብር ከፋይ መለያ ቁጥር (TIN) ምዝገባ",
+          "sid": "Gibirshu Badate Kiiro (TIN) Borreessiro"
+        },
+        "description": {
+          "en": "Issuance of Taxpayer Identification Number (TIN) for individuals and commercial entities. Processing time: 10 minutes. Free of charge.",
+          "am": "ለግለሰቦች እና ለንግድ ድርጅቶች የግብር ከፋይ መለያ ቁጥር (TIN) ማውጣት። የሚፈጅበት ጊዜ፡ 10 ደቂቃ። አገልግሎቱ ነፃ ነው።",
+          "sid": "Mannahonna daldalaho Gibirshu Badate Kiiro (TIN) fusha. 10 daqiiqa adhitanno. Waagu nookkiha."
+        },
+        "requirements": [
+          {
+            "id": "2f34a81c-6f0e-46f9-aca8-ed8259757181",
+            "requirement": {
+              "en": "National ID / Passport",
+              "am": "ብሔራዊ መታወቂያ ወይም ፓስፖርት",
+              "sid": "Daganna Wolooma woy Paaspoorte"
+            }
+          },
+          {
+            "id": "42c0921b-07f3-4193-ab91-8d0dfe76dc69",
+            "requirement": {
+              "en": "Business registration certificate (for businesses)",
+              "am": "የንግድ ምዝገባ ምስክር ወረቀት (ለንግድ ድርጅቶች)",
+              "sid": "Daldalu borreessirote kakkalooshsha (daldalu diriyeetira)"
+            }
+          }
+        ],
+        "estimatedFee": 0,
+        "processingDays": 1
+      }
+    ]
+  },
+  {
+    "id": "94d22533-220a-4a97-ac7a-052ba890e7d4",
+    "name": {
+      "en": "Justice Department",
+      "am": "የፍትህ መምሪያ",
+      "sid": "Yoote Biiro"
+    },
+    "code": "JUSTICE_DEPT",
+    "logoUrl": "/city.jpg",
     "services": []
   },
   {
-    "id": "319e9398-2887-4415-85b1-276ca4fbff0d",
+    "id": "871cc3f3-178d-4eae-ae30-9a97a3367e16",
     "name": {
       "en": "Ethio Telecom",
       "am": "ኢትዮ ቴሌኮም",
       "sid": "Itiyo Telekoome"
     },
     "code": "ETHIO_TELECOM",
-    "logoUrl": "/ethiotele.png",
+    "logoUrl": "/telecom.png",
     "services": [
       {
-        "id": "7ed5db3e-2ea4-405c-b1bc-304bf56e0160",
+        "id": "8b63234a-ace8-4ab1-a117-c3ae5efb1822",
         "title": {
-          "en": "Subscription management",
-          "am": "የቴሌኮም ምዝገባና አገልግሎት አስተዳደር",
-          "sid": "Kaa'lote Wolaqqo Gashshoota"
+          "en": "Telebirr Service",
+          "am": "የቴሌብር አገልግሎት",
+          "sid": "Telebirri Agurro"
+        },
+        "description": {
+          "en": "Telebirr digital wallet registration, account tier upgrade, and PIN assistance. Processing time: 5 minutes. Free of charge.",
+          "am": "የቴሌብር ምዝገባ፣ የሂሳብ ደረጃ ማሻሻያ እና የይለፍ ቃል እርዳታ። የሚፈጅበት ጊዜ፡ 5 ደቂቃ። አገልግሎቱ ነፃ ነው።",
+          "sid": "Telebirre borreessa, pini soorrate fi woxu dambara agurro. 5 daqiiqa adhitanno. Waagu nookkiha."
         },
         "requirements": [
           {
-            "id": "b65a9986-ca03-43be-99a6-81e716bf08f7",
-            "requirement": {
-              "en": "SIM card registration",
-              "am": "የሲም ካርድ ምዝገባ",
-              "sid": "SIM Kaarde Borreessiro"
-            }
-          },
-          {
-            "id": "15a7585f-85da-4402-89ee-aab9258f805a",
+            "id": "9fbbd12c-f9da-4e61-a5f9-2d112ba5f122",
             "requirement": {
               "en": "National ID",
               "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "2a4c6391-0e23-4c1a-976c-6a6017ddd0f9",
-            "requirement": {
-              "en": "Service contract",
-              "am": "የአገልግሎት ውል ስምምነት",
-              "sid": "Agurrote Shetto Woraqata"
+              "sid": "Daganna Wolooma"
             }
           }
         ],
-        "estimatedFee": 150,
-        "processingDays": 2
+        "estimatedFee": 0,
+        "processingDays": 1
       },
       {
-        "id": "f866f75b-915b-49ba-809c-8b3766aef727",
+        "id": "790bfd85-1142-4c51-a366-31b27ce5bcb8",
         "title": {
-          "en": "Telecom assistance for residents",
-          "am": "ለነዋሪዎች የቴሌኮም አገልግሎት ድጋፍ",
-          "sid": "Heeranote Telekoome Kaa'lo Agurrote"
+          "en": "Enterprise Service",
+          "am": "የድርጅት አገልግሎት",
+          "sid": "Diriyeetete Agurro"
+        },
+        "description": {
+          "en": "Enterprise telecommunication solutions, dedicated internet lines, bulk SMS, and corporate packages. Processing time: 5 minutes. Free service.",
+          "am": "ለንግድ ድርጅቶች የቴሌኮም መፍትሄዎች፣ የኢንተርኔትና ጥሪ መስመሮች አገልግሎት። የሚፈጅበት ጊዜ፡ 5 ደቂቃ። ነፃ አገልግሎት።",
+          "sid": "Diriyeetaho telekoomete babbaxxitino agurro uya. 5 daqiiqa adhitanno. Waagu nookkiha."
         },
         "requirements": [
           {
-            "id": "8971ef79-ba3c-425b-a382-d85701111442",
-            "requirement": {
-              "en": "SIM card registration",
-              "am": "የሲም ካርድ ምዝገባ",
-              "sid": "SIM Kaarde Borreessiro"
-            }
-          },
-          {
-            "id": "44ea4e05-1a6c-4a94-90ec-abb761f2dcfb",
+            "id": "f36f4344-6366-432c-aa97-c18a83a969a7",
             "requirement": {
               "en": "National ID",
               "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
+              "sid": "Daganna Wolooma"
             }
           },
           {
-            "id": "abd53ea0-37e7-48d5-99e2-00d2204c3240",
+            "id": "5543af43-159e-48e1-aca3-de628810eceb",
             "requirement": {
-              "en": "Service contract",
-              "am": "የአገልግሎት ውል ስምምነት",
-              "sid": "Agurrote Shetto Woraqata"
+              "en": "Enterprise license",
+              "am": "የድርጅቱ ህጋዊ ፈቃድ",
+              "sid": "Diriyeetete eegeera"
+            }
+          },
+          {
+            "id": "f7c6d3c4-73d6-44f6-a236-91d0d12796e7",
+            "requirement": {
+              "en": "TIN certificate",
+              "am": "የግብር ከፋይ መለያ ቁጥር (TIN) ሰርተፍኬት",
+              "sid": "TIN kakkalooshsha"
+            }
+          },
+          {
+            "id": "755d60c2-7bbf-4c10-ae50-306494a9725c",
+            "requirement": {
+              "en": "Commercial registration paper",
+              "am": "የንግድ ምዝገባ ሰነድ",
+              "sid": "Daldalu borreessirote woraqata"
+            }
+          },
+          {
+            "id": "24a46ca9-2080-454d-a4c1-9b8b078a0b18",
+            "requirement": {
+              "en": "Official stamp with application letter",
+              "am": "ማህተም የተደረገበት ይፋዊ የማመልከቻ ደብዳቤ",
+              "sid": "Maashsha noo huuccattote sokko"
+            }
+          },
+          {
+            "id": "cbe641bc-d9eb-48c4-a513-2b15c4abfc6a",
+            "requirement": {
+              "en": "Delegator authorization with National ID",
+              "am": "ህጋዊ የውክልና ማስረጃ ከተወካይ መታወቂያ ጋር",
+              "sid": "Riqiwote borro riqiwaanchu wolooma ledo"
             }
           }
         ],
-        "estimatedFee": 150,
-        "processingDays": 2
-      },
-      {
-        "id": "33d9e262-48e4-490b-a328-68755bc608ed",
-        "title": {
-          "en": "Payment support",
-          "am": "የክፍያ አገልግሎት ድጋፍ",
-          "sid": "Baatooshshu Kaa'lo Agurrote"
-        },
-        "requirements": [
-          {
-            "id": "c187a51b-a127-4906-8218-60aa31807245",
-            "requirement": {
-              "en": "SIM card registration",
-              "am": "የሲም ካርድ ምዝገባ",
-              "sid": "SIM Kaarde Borreessiro"
-            }
-          },
-          {
-            "id": "a20e04e7-5711-43b3-84ee-d983e7539f50",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "7e062e98-2748-4136-9c8f-5e62947b9baf",
-            "requirement": {
-              "en": "Service contract",
-              "am": "የአገልግሎት ውል ስምምነት",
-              "sid": "Agurrote Shetto Woraqata"
-            }
-          }
-        ],
-        "estimatedFee": 150,
-        "processingDays": 2
-      },
-      {
-        "id": "43772e91-018a-46a6-91e7-239d729c2aa5",
-        "title": {
-          "en": "SIM registration",
-          "am": "ስም ካርድ ለማግኘት መመዝገብ",
-          "sid": "SIM Kaarde Borreessiro"
-        },
-        "requirements": [
-          {
-            "id": "14e07264-b513-429c-ad56-6d14cb1c46f0",
-            "requirement": {
-              "en": "SIM card registration",
-              "am": "የሲም ካርድ ምዝገባ",
-              "sid": "SIM Kaarde Borreessiro"
-            }
-          },
-          {
-            "id": "3fdcab00-c078-499e-8301-2f396e1db119",
-            "requirement": {
-              "en": "National ID",
-              "am": "ብሔራዊ መታወቂያ",
-              "sid": "Fayda / Wolooma Borreessiro"
-            }
-          },
-          {
-            "id": "89ff8b44-33bd-4fac-ba9f-faef13e96fa2",
-            "requirement": {
-              "en": "Service contract",
-              "am": "የአገልግሎት ውል ስምምነት",
-              "sid": "Agurrote Shetto Woraqata"
-            }
-          }
-        ],
-        "estimatedFee": 150,
-        "processingDays": 2
+        "estimatedFee": 0,
+        "processingDays": 1
       }
     ]
   },
   {
-    "id": "e8635e04-b1a0-42e9-a832-99a35e7ea7d8",
+    "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
     "name": {
-      "en": "Ethiopost",
-      "am": "የኢትዮጵያ ፖስታ አገልግሎት",
-      "sid": "Itiyoophiyu Posta"
+      "en": "Commercial Bank of Ethiopia",
+      "am": "የኢትዮጵያ ንግድ ባንክ",
+      "sid": "Itiyoophiyu Daldalu Baanke"
     },
-    "code": "ETHIOPOST",
-    "logoUrl": "https://hpyppuyeqpkbicbuhemm.supabase.co/storage/v1/object/public/institution-logos/1786053936241-al845jmq2c4.jpeg",
-    "services": []
+    "code": "CBE",
+    "logoUrl": "/cbe.jpeg",
+    "services": [
+      {
+        "id": "6b33e7f6-37be-4d3d-a4dc-7ccf8c83ebbb",
+        "title": {
+          "en": "Account Opening",
+          "am": "የባንክ ሂሳብ መክፈት",
+          "sid": "Herro Fa'na"
+        },
+        "description": {
+          "en": "Open personal savings, current, or interest-free banking accounts with CBE. Processing time: 25 minutes. Free service (initial deposit required).",
+          "am": "በኢትዮጵያ ንግድ ባንክ የግል ቁጠባ፣ ቼክ ወይም ከወለድ ነፃ የባንክ ሂሳብ መክፈት። የሚፈጅበት ጊዜ፡ 25 ደቂቃ። ነፃ አገልግሎት (የመጀመሪያ ተቀማጭ ገንዘብ ያስፈልጋል)።",
+          "sid": "CBE Baankera qusate woy baankete herro fa'na. 25 daqiiqa adhitanno. Waagu nookkiha."
+        },
+        "requirements": [
+          {
+            "id": "98ef695e-a39b-45a2-a564-3905d375f995",
+            "requirement": {
+              "en": "Valid Identification: Original and copy of National ID (Fayda) / Renewed Resident ID or Passport",
+              "am": "ህጋዊ መታወቂያ፦ የብሔራዊ መታወቂያ (ፋይዳ) / የታደሰ የቀበሌ መታወቂያ ወይም ፓስፖርት ዋናውና ቅጂው",
+              "sid": "Seeramu Wolooma: Qaru Fayda wolooma / Haaroonsamino qabale wolooma woy Paaspoorte"
+            }
+          },
+          {
+            "id": "63d0426f-1f42-4858-adb2-6ce3cb831907",
+            "requirement": {
+              "en": "Photographs: Recent passport-size photographs",
+              "am": "ፎቶግራፍ፦ የቅርብ ጊዜ የፓስፖርት መጠን ፎቶግራፎች",
+              "sid": "Foote: Muli yannara ka'inoha paaspoorte kiiro foote"
+            }
+          },
+          {
+            "id": "0fccac31-fe0c-40b0-a00a-a01692c226c1",
+            "requirement": {
+              "en": "Mobile Number: Active mobile number registered in applicant's name",
+              "am": "የስልክ ቁጥር፦ በአመልካቹ ስም የተመዘገበ ንቁ የስልክ ቁጥር",
+              "sid": "Bilbilu Kiiro: Huuccattooshshu su'minni noo loosanno bilbila"
+            }
+          },
+          {
+            "id": "e8de61f5-97b9-4c87-a5e7-dc7d85f05e7a",
+            "requirement": {
+              "en": "Initial deposit amount",
+              "am": "የመጀመሪያ ተቀማጭ ገንዘብ",
+              "sid": "Umi qusate woxe"
+            }
+          }
+        ],
+        "estimatedFee": 0,
+        "processingDays": 1
+      },
+      {
+        "id": "bd3b4515-226f-4125-a030-b03b679f8ffd",
+        "title": {
+          "en": "Mobile Banking",
+          "am": "የሞባይል ባንኪንግ አገልግሎት",
+          "sid": "Mobaayile Baankete Agurro"
+        },
+        "description": {
+          "en": "Setup and instant activation for CBE Birr and CBE Mobile Banking (App & *847#). Processing time: 5 minutes. Free of charge.",
+          "am": "የሲቢኢ ሞባይል ባንኪንግ እና የሲቢኢ ብር ማግበር። የሚፈጅበት ጊዜ፡ 5 ደቂቃ። አገልግሎቱ ነፃ ነው።",
+          "sid": "CBE Mobaayile Baankenna CBE Birre fa'na. 5 daqiiqa adhitanno. Waagu nookkiha."
+        },
+        "requirements": [
+          {
+            "id": "79d84fde-ef1b-486b-a6a0-0082ca1ce0c4",
+            "requirement": {
+              "en": "Valid Identification: National ID (Fayda) / Renewed Resident ID or Passport",
+              "am": "ህጋዊ መታወቂያ፦ ብሔራዊ መታወቂያ (ፋይዳ) / የታደሰ የቀበሌ መታወቂያ ወይም ፓስፖርት",
+              "sid": "Seeramu Wolooma: Fayda wolooma / Haaroonsamino qabale wolooma woy Paaspoorte"
+            }
+          },
+          {
+            "id": "c0dccfec-f0e5-47a7-ace3-f7571acf8011",
+            "requirement": {
+              "en": "An active CBE Bank Account",
+              "am": "ንቁ የሲቢኢ ባንክ ሂሳብ ቁጥር",
+              "sid": "Loosanno CBE baankete herro"
+            }
+          }
+        ],
+        "estimatedFee": 0,
+        "processingDays": 1
+      }
+    ]
   },
   {
-    "id": "24989f64-9bf7-4005-ad91-cad205af4f04",
+    "id": "79bff990-817e-454b-a3e4-118641cc9128",
     "name": {
-      "en": "Mayor's Office",
-      "am": "ከንቲባ ጽ/ቤት",
-      "sid": "Kantibaasu Biiro"
+      "en": "Sidama Bank",
+      "am": "ሲዳማ ባንክ",
+      "sid": "Sidaamu Baanke"
     },
-    "code": "MAYOR_OFFICE",
-    "logoUrl": "https://hpyppuyeqpkbicbuhemm.supabase.co/storage/v1/object/public/institution-logos/1788521642867-ew2lc0tqi0e.jpg",
-    "services": []
+    "code": "SIDAMA_BANK",
+    "logoUrl": "/sidama-bank.png",
+    "services": [
+      {
+        "id": "859e85eb-98ea-4442-a6ae-2e2bcb253b6f",
+        "title": {
+          "en": "Bank Account Opening Service",
+          "am": "የባንክ ሂሳብ መክፈት አገልግሎት",
+          "sid": "Baankete Herro Fa'nate Agurro"
+        },
+        "description": {
+          "en": "Open personal savings or business deposit accounts with Sidama Bank. Processing time: 15 minutes. Free service.",
+          "am": "በሲዳማ ባንክ የቁጠባ ወይም የቼክ ሂሳብ መክፈት። የሚፈጅበት ጊዜ፡ 15 ደቂቃ። ነፃ አገልግሎት።",
+          "sid": "Sidaamu Baankera herro fa'nate agurro. 15 daqiiqa adhitanno. Waagu nookkiha."
+        },
+        "requirements": [
+          {
+            "id": "b6524a51-cf74-46ab-a973-dbdaf48fefd6",
+            "requirement": {
+              "en": "National ID (Client must be above 18 years old)",
+              "am": "ብሔራዊ መታወቂያ (አመልካቹ ከ18 ዓመት በላይ መሆን አለበት)",
+              "sid": "Daganna Wolooma (Huccattooshshu 18 diro sa'a noosi)"
+            }
+          }
+        ],
+        "estimatedFee": 0,
+        "processingDays": 1
+      },
+      {
+        "id": "db847f5c-3787-4d27-a012-5f8a32502c59",
+        "title": {
+          "en": "Digital Banking Services",
+          "am": "የዲጂታል ባንኪንግ አገልግሎት",
+          "sid": "Dijitaale Baankete Agurro"
+        },
+        "description": {
+          "en": "Registration and onboarding for Sidama Bank mobile app, USSD banking, and ATM debit cards. Processing time: 15 minutes. Free of charge.",
+          "am": "የሲዳማ ባንክ ሞባይል ባንኪንግ እና የኤቲኤም ካርድ ማውጣት። የሚፈጅበት ጊዜ፡ 15 ደቂቃ። አገልግሎቱ ነፃ ነው።",
+          "sid": "Sidaamu Baankete mobaayile baankete fi ATM kaarde agurro. 15 daqiiqa adhitanno. Waagu nookkiha."
+        },
+        "requirements": [
+          {
+            "id": "5660fdd7-58d3-413b-a0b6-56ce443c3fcc",
+            "requirement": {
+              "en": "National ID (The client must be above 18 years old)",
+              "am": "ብሔራዊ መታወቂያ (አመልካቹ ከ18 ዓመት በላይ መሆን አለበት)",
+              "sid": "Daganna Wolooma (Huccattooshshu 18 diro sa'a noosi)"
+            }
+          }
+        ],
+        "estimatedFee": 0,
+        "processingDays": 1
+      }
+    ]
   },
   {
-    "id": "2021f97b-671b-4c39-a7c7-6a016784f69d",
+    "id": "d04659a0-8920-4be6-ac5f-be57552a8036",
     "name": {
-      "en": "Road & Transport Department",
-      "am": "መንገድና ትራነስፖርት መምሪያ",
-      "sid": "Doogo fi Tiraansipoortete Biiro"
+      "en": "National ID Program",
+      "am": "ብሔራዊ መታወቂያ ፕሮግራም",
+      "sid": "Daganna Fayda Wolooma Pirogiraame"
     },
-    "code": "ROAD_TRANSPORT",
-    "logoUrl": "https://hpyppuyeqpkbicbuhemm.supabase.co/storage/v1/object/public/institution-logos/1788521886516-3rbg4xdd8j5.jpg",
-    "services": []
-  },
-  {
-    "id": "5a78a8e7-11f8-4a15-8622-f8ff17c13342",
-    "name": {
-      "en": "Critical situation",
-      "am": "ወሳኝ ኩነት",
-      "sid": "Qaru Qaa'mote Borreessiro (Wasaany Kunat)"
-    },
-    "code": "CRITICAL_SITUATION",
-    "logoUrl": "https://hpyppuyeqpkbicbuhemm.supabase.co/storage/v1/object/public/institution-logos/1788787910471-ofnfs0huskd.jpg",
-    "services": []
-  },
-  {
-    "id": "c280cbbb-deb8-48e0-b03d-00acd50014e8",
-    "name": {
-      "en": "Immigration",
-      "am": "ኢሚግሬሽንና የዜግነት አገልግሎት",
-      "sid": "Imigreeshiinete fi Wolaphooma Agurrote"
-    },
-    "code": "IMMIGRATION",
-    "logoUrl": "https://hpyppuyeqpkbicbuhemm.supabase.co/storage/v1/object/public/institution-logos/1789452952783-ii3d2y2dx1.png",
-    "services": []
+    "code": "NATIONAL_ID_PROGRAM",
+    "logoUrl": "/fayda.png",
+    "services": [
+      {
+        "id": "7f5a0f97-b726-4dbf-aa19-0bbf76ab67a1",
+        "title": {
+          "en": "National ID Service",
+          "am": "የብሔራዊ መታወቂያ (ፋይዳ) አገልግሎት",
+          "sid": "Fayda Wolooma Agurro"
+        },
+        "description": {
+          "en": "Comprehensive Fayda biometric enrollment (photo, 10 fingerprints, and iris scan) and digital Fayda Identification Number (FIN) issuance. Processing time: 8-10 minutes. 100% Free.",
+          "am": "የፋይዳ ዲጂታል መታወቂያ የባዮሜትሪክስ ምዝገባ (የአይን፣ የጣት አሻራ እና የፊት ፎቶ) እና የፋይዳ ቁጥር ማግኘት። የሚፈጅበት ጊዜ፡ ከ8-10 ደቂቃ። ሙሉ በሙሉ ነፃ አገልግሎት።",
+          "sid": "Fayda daganna wolooma borreessa (ashaara fi foote). 8-10 daqiiqa adhitanno. Waagu nookkiha (100% Free)."
+        },
+        "requirements": [
+          {
+            "id": "8d3006b5-0783-487d-ac7c-52c35735fe2e",
+            "requirement": {
+              "en": "Valid primary ID document: Kebele ID / Passport / Birth Certificate / Student ID / Driving License / Car Ownership Document / Bank Book",
+              "am": "ዋና መታወቂያ ሰነድ፦ የቀበሌ መታወቂያ / ፓስፖርት / የልደት ምስክር ወረቀት / የተማሪ መታወቂያ / መንጃ ፈቃድ / የመኪና ባለቤትነት ሰነድ / የባንክ ደብተር",
+              "sid": "Qaru woloomu borro: Qabaleete wolooma / Paaspoorte / Ilote borro / Rosu wolooma / Moteere eegeera / Kaameelu annimma / Baankete borro"
+            }
+          }
+        ],
+        "estimatedFee": 0,
+        "processingDays": 1
+      }
+    ]
   }
 ];
 
