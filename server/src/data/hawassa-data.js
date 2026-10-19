@@ -1,6 +1,6 @@
 // Hawassa MESOB Center Authentic Institutions & Services Data
 // Sourced from live Hawassa MESOB Center portal (https://hawassamesobcenter.et/#services)
-// Exactly 13 verified institutions, 22 operational services, and complete document requirements
+// Exactly 13 verified institutions, 24 operational services, and complete document requirements
 
 export const HAWASSA_INSTITUTIONS = [
   {
@@ -12,8 +12,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "ICS",
     "logoUrl": "/immigration.png",
-    "floorRoomNumber": "Ground Floor, Counters 1-2",
-    "contactPhone": "+251 46 220 1101",
     "services": [
       {
         "id": "1bff5669-64e8-44b2-a5e9-105d537a1b29",
@@ -301,8 +299,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "ETHIO_POST",
     "logoUrl": "/post.png",
-    "floorRoomNumber": "Ground Floor, Counter 3",
-    "contactPhone": "+251 46 220 1102",
     "services": [
       {
         "id": "457d08c9-be16-4de4-a172-2e17f9e262c3",
@@ -381,8 +377,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "HAWASSA_TRADE",
     "logoUrl": "/city.jpg",
-    "floorRoomNumber": "Ground Floor, Counters 4-6",
-    "contactPhone": "+251 46 220 1103",
     "services": [
       {
         "id": "00e2b64f-3441-4f7b-a068-8f15b9e7dbe0",
@@ -706,8 +700,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "EEU",
     "logoUrl": "/eeu.png",
-    "floorRoomNumber": "Ground Floor, Counter 7",
-    "contactPhone": "+251 46 220 1104",
     "services": [
       {
         "id": "5d49b7d5-f92a-4564-a85f-64baa633c1bf",
@@ -745,8 +737,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "URBAN_DEV_CONSTRUCTION",
     "logoUrl": "/city.jpg",
-    "floorRoomNumber": "1st Floor, Counters 8-9",
-    "contactPhone": "+251 46 220 1105",
     "services": []
   },
   {
@@ -758,8 +748,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "HAWASSA_LAND",
     "logoUrl": "/city.jpg",
-    "floorRoomNumber": "1st Floor, Counters 10-11",
-    "contactPhone": "+251 46 220 1106",
     "services": []
   },
   {
@@ -771,8 +759,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "LABOR_AND_SKILLS",
     "logoUrl": "/city.jpg",
-    "floorRoomNumber": "Ground Floor, Counter 12",
-    "contactPhone": "+251 46 220 1107",
     "services": [
       {
         "id": "6bc7b09b-3570-4af7-ad5c-3206f9ea8364",
@@ -860,8 +846,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "HAWASSA_REVENUE",
     "logoUrl": "/city.jpg",
-    "floorRoomNumber": "Ground Floor, Counter 13",
-    "contactPhone": "+251 46 220 1108",
     "services": [
       {
         "id": "a73c718d-0a3c-4a89-a9d1-8543721703d7",
@@ -907,8 +891,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "JUSTICE_DEPT",
     "logoUrl": "/city.jpg",
-    "floorRoomNumber": "1st Floor, Counter 14",
-    "contactPhone": "+251 46 220 1109",
     "services": []
   },
   {
@@ -920,8 +902,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "ETHIO_TELECOM",
     "logoUrl": "/telecom.png",
-    "floorRoomNumber": "Ground Floor, Counter 15",
-    "contactPhone": "+251 46 220 1110",
     "services": [
       {
         "id": "8b63234a-ace8-4ab1-a117-c3ae5efb1822",
@@ -1024,8 +1004,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "CBE",
     "logoUrl": "/cbe.jpeg",
-    "floorRoomNumber": "Ground Floor, Counters 16-17",
-    "contactPhone": "+251 46 220 1111",
     "services": [
       {
         "id": "6b33e7f6-37be-4d3d-a4dc-7ccf8c83ebbb",
@@ -1120,8 +1098,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "SIDAMA_BANK",
     "logoUrl": "/sidama-bank.png",
-    "floorRoomNumber": "Ground Floor, Counter 18",
-    "contactPhone": "+251 46 220 1112",
     "services": [
       {
         "id": "859e85eb-98ea-4442-a6ae-2e2bcb253b6f",
@@ -1184,8 +1160,6 @@ export const HAWASSA_INSTITUTIONS = [
     },
     "code": "NATIONAL_ID_PROGRAM",
     "logoUrl": "/fayda.png",
-    "floorRoomNumber": "Biometric Hall, Counters 19-20",
-    "contactPhone": "+251 46 220 1113",
     "services": [
       {
         "id": "7f5a0f97-b726-4dbf-aa19-0bbf76ab67a1",
