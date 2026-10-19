@@ -19,18 +19,18 @@ async function main() {
         code: inst.code,
         name: inst.name,
         icon: inst.logoUrl,
-        floorRoomNumber: "Main Hall, Counter " + (Math.floor(Math.random() * 15) + 1),
-        contactPhone: "+251 46 220 " + (1100 + Math.floor(Math.random() * 50)),
+        floorRoomNumber: inst.floorRoomNumber || ("Main Hall, Counter " + (Math.floor(Math.random() * 15) + 1)),
+        contactPhone: inst.contactPhone || ("+251 46 220 " + (1100 + Math.floor(Math.random() * 50))),
         services: {
           create: inst.services.map((s) => ({
             id: s.id,
             title: s.title,
-            description: {
+            description: s.description || {
               en: `Official government service provided at Hawassa MESOB Center for ${inst.name.en}.`,
               am: `በሀዋሳ መሶብ ማዕከል በ${inst.name.am} የሚሰጥ ይፋዊ የመንግስት አገልግሎት።`,
               sid: `Hawaasa MESOOBE Bayicho ${inst.name.sid} uyitanno seeramu agurrote.`,
             },
-            requirements: s.requirements.map((r) => r.requirement),
+            requirements: s.requirements.map((r) => r.requirement || r),
             estimatedFee: s.estimatedFee,
             processingDays: s.processingDays,
           })),
