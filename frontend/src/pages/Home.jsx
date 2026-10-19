@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
+import InstitutionCard from '../components/InstitutionCard';
+import InstitutionModal from '../components/InstitutionModal';
+import { API_CONFIG, apiCall } from '../config/api';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
 
@@ -37,6 +40,14 @@ const Home = () => {
   const [verificationWord, setVerificationWord] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // Institutions state
+  const [institutions, setInstitutions] = useState([]);
+  const [institutionsLoading, setInstitutionsLoading] = useState(false);
+  const [institutionsError, setInstitutionsError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [selectedInstitution, setSelectedInstitution] = useState(null);
+  const itemsPerPage = 8; // 4 cards per row × 2 rows
+
   // Array of mesob images for slideshow
   const mesobImages = [
     mesob1, mesob2, mesob3, mesob4, mesob5, mesob6, mesob7, mesob8, mesob9,
@@ -51,6 +62,53 @@ const Home = () => {
 
     return () => clearInterval(interval); // Cleanup on unmount
   }, [mesobImages.length]);
+
+  // Fetch institutions from API
+  useEffect(() => {
+    fetchInstitutions();
+  }, []);
+
+  const fetchInstitutions = async () => {
+    setInstitutionsLoading(true);
+    setInstitutionsError(null);
+
+    try {
+      // Fetch institutions from your backend API
+      const data = await apiCall(API_CONFIG.ENDPOINTS.INSTITUTIONS);
+      setInstitutions(data);
+      setInstitutionsLoading(false);
+    } catch (error) {
+      console.error('Error fetching institutions:', error);
+      setInstitutionsError('Failed to load institutions. Please try again later.');
+      setInstitutionsLoading(false);
+    }
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(institutions.length / itemsPerPage);
+  const startIndex = currentPage * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentInstitutions = institutions.slice(startIndex, endIndex);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleInstitutionClick = (institution) => {
+    setSelectedInstitution(institution);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedInstitution(null);
+  };
 
   // Generate random verification word on component mount
   useEffect(() => {
@@ -421,34 +479,99 @@ const Home = () => {
       </section>
 
       {/* Institutions Section */}
-      <section id="institutions" className="min-h-screen bg-gray-100 dark:bg-gray-900 py-20 px-6 transition-colors">
+      <section id="institutions" className="min-h-screen bg-[#1a1f2e] py-20 px-6 transition-colors">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Institutions</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Government institutions serving Hawassa City residents
+          <h2 className="text-5xl font-bold text-center text-white mb-6">Service Provider Institutions</h2>
+          <p className="text-center text-gray-300 mb-12 text-lg">
+            Access services from these government institutions all in one place
           </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Placeholder Cards */}
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div key={item} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
-                  <span className="text-gray-400 dark:text-gray-500">Logo</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Institution {item}</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Description of the institution and services offered to residents.</p>
+
+          {/* Loading State */}
+          {institutionsLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {institutionsError && (
+            <div className="bg-red-500/10 border border-red-500 rounded-lg p-6 text-center">
+              <p className="text-red-400 text-lg">{institutionsError}</p>
+              <button
+                onClick={fetchInstitutions}
+                className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!institutionsLoading && !institutionsError && institutions.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-xl">No institutions available at the moment.</p>
+            </div>
+          )}
+
+          {/* Institutions Grid */}
+          {!institutionsLoading && !institutionsError && institutions.length > 0 && (
+            <div className="relative">
+              {/* Navigation Arrows */}
+              <div className="flex items-center justify-center mb-8">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 0}
+                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all mr-4"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+
+                <span className="text-white text-sm">
+                  Page {currentPage + 1} of {totalPages}
+                </span>
+
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages - 1}
+                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all ml-4"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
-            ))}
-          </div>
+
+              {/* 4 Cards per Row Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {currentInstitutions.map((institution) => (
+                  <InstitutionCard
+                    key={institution.id}
+                    institution={institution}
+                    onClick={handleInstitutionClick}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Institution Modal */}
+      {selectedInstitution && (
+        <InstitutionModal
+          institution={selectedInstitution}
+          onClose={handleCloseModal}
+        />
+      )}
 
       {/* Services Section */}
       <section id="services" className="min-h-screen bg-white dark:bg-gray-800 py-20 px-6 transition-colors">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Services</h2>
+          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Government Services</h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Essential services available for Hawassa City residents
+            Access essential government services quickly and efficiently through our digital platform
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
