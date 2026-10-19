@@ -19,12 +19,11 @@ export async function getMapLocation(req, res) {
 
 /**
  * PUT & POST /api/map (also alias /api/location)
- * Updates the headquarters, address, operating hours, phone, email, or map coordinates.
+ * Updates the address, operating hours, phone, email, or map coordinates.
  */
 export async function updateMapLocation(req, res) {
   try {
     const {
-      headquarters,
       contact,
       map,
       address,
@@ -35,14 +34,6 @@ export async function updateMapLocation(req, res) {
       latitude,
       longitude,
     } = req.body;
-
-    // Support nested or top-level field updates
-    if (headquarters && typeof headquarters === "object") {
-      mapLocation.headquarters = {
-        ...mapLocation.headquarters,
-        ...headquarters,
-      };
-    }
 
     if (contact && typeof contact === "object") {
       mapLocation.contact = {
@@ -100,8 +91,7 @@ export async function updateMapLocation(req, res) {
 export async function getContactInfo(req, res) {
   try {
     return res.json({
-      title: mapLocation.headquarters.title,
-      subtitle: mapLocation.headquarters.subtitle,
+      title: "Hawassa City MESOB Center",
       address: mapLocation.contact.address,
       phone: mapLocation.contact.phone,
       phoneDisplay: mapLocation.contact.phoneDisplay,

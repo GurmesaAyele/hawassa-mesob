@@ -92,8 +92,6 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
       assert.equal(res.status, 200);
       const data = await res.json();
 
-      assert.equal(data.headquarters.title, "MESOB Headquarters");
-      assert.equal(data.headquarters.subtitle, "Government Services Center");
       assert.equal(data.contact.address, "MESOB Center, Hawassa, Ethiopia");
       assert.equal(data.contact.operatingHours, "Monday - Friday: 8:00 AM - 6:00 PM");
       assert.equal(data.contact.phone, "+251974270600");
@@ -111,7 +109,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
       const res = await fetch(`${baseUrl}/api/location`);
       assert.equal(res.status, 200);
       const data = await res.json();
-      assert.equal(data.headquarters.title, "MESOB Headquarters");
+      assert.equal(data.map.placeName, "HAWASSA CITY MESOB CENTER");
     });
 
     test("PUT /api/map allows updating contact or location info", async () => {
@@ -138,7 +136,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
       const res = await fetch(`${baseUrl}/api/contact`);
       assert.equal(res.status, 200);
       const data = await res.json();
-      assert.equal(data.title, "MESOB Headquarters");
+      assert.equal(data.title, "Hawassa City MESOB Center");
       assert.equal(data.email, "admin@hawassamesobcenter.et");
       assert.equal(data.phone, "+251974270600");
     });

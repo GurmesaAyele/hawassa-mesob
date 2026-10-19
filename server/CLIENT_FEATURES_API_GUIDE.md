@@ -79,11 +79,6 @@ Returns the complete location profile for the Hawassa City MESOB Center, matchin
 #### Response Example
 ```json
 {
-  "headquarters": {
-    "title": "MESOB Headquarters",
-    "subtitle": "Government Services Center",
-    "category": "One-Stop Public Service Center"
-  },
   "contact": {
     "address": "MESOB Center, Hawassa, Ethiopia",
     "plusCode": "2FWM+V23, Hawassa, Ethiopia",

@@ -3,7 +3,8 @@
 
 export const API_CONFIG = {
   // Base URL for your backend API
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
+  // TODO: Update this with your actual backend URL
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
   
   // Endpoints
   ENDPOINTS: {
@@ -24,11 +25,9 @@ export const API_CONFIG = {
     ANNOUNCEMENTS: '/api/announcements',
     
     SERVICES: '/api/services',
-    CHATBOT: '/api/chat',
+    CHATBOT: 'http://10.20.254.64:5000/api/chat', // Your existing chatbot API
     VIP_TICKET: '/api/vip-ticket',
-    CONTACT: '/api/contact',
-    MAP: '/api/map',
-    LOCATION: '/api/location',
+    CONTACT: '/api/contact'
   }
 };
 

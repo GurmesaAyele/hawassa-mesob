@@ -1,14 +1,9 @@
 /**
- * Hawassa MESOB Center - Map & Headquarters Information
+ * Hawassa MESOB Center - Map & Location Information
  * Based on authentic location, coordinates, and contact details.
  */
 
 export const INITIAL_MAP_LOCATION = {
-  headquarters: {
-    title: "MESOB Headquarters",
-    subtitle: "Government Services Center",
-    category: "One-Stop Public Service Center",
-  },
   contact: {
     address: "MESOB Center, Hawassa, Ethiopia",
     plusCode: "2FWM+V23, Hawassa, Ethiopia",
