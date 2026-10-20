@@ -82,13 +82,13 @@ const AboutUs = () => {
 
       {/* Mission and Vision Cards */}
       <section className="py-16 px-6 bg-white dark:bg-[#172231] transition-colors">
-        <div className="max-w-7xl mx-auto space-y-10">
+        <div className="max-w-7xl mx-auto space-y-8">
           {/* Mission Card */}
-          <div className="w-full min-h-[280px] bg-[#1F2A39] rounded-[20px] border-2 border-[#334155] p-10 transition-all hover:shadow-2xl">
-            <div className="flex items-start gap-5">
+          <div className="w-full min-h-[240px] bg-gray-50 dark:bg-[#1F2A39] rounded-[18px] border-2 border-gray-200 dark:border-[#334155] p-8 transition-all hover:shadow-2xl">
+            <div className="flex items-start gap-4">
               {/* Icon Container */}
-              <div className="flex-shrink-0 w-[48px] h-[48px] bg-[#2563EB] rounded-full flex items-center justify-center">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex-shrink-0 w-[44px] h-[44px] bg-[#2563EB] rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="3" strokeWidth="2"/>
                   <circle cx="12" cy="12" r="8" strokeWidth="2"/>
                   <circle cx="12" cy="12" r="11" strokeWidth="2"/>
@@ -97,10 +97,10 @@ const AboutUs = () => {
               
               {/* Content */}
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-white mb-4 leading-tight">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
                   {t.missionTitle}
                 </h2>
-                <p className="text-lg text-gray-300 leading-[1.6]">
+                <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
                   {t.missionText}
                 </p>
               </div>
@@ -108,11 +108,11 @@ const AboutUs = () => {
           </div>
 
           {/* Vision Card */}
-          <div className="w-full min-h-[280px] bg-[#1F2A39] rounded-[20px] border-2 border-[#334155] p-10 transition-all hover:shadow-2xl">
-            <div className="flex items-start gap-5">
+          <div className="w-full min-h-[240px] bg-gray-50 dark:bg-[#1F2A39] rounded-[18px] border-2 border-gray-200 dark:border-[#334155] p-8 transition-all hover:shadow-2xl">
+            <div className="flex items-start gap-4">
               {/* Icon Container */}
-              <div className="flex-shrink-0 w-[48px] h-[48px] bg-[#D97706] rounded-full flex items-center justify-center">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex-shrink-0 w-[44px] h-[44px] bg-[#D97706] rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
@@ -120,10 +120,10 @@ const AboutUs = () => {
               
               {/* Content */}
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-white mb-4 leading-tight">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
                   {t.visionTitle}
                 </h2>
-                <p className="text-lg text-gray-300 leading-[1.6]">
+                <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
                   {t.visionText}
                 </p>
               </div>
