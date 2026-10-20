@@ -1,6 +1,49 @@
+import { useState, useEffect } from 'react';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 
 const Footer = () => {
+  const [language, setLanguage] = useState('English');
+
+  // Listen for language changes
+  useEffect(() => {
+    const handleLanguageChange = (event) => {
+      setLanguage(event.detail);
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+    
+    // Get initial language from localStorage
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage) {
+      setLanguage(savedLanguage);
+    }
+
+    return () => {
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
+
+  // Translations
+  const translations = {
+    English: {
+      tagline: 'All Services, One Place',
+      serving: 'Serving Hawassa City Residents',
+      copyright: 'Copyright © 2026 Mesob. All rights reserved.'
+    },
+    Amharic: {
+      tagline: 'ሁሉም አገልግሎቶች ፣ በአንድ ቦታ',
+      serving: 'ለሀዋሳ ከተማ ነዋሪዎች',
+      copyright: 'የቅጂ መብት © 2026 መሶብ። ሁሉም መብቶች የተጠበቁ።'
+    },
+    Sidama: {
+      tagline: 'Hunda Oosuwaa, Mittu Borro',
+      serving: 'Hawassa Katama Mannu Oosate',
+      copyright: 'Koophiraayiti © 2026 Mesob. Hunda haqqi danditano.'
+    }
+  };
+
+  const t = translations[language] || translations.English;
+
   return (
     <footer className="bg-[#1a1d2e] text-white py-12 px-6">
       <div className="max-w-7xl mx-auto text-center">
@@ -14,8 +57,8 @@ const Footer = () => {
             />
           </div>
           
-          <h4 className="text-2xl font-semibold mb-2 text-white">All Services, One Place</h4>
-          <p className="text-gray-300 mb-6">Serving Hawassa City Residents</p>
+          <h4 className="text-2xl font-semibold mb-2 text-white">{t.tagline}</h4>
+          <p className="text-gray-300 mb-6">{t.serving}</p>
           
           {/* Social Media Icons */}
           <div className="flex gap-4 mb-8">
@@ -68,7 +111,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-gray-700 pt-6">
           <p className="text-gray-400 text-sm">
-            Copyright © 2026 H-MESOB Center. All rights reserved.
+            {t.copyright}
           </p>
         </div>
       </div>
