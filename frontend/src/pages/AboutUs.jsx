@@ -82,16 +82,16 @@ const AboutUs = () => {
 
       {/* Mission and Vision Cards */}
       <section className="py-16 px-6 bg-white dark:bg-[#0F1419] transition-colors">
-        <div className="max-w-7xl mx-auto space-y-12">
+        <div className="max-w-7xl mx-auto space-y-10">
           {/* Mission Card */}
-          <div className="relative w-full min-h-[280px] bg-gray-50 dark:bg-[#1F2A39] rounded-[24px] border-2 border-gray-200 dark:border-[#2D3748] p-10 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
+          <div className="relative w-full min-h-[250px] bg-gray-50 dark:bg-[#1F2A39] rounded-[24px] border-2 border-gray-200 dark:border-[#2D3748] p-8 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
             {/* Blue Top Border Accent */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] rounded-t-[24px]"></div>
             
-            <div className="flex items-start gap-5">
+            <div className="flex items-start gap-4">
               {/* Icon Container */}
-              <div className="flex-shrink-0 w-[54px] h-[54px] bg-[#3B82F6] rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex-shrink-0 w-[50px] h-[50px] bg-[#3B82F6] rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="3" strokeWidth="2"/>
                   <circle cx="12" cy="12" r="8" strokeWidth="2"/>
                   <circle cx="12" cy="12" r="11" strokeWidth="2"/>
@@ -100,7 +100,7 @@ const AboutUs = () => {
               
               {/* Content */}
               <div className="flex-1">
-                <h2 className="text-[44px] font-bold text-gray-900 dark:text-[#F8FAFC] mb-5 leading-tight">
+                <h2 className="text-[44px] font-bold text-gray-900 dark:text-[#F8FAFC] mb-4 leading-tight">
                   {t.missionTitle}
                 </h2>
                 <p className="text-[27px] text-gray-700 dark:text-[#CBD5E1] leading-[1.5] font-normal">
@@ -111,14 +111,14 @@ const AboutUs = () => {
           </div>
 
           {/* Vision Card */}
-          <div className="relative w-full min-h-[280px] bg-gray-50 dark:bg-[#1F2A39] rounded-[24px] border-2 border-gray-200 dark:border-[#2D3748] p-10 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
+          <div className="relative w-full min-h-[250px] bg-gray-50 dark:bg-[#1F2A39] rounded-[24px] border-2 border-gray-200 dark:border-[#2D3748] p-8 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
             {/* Orange/Yellow Top Border Accent */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#F59E0B] to-[#EAB308] rounded-t-[24px]"></div>
             
-            <div className="flex items-start gap-5">
+            <div className="flex items-start gap-4">
               {/* Icon Container */}
-              <div className="flex-shrink-0 w-[54px] h-[54px] bg-[#F59E0B] rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex-shrink-0 w-[50px] h-[50px] bg-[#F59E0B] rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
@@ -126,7 +126,7 @@ const AboutUs = () => {
               
               {/* Content */}
               <div className="flex-1">
-                <h2 className="text-[44px] font-bold text-gray-900 dark:text-[#F8FAFC] mb-5 leading-tight">
+                <h2 className="text-[44px] font-bold text-gray-900 dark:text-[#F8FAFC] mb-4 leading-tight">
                   {t.visionTitle}
                 </h2>
                 <p className="text-[27px] text-gray-700 dark:text-[#CBD5E1] leading-[1.5] font-normal">
