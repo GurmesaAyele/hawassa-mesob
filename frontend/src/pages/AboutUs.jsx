@@ -4,6 +4,7 @@ import VideosSection from '../components/VideosSection';
 import AnnouncementsSection from '../components/AnnouncementsSection';
 import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
+import Footer from '../components/Footer';
 
 const AboutUs = () => {
   return (
@@ -31,14 +32,8 @@ const AboutUs = () => {
       {/* Announcements Section */}
       <AnnouncementsSection />
 
-      {/* Footer Section (Optional) */}
-      <section className="bg-[#1a1f2e] py-12 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-gray-400 text-sm">
-            © 2024 Hawassa Mesob. All rights reserved.
-          </p>
-        </div>
-      </section>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
 import InstitutionCard from '../components/InstitutionCard';
 import InstitutionModal from '../components/InstitutionModal';
+import Footer from '../components/Footer';
 import { API_CONFIG, apiCall } from '../config/api';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
@@ -721,47 +722,7 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#1a1d2e] text-white py-12 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          {/* Logo and Tagline */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="mb-4">
-              <img 
-                src={footerLogo} 
-                alt="Hawassa Mesob Logo" 
-                className="h-24 w-auto mx-auto"
-              />
-            </div>
-            
-            <h4 className="text-2xl font-semibold mb-2 text-white">All Services, One Place</h4>
-            <p className="text-gray-300 mb-6">Serving Hawassa City Residents</p>
-            
-            {/* Social Media Icons */}
-            <div className="flex gap-4 mb-8">
-              <a href="#" className="bg-[#2d3142] hover:bg-[#3d4152] p-3 rounded transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-              </a>
-              <a href="#" className="bg-[#2d3142] hover:bg-[#3d4152] p-3 rounded transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-              </a>
-              <a href="#" className="bg-[#2d3142] hover:bg-[#3d4152] p-3 rounded transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
-                </svg>
-              </a>
-            </div>
-          </div>
-          
-          {/* Copyright */}
-          <div className="border-t border-gray-700 pt-6">
-            <p className="text-gray-400 text-sm">Copyright © 2026 H-MESOB Center. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

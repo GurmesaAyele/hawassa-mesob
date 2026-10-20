@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar';
 import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
+import Footer from '../components/Footer';
 
 const ServiceCatalogue = () => {
   return (
@@ -29,6 +30,9 @@ const ServiceCatalogue = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
