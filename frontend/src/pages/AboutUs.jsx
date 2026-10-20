@@ -36,27 +36,27 @@ const AboutUs = () => {
       subtitle: 'Your one-stop center for all government services in Hawassa City',
       tagline: 'Transforming public service delivery through innovation, efficiency, and dedication to serving Ethiopian residents.',
       missionTitle: 'Our Mission',
-      missionText: 'To establish a seamless, efficient, and secure one-stop service center where Ethiopian residents can access essential government and organizational services in a single location, reducing bureaucracy, enhancing service efficiency, and fostering trust between residents and service providers.',
+      missionText: 'Our mission is to simplify and modernize public service delivery by establishing a seamless, efficient, and secure one-stop service center where Ethiopian residents can access essential government and organizational services in a single location — reducing bureaucracy, enhancing efficiency, and fostering trust between residents and service providers through innovation, technology, and human-centered design.',
       visionTitle: 'Our Vision',
-      visionText: 'To become Ethiopia\'s premier digital and physical service hub, integrating multiple organizations into a single, efficient, and secure platform that transforms public service delivery, enhances resident satisfaction, and sets a global benchmark for one-stop government service centers.'
+      visionText: 'Our vision is to become Africa\'s premier digital and physical service hub — seamlessly integrating multiple organizations into a single, efficient, and secure platform that transforms public service delivery, enhances resident satisfaction, and sets a global benchmark for one-stop government service centers.'
     },
     Amharic: {
       title: 'ስለ ሀዋሳ መሶብ',
       subtitle: 'የሁሉም የመንግስት አገልግሎቶች አንድ ማዕከል በሀዋሳ ከተማ',
       tagline: 'የህዝብ አገልግሎት አቅርቦትን በአዳዲስ ነገሮች፣ ቅልጡፍነት እና የኢትዮጵያ ዜጎችን ለመገለገል ቁርጠኝነት በመጠቀም ለውጥ እናድርገዋለን።',
-      missionTitle: 'ተልእኮ',
-      missionText: 'ኢትዮጵያውያን ዜጎች አስፈላጊ የመንግስት እና የድርጅት አገልግሎቶችን በአንድ ቦታ እንዲያገኙ፣ ባይሮክራሲ እንዲቀንስ፣ የአገልግሎት ቅልጡፍነት እንዲጨምር እና በዜጎች እና በአገልግሎት አቅራቢዎች መካከል እምነት እንዲፈጠር የሚያገለግል ምቹ፣ ቅልጡፍ እና ደህንነቱ የተጠበቀ የአንድ ማዕከል አገልግሎት ማዕከል ለመፍጠር።',
-      visionTitle: 'ራዕይ',
-      visionText: 'ኢትዮጵያ የዲጂታል እና የፊዚካል አገልግሎት ማዕከል ለመሆን፣ ብዙ ድርጅቶችን በአንድ ቅልጡፍ እና ደህንነቱ የተጠበቀ መድረኳ ላይ በማዋሃድ የህዝብ አገልግሎት አቅርቦትን ለመለወጥ፣ የዜጎች እርካታ ለመጨመር እና የአንድ ማዕከል የመንግስት አገልግሎት ማዕከሎች ዓለም አቀፍ መስፈርት ለመዘጋጀት።'
+      missionTitle: 'ተልዕኮአችን',
+      missionText: 'የኢትዮጵያ ነዋሪዎች አስፈላጊ የመንግስት እና ድርጅታዊ አገልግሎቶችን በአንድ ቦታ ማግኘት የሚችሉበት - ቢሮክራሲ በመቀነስ፣ ቅልጥፍናን በማሳደግ እና በነዋሪዎች እና በአገልግሎት ሰጪዎች መካከል በፈጠራ፣ በቴክኖሎጂ እና ሰውን ያማከለ ንድፍ የሚያገኙበት እንከን የለሽ፣ ቀልጣፋ እና ደህንነቱ የተጠበቀ የአንድ ማቆሚያ አገልግሎት ማዕከል በማቋቋም የህዝብ አገልግሎት አሰጣጥን ማቃለል እና ማዘመን ተልዕኮአችን ነው።',
+      visionTitle: 'ራዕያችን',
+      visionText: 'ራዕያችን የአፍሪካ ቀዳሚ የዲጂታል እና የአካል አገልግሎት ማዕከል መሆን ነው - ብዙ ድርጅቶችን ያለችግር ወደ አንድ፣ ቀልጣፋ እና ደህንነቱ የተጠበቀ መድረክ በማዋሃድ የህዝብ አገልግሎት አሰጣጥን የሚቀይር፣ የነዋሪዎችን እርካታ የሚያጎለብት እና የአንድ ጊዜ ማቆሚያ የመንግስት አገልግሎት ማእከላት አለም አቀፍ መመዘኛ የሚያስቀምጥ።'
     },
     Sidama: {
       title: 'Hawassa Mesob Mashala',
       subtitle: 'Hawassa Katama mootummaa oosuwaa hunda mittu darga',
       tagline: 'Umaayi oosuwaa loosi\'te, aymi hiikkamino, Ityophiyaa mannu oosate hasaawate beekko gede, haroonsi\'te, looissamino, kiiro garincho woote.',
       missionTitle: 'Noo Kiiro',
-      missionText: 'Ityophiyaa mannu hullufa woote mootummaa oosuwaa mittu darga afino garincho, aydiide foichchoote, oosuwaa hiiqqanna gochchate, mannu noo oosuwaa looissoonsanni shiiqqa woliino albaancha kiiro.',
+      missionText: 'Noo kiiro Ityophiyaa mannu hullufa mootummaa oosuwaa mittu darga afino garincho foichchoote, biyorokraasiyye foichchoote, aymi hiikkamino gochchate, mannunna oosuwaa looissoonsanni umaayi, teknolojiyye, mannu wolte-fokka ikkiro borro shiiqqa woliino albaancha umi daana.',
       visionTitle: 'Noo Hara',
-      visionText: 'Ityophiyaa digitaalanna fiizikaala oosuwaa darga gidoonsote, baala biirota mittu hiikkamino heeggera darga borro woloonse, umaayi oosuwaa loosi\'te gochchate, mannu shiiqqa gochchate, mittu darga mootummaa oosuwaa darga aadunyaa fole gochchate.'
+      visionText: 'Noo hara Afrikaa hullufa digitaalanna fiizikaala oosuwaa darga gidoonsote - baala biirota mittu aymi hiikkamino heeggera darga borro woloonse umaayi oosuwaa gochchate, mannu shiiqqa gochchate, mittu darga mootummaa oosuwaa aadunyaa fole gidoonsate.'
     }
   };
 
@@ -81,14 +81,17 @@ const AboutUs = () => {
       </div>
 
       {/* Mission and Vision Cards */}
-      <section className="py-16 px-6 bg-white dark:bg-[#172231] transition-colors">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <section className="py-16 px-6 bg-white dark:bg-[#0F1419] transition-colors">
+        <div className="max-w-7xl mx-auto space-y-12">
           {/* Mission Card */}
-          <div className="w-full min-h-[240px] bg-gray-50 dark:bg-[#1F2A39] rounded-[18px] border-2 border-gray-200 dark:border-[#334155] p-8 transition-all hover:shadow-2xl">
-            <div className="flex items-start gap-4">
+          <div className="relative w-full min-h-[280px] bg-gray-50 dark:bg-[#1F2A39] rounded-[24px] border-2 border-gray-200 dark:border-[#2D3748] p-10 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
+            {/* Blue Top Border Accent */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] rounded-t-[24px]"></div>
+            
+            <div className="flex items-start gap-5">
               {/* Icon Container */}
-              <div className="flex-shrink-0 w-[44px] h-[44px] bg-[#2563EB] rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex-shrink-0 w-[54px] h-[54px] bg-[#3B82F6] rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="3" strokeWidth="2"/>
                   <circle cx="12" cy="12" r="8" strokeWidth="2"/>
                   <circle cx="12" cy="12" r="11" strokeWidth="2"/>
@@ -97,10 +100,10 @@ const AboutUs = () => {
               
               {/* Content */}
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
+                <h2 className="text-[44px] font-bold text-gray-900 dark:text-[#F8FAFC] mb-5 leading-tight">
                   {t.missionTitle}
                 </h2>
-                <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p className="text-[27px] text-gray-700 dark:text-[#CBD5E1] leading-[1.5] font-normal">
                   {t.missionText}
                 </p>
               </div>
@@ -108,11 +111,14 @@ const AboutUs = () => {
           </div>
 
           {/* Vision Card */}
-          <div className="w-full min-h-[240px] bg-gray-50 dark:bg-[#1F2A39] rounded-[18px] border-2 border-gray-200 dark:border-[#334155] p-8 transition-all hover:shadow-2xl">
-            <div className="flex items-start gap-4">
+          <div className="relative w-full min-h-[280px] bg-gray-50 dark:bg-[#1F2A39] rounded-[24px] border-2 border-gray-200 dark:border-[#2D3748] p-10 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 cursor-pointer overflow-hidden">
+            {/* Orange/Yellow Top Border Accent */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#F59E0B] to-[#EAB308] rounded-t-[24px]"></div>
+            
+            <div className="flex items-start gap-5">
               {/* Icon Container */}
-              <div className="flex-shrink-0 w-[44px] h-[44px] bg-[#D97706] rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex-shrink-0 w-[54px] h-[54px] bg-[#F59E0B] rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
@@ -120,10 +126,10 @@ const AboutUs = () => {
               
               {/* Content */}
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
+                <h2 className="text-[44px] font-bold text-gray-900 dark:text-[#F8FAFC] mb-5 leading-tight">
                   {t.visionTitle}
                 </h2>
-                <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p className="text-[27px] text-gray-700 dark:text-[#CBD5E1] leading-[1.5] font-normal">
                   {t.visionText}
                 </p>
               </div>
