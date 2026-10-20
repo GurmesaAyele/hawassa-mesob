@@ -20,7 +20,11 @@ const Navbar = () => {
       services: 'Services',
       contact: 'Contact',
       serviceCatalogue: 'Service Catalogue',
-      about: 'About'
+      about: 'About',
+      aboutUs: 'About Us',
+      news: 'News',
+      videos: 'Videos',
+      announcements: 'Announcements'
     },
     Amharic: {
       home: 'ዋና ገጽ',
@@ -28,15 +32,23 @@ const Navbar = () => {
       services: 'አገልግሎቶች',
       contact: 'ያግኙን',
       serviceCatalogue: 'የአገልግሎት ዝርዝር',
-      about: 'ስለ እኛ'
+      about: 'ስለ',
+      aboutUs: 'ስለ እኛ',
+      news: 'ዜና',
+      videos: 'ቪዲዮዎች',
+      announcements: 'ማስታወቂያዎች'
     },
     Sidama: {
-      home: 'Umi Qoola', // TODO: Add Sidama translation
+      home: 'Umi Qoola',
       institutions: 'Qoqqowu Biiro',
       services: 'Oosuwa',
       contact: 'Nooro Qoolate',
       serviceCatalogue: 'Oosuwa Diramate',
-      about: 'Nooni Mashala'
+      about: 'Nooni',
+      aboutUs: 'Nooni Mashala',
+      news: 'Odoosu',
+      videos: 'Videyo',
+      announcements: 'Beekisuute'
     }
   };
 
@@ -184,6 +196,7 @@ const Navbar = () => {
             onMouseLeave={() => setShowAboutDropdown(false)}
           >
             <button 
+              onClick={() => handleNavigation('/about-us')}
               className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap flex items-center gap-1"
             >
               {t.about}
@@ -198,7 +211,11 @@ const Navbar = () => {
 
             {/* Dropdown Menu */}
             {showAboutDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 animate-fadeIn">
+              <div 
+                className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 animate-fadeIn"
+                onMouseEnter={() => setShowAboutDropdown(true)}
+                onMouseLeave={() => setShowAboutDropdown(false)}
+              >
                 <button
                   onClick={() => {
                     handleNavigation('/about-us');
@@ -206,7 +223,7 @@ const Navbar = () => {
                   }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  About Us
+                  {t.aboutUs}
                 </button>
                 <button
                   onClick={() => {
@@ -215,7 +232,7 @@ const Navbar = () => {
                   }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  News
+                  {t.news}
                 </button>
                 <button
                   onClick={() => {
@@ -224,7 +241,7 @@ const Navbar = () => {
                   }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  Videos
+                  {t.videos}
                 </button>
                 <button
                   onClick={() => {
@@ -233,7 +250,7 @@ const Navbar = () => {
                   }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  Announcements
+                  {t.announcements}
                 </button>
               </div>
             )}
