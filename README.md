@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🏛️ Hawassa MESOB Portal
+# 🏛️ Hawassa MESOB Portal Backend API
 
-### Unified Citizen Services & AI-Powered Multilingual Assistant
+### Unified Citizen Services, Authentic Public Institutions & AI-Powered Multilingual Assistant
 
 [![Node.js Version](https://img.shields.io/badge/Node.js-v20+-68a063?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express.js](https://img.shields.io/badge/Express-v5.3-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
@@ -10,15 +10,15 @@
 [![Prisma ORM](https://img.shields.io/badge/Prisma-v6.19-2d3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![Google Gemini AI](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285f4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20AM%20%7C%20SID-ff6b6b?style=for-the-badge)](#-multilingual-support)
-[![Tests Passing](https://img.shields.io/badge/Tests-25%2F25%20Passing-brightgreen?style=for-the-badge)](#-running-automated-tests)
+[![Tests Passing](https://img.shields.io/badge/Tests-46%2F46%20Passing-brightgreen?style=for-the-badge)](#-automated-testing-suite)
 
 <p align="center">
-  <b>A single digital gateway for citizens of Hawassa City to discover government institutions, browse public services, check documentation requirements, and get instant answers via a context-aware AI chatbot.</b>
+  <b>The single digital gateway for citizens of Hawassa City to explore government institutions, inspect document requirements, verify processing times & service fees, watch documentary videos, locate the physical MESOB Center on Google Maps, and consult a context-grounded AI assistant.</b>
 </p>
 
 ---
 
-[Endpoints Matrix](#-api-endpoints-matrix) • [Chatbot Integration](#-chatbot-api-integration) • [Institutions & Services](#-institutions--services-api) • [Frontend Starter Code](#-frontend-integration-examples) • [Local Setup](#-local-development--testing)
+[API Matrix](#-api-endpoints-matrix) • [Client Integration Guide (Institutions & Services Modal)](#-client-developer-guide-institutions--services-modal-workflow) • [Chatbot Integration](#-ai-chatbot-api-integration) • [Media, Map & News Endpoints](#-portal-features-api-videos-map-news-announcements) • [Admin CRUD](#-admin-management-api) • [Local Setup](#-local-development--setup)
 
 </div>
 
@@ -27,613 +27,520 @@
 ## 🧭 System Architecture
 
 ```mermaid
-graph LR
+graph TB
     subgraph Client ["Frontend Client (React / Vite)"]
-        UI["Chatbot Widget & Portal UI"]
+        Grid["Institutions Grid & Cards"]
+        Modal["Service Details Accordion Modal"]
+        Chat["Multilingual AI Assistant Widget"]
+        Media["YouTube Videos & News Feed"]
+        MapUI["Google Maps Embed & Contact Form"]
     end
 
     subgraph Gateway ["Express API Gateway (:5000)"]
-        Sec["Security Headers (Helmet) & CORS Guard"]
-        Rate["Rate Limiter (30 req/min/IP)"]
-        Router["API Router"]
+        Helmet["Helmet Security & CORP (cross-origin)"]
+        CORS["CORS Guard (Localhost & 10.x LAN IPs)"]
+        RateLimit["Rate Limiters (Chat: 30/min, API: 120/min)"]
+        Static["Static Asset Server (/logos, /public)"]
     end
 
-    subgraph DataEngine ["MESOB Backend Services"]
-        FAQ["Tier 2: Instant FAQ Engine"]
-        Context["Context Injector (DB Services)"]
-        Gemini["Tier 3: Google Gemini AI"]
+    subgraph Controllers ["Backend Modules"]
+        InstCtrl["Institutions & Services Engine"]
+        ChatCtrl["3-Tier Multilingual Chatbot"]
+        MediaCtrl["Videos, News & Announcements"]
+        MapCtrl["Hawassa MESOB Map & Location"]
     end
 
-    subgraph Storage ["Database"]
-        PG[("PostgreSQL via Prisma")]
+    subgraph Storage ["Data Layer"]
+        PG[("PostgreSQL Database via Prisma")]
+        Gemini["Google Gemini 2.5 Flash AI"]
+        Logos["Authentic Institution SVG/PNG Logos"]
     end
 
-    UI --> Sec --> Rate --> Router
-    Router -->|GET /api/institutions| PG
-    Router -->|GET /api/services| PG
-    Router -->|POST /api/chat| FAQ
-    FAQ -->|Cache Hit <50ms| UI
-    FAQ -->|Miss| Context --> PG
-    Context --> Gemini -->|3-12s Nuanced Answer| UI
+    Client --> Helmet --> CORS --> RateLimit
+    RateLimit --> Static --> Logos
+    RateLimit --> InstCtrl --> PG
+    RateLimit --> MediaCtrl --> PG
+    RateLimit --> MapCtrl
+    RateLimit --> ChatCtrl
+    ChatCtrl -->|Tier 1 / 2 Instant Cache| Client
+    ChatCtrl -->|Tier 3 Context-Grounded| PG
+    PG --> Gemini --> Client
+```
+
+---
+
+## 🌐 Server Base URL
+
+All endpoints are hosted and served at:
+```http
+Local Machine: http://localhost:5000
+Private LAN:   http://10.20.254.64:5000
 ```
 
 ---
 
 ## 📡 API Endpoints Matrix
 
-All endpoints are hosted on the local development network:
-```http
-http://10.20.254.64:5000
-```
+### 1. Institutions & Services
 
-| Method | Endpoint | Description | Target Role | Query / Body Params |
-| :---: | :--- | :--- | :---: | :--- |
-| `GET` | `/api/health` | Service health status & server timestamp | Public | — |
-| `POST` | `/api/chat` | Multilingual citizen inquiry chatbot | Public | `{ message, locale, sessionId }` |
-| `GET` | `/api/institutions` | Directory of institutions (supports search & pagination) | Public / Admin | `?locale=en\|am\|sid&page=1&limit=20&search=&raw=true&includeInactive=true` |
-| `POST` | `/api/institutions` | **Create institution** (supports instant nested services) | **Admin** | `{ name, code, icon, floorRoomNumber, contactPhone, services: [...] }` |
-| `GET` | `/api/institutions/:id` | Institution details + full services list | Public / Admin | `?locale=en\|am\|sid&raw=true&includeInactive=true` |
-| `PUT` | `/api/institutions/:id` | **Update institution** details / status | **Admin** | `{ name, code, icon, floorRoomNumber, contactPhone, isActive }` |
-| `DELETE` | `/api/institutions/:id` | **Deactivate / delete institution** | **Admin** | `?permanent=true` (optional hard delete) |
-| `GET` | `/api/institutions/:id/services` | Paginated services of an institution | Public / Admin | `?locale=en\|am\|sid&page=1&limit=20&includeInactive=true` |
-| `POST` | `/api/institutions/:id/services` | **Add service(s)** to an institution (single or batch) | **Admin** | `{ title, description, requirements, estimatedFee, processingDays }` |
-| `GET` | `/api/services` | Global public services catalog across all bureaus | Public / Admin | `?locale=en\|am\|sid&page=1&limit=20&search=&includeInactive=true` |
-| `GET` | `/api/services/:id` | Single service card with parent institution | Public / Admin | `?locale=en\|am\|sid&raw=true` |
-| `PUT` | `/api/services/:id` | **Update service** details / requirements / fee | **Admin** | `{ title, description, requirements, estimatedFee, processingDays, isActive }` |
-| `DELETE` | `/api/services/:id` | **Deactivate / delete service** | **Admin** | `?permanent=true` (optional hard delete) |
+| Method | Endpoint | Description | Query Parameters |
+| :---: | :--- | :--- | :--- |
+| `GET` | `/api/institutions` | List all 13 authentic institutions with logos & service counts | `?locale=en\|am\|sid&page=1&limit=20&search=...&includeServices=true&raw=true` |
+| `GET` | `/api/institutions/:id` | Single institution with nested active services list | `?locale=en\|am\|sid&raw=true&includeInactive=true` |
+| `GET` | `/api/institutions/:id/services` | Paginated services belonging to a specific institution | `?locale=en\|am\|sid&page=1&limit=20&raw=true` |
+| `GET` | `/api/services` | Flat catalog of all 24 services across institutions (filterable by institution) | `?providerId=:id&providerCode=ETHIO_POST&locale=en\|am\|sid&search=...` |
+| `GET` | `/api/services/:id` | Single service details with embedded parent institution | `?locale=en\|am\|sid&raw=true` |
+| `POST` | `/api/institutions` | **[Admin]** Create institution (supports instant nested services) | Body: `{ name, code, icon, floorRoomNumber, contactPhone, services: [...] }` |
+| `PUT` | `/api/institutions/:id` | **[Admin]** Update institution details / status | Body: `{ name, code, icon, floorRoomNumber, contactPhone, isActive }` |
+| `DELETE` | `/api/institutions/:id` | **[Admin]** Soft-delete (archive) or hard delete | `?permanent=true` (optional hard delete) |
+| `POST` | `/api/institutions/:id/services` | **[Admin]** Add service(s) to an institution (single or batch) | Body: `{ title, description, requirements, estimatedFee, processingDays }` |
+| `POST` | `/api/services` | **[Admin]** Add service globally | Body: `{ providerId, title, description, requirements, estimatedFee, processingDays }` |
+| `PUT` | `/api/services/:id` | **[Admin]** Update service details / fee / requirements | Body: `{ title, description, requirements, estimatedFee, processingDays, isActive }` |
+| `DELETE` | `/api/services/:id` | **[Admin]** Soft-delete (archive) or hard delete service | `?permanent=true` (optional hard delete) |
 
----
+### 2. Static Logos & Brand Assets
 
-## 🤖 Chatbot API Integration
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `GET` | `/logos/:filename` | Authentic institution logos (`post.png`, `sidama_bank.png`, `trade.png`, `electric.png`, `land.png`, `LABOR_AND_SKILLS.png`, `revenue.png`, `fayda.png`, `immigration.png`, `cbe.png`, `telecom.png`, `transport.png`, `vital_events.png`). Configured with `Cross-Origin-Resource-Policy: cross-origin`. |
 
-```http
-POST /api/chat
-Content-Type: application/json
-```
+### 3. Citizen Chatbot & Public Features
 
-### 1. Request Body Schema
-
-```json
-{
-  "message": "What documents do I need to get a new Trade License?",
-  "locale": "en",
-  "sessionId": "b47c87c2-9e32-4d2b-9831-7b0b8d2ef020"
-}
-```
-
-#### Field Specifications
-
-| Field | Type | Required | Default | Rules & Constraints |
-| :--- | :---: | :---: | :---: | :--- |
-| `message` | `string` | **Yes** | — | Non-empty string. Max **500 characters**. Strips unprintable control characters. |
-| `locale` | `string` | No | `"en"` | Must be one of: `"en"` (English), `"am"` (Amharic), `"sid"` (Sidaamu Afoo). |
-| `sessionId` | `string` | No | — | Optional tracking UUID (RFC 4122 v1–v5). |
-
-> ⚠️ **Strict Locale Validation**: Passing an unsupported locale (e.g. `"fr"`) returns `400 Bad Request`.
+| Method | Endpoint | Description | Query / Body Params |
+| :---: | :--- | :--- | :--- |
+| `GET` | `/api/health` | Healthcheck and timestamp | Public |
+| `POST` | `/api/chat` | Multilingual citizen inquiry AI chatbot (3-tier) | `{ message, locale, sessionId }` |
+| `GET` | `/api/videos` | YouTube video gallery of Hawassa MESOB Center | Public |
+| `GET` | `/api/videos/:id` | Single video item by ID | Public |
+| `POST` | `/api/videos` | Add a new YouTube video link | `{ title, youtubeUrl, description, duration, author, category }` |
+| `GET` | `/api/map` *(alias `/api/location`)* | Hawassa MESOB Center coordinates, Google Maps embed iframe, hours & contact | Public |
+| `PUT` / `POST` | `/api/map` | Update MESOB location, address, hours, embed iframe URL | `{ address, operatingHours, phone, email, embedUrl, latitude, longitude }` |
+| `GET` | `/api/contact` | Official MESOB contact details and hotline | Public |
+| `POST` | `/api/contact` *(alias `/api/contact/submit`)* | Submit citizen contact form message | `{ name, email, phone, message }` |
+| `GET` | `/api/contact/messages` | View all citizen contact submissions | Public / Admin |
+| `GET` | `/api/news` | List published news articles | `?category=...&search=...&limit=...` |
+| `GET` | `/api/news/:id` | Single news article by ID | Public |
+| `POST` | `/api/news` | Publish a new news article | `{ title, content, author, category, image }` |
+| `GET` | `/api/announcements` | Active announcements | `?priority=high\|medium\|low&type=update\|alert\|event` |
+| `GET` | `/api/announcements/:id` | Single announcement by ID | Public |
+| `POST` | `/api/announcements` | Publish a new announcement | `{ title, content, priority, type }` |
 
 ---
 
-### 2. Response Body Schema
+## 💡 Client Developer Guide: Institutions & Services Modal Workflow
 
-```json
-{
-  "reply": "**Requirements for Commercial Registration & Trade License:**\n\n1. Valid National ID or Passport\n2. Office lease agreement verified by Kebele\n3. TIN Certificate from Revenue Authority\n\n📍 Visit **Counter 4** at Hawassa MESOB Center.",
-  "tier": 2
-}
+This section explains how the client-side developer can use the backend API endpoints together to build the interactive workflow shown in the application:
+
+1. **Screen 1**: Grid / Carousel of institution cards displaying each organization's authentic logo and name.
+2. **Screen 2**: User clicks an institution card (e.g. **Ethiopian Postal Service**). An interactive modal pops up titled **"Ethiopian Postal Service Services"** with an accordion list of its provided services.
+3. **Screen 3**: User expands a service (e.g. **National Examination Document Handling**). It reveals:
+   - **Required Documents:** List of documents (National ID/passport, support letters, recipient address).
+   - **Processing Time::** Clear handling duration.
+   - **Service Fee::** Service fee or free-of-charge notice.
+
 ```
-
-### 3. Response Tiers Explained
-
-The `tier` property indicates how the response was generated. Use this to adapt your client UI:
-
-| `tier` Value | Type | Engine / Source | Latency | Recommended UI Behavior |
-| :---: | :---: | :--- | :---: | :--- |
-| `2` | `number` | Instant FAQ Database & Keyword Lookup | < 50ms | Render immediately. No typing loader needed. |
-| `3` | `number` | Google Gemini AI (Context-Grounded) | 3–12s | Show typing indicator / loading dots while awaiting response. |
-| `"scope-guard"` | `string` | Pre-LLM Guardrail | < 10ms | User asked off-topic query. Render polite refusal. |
-| `"scope-refusal"` | `string` | Post-Lookup Scope Boundary | < 50ms | Query is outside MESOB service domain. |
-| `"context-fallback"` | `string` | Database Context Fallback | < 100ms | AI unavailable; returning verified raw service instructions. |
-| `"fallback"` | `string` | Hardcoded Safe Response | Instant | Render fallback message; optionally show offline banner. |
-| `"rate-limit"` | `string` | Express Rate Limiter | Instant | HTTP 429: Show "Rate limit reached. Please wait a moment." |
++-----------------------------------------------------------------------------------+
+| STEP 1: Fetch Institutions                                                        |
+| GET http://10.20.254.64:5000/api/institutions                                     |
+| -> Renders 13 Institution Cards with authentic logos                              |
++-----------------------------------------------------------------------------------+
+                                        |
+                            (User clicks on a card)
+                                        v
++-----------------------------------------------------------------------------------+
+| STEP 2: Fetch Institution Services                                                |
+| GET http://10.20.254.64:5000/api/institutions/:id                                 |
+|   (or GET http://10.20.254.64:5000/api/institutions/:id/services)                 |
+|   (or GET http://10.20.254.64:5000/api/services?providerId=:id)                   |
+| -> Opens Modal titled "<Institution Name> Services"                               |
++-----------------------------------------------------------------------------------+
+                                        |
+                         (User expands accordion item)
+                                        v
++-----------------------------------------------------------------------------------+
+| STEP 3: Display Detailed Requirements, Processing Time & Fees                     |
+| -> title / name           : "National Examination Document Handling"              |
+| -> requirements           : ["National ID or Passport", "Support letters..."]     |
+| -> duration / processing  : "1 day" (or "~15 minutes")                            |
+| -> cost / estimatedFee    : "450 ETB"                                             |
++-----------------------------------------------------------------------------------+
+```
 
 ---
 
-## 🏛️ Institutions & Services API
+### Step 1: Fetching the Institutions List
 
-### 1. List Institutions
+Call the institutions endpoint from your React component:
 
 ```http
-GET /api/institutions?locale=am&page=1&limit=10
+GET http://10.20.254.64:5000/api/institutions?locale=en
 ```
 
-**Response (`200 OK`)**:
+#### JSON Response (`200 OK`)
 ```json
 {
   "data": [
     {
-      "id": "5935b034-cc1d-4504-ab08-b8e301827311",
-      "code": "HAWASSA_TRADE",
-      "name": "የሀዋሳ ከተማ አስተዳደር ንግድ ቢሮ",
-      "icon": "/city.jpg",
-      "floorRoomNumber": "Main Hall, Counter 4",
-      "contactPhone": "+251 46 220 1137",
-      "serviceCount": 5
+      "id": "c2590f1a-eeae-46a0-a31b-ee13d315e818",
+      "code": "ETHIO_POST",
+      "name": "Ethiopian Postal Service",
+      "logo": "/logos/post.png",
+      "icon": "/logos/post.png",
+      "serviceCount": 2,
+      "isActive": true
+    },
+    {
+      "id": "b6a831e5-8208-410c-99c5-349fc710e2f9",
+      "code": "TRADE_AND_MARKET",
+      "name": "Trade and Market",
+      "logo": "/logos/trade.png",
+      "icon": "/logos/trade.png",
+      "serviceCount": 3,
+      "isActive": true
+    },
+    {
+      "id": "c6204c86-8bc5-46e3-85b3-21c68f121175",
+      "code": "ETHIOPIAN_ELECTRIC_UTILITY",
+      "name": "Ethiopian Electric Utility",
+      "logo": "/logos/electric.png",
+      "icon": "/logos/electric.png",
+      "serviceCount": 2,
+      "isActive": true
+    },
+    {
+      "id": "52ba48bb-767d-411d-bd22-9216187515f4",
+      "code": "SIDAMA_BANK",
+      "name": "Sidama Bank",
+      "logo": "/logos/sidama_bank.png",
+      "icon": "/logos/sidama_bank.png",
+      "serviceCount": 2,
+      "isActive": true
     }
   ],
   "meta": {
-    "total": 6,
+    "total": 13,
     "page": 1,
-    "limit": 10,
+    "limit": 20,
     "totalPages": 1
   }
 }
 ```
 
-### 2. Single Institution with Embedded Services
-
-```http
-GET /api/institutions/5935b034-cc1d-4504-ab08-b8e301827311?locale=en
-```
-
-**Response (`200 OK`)**:
-```json
-{
-  "id": "5935b034-cc1d-4504-ab08-b8e301827311",
-  "code": "HAWASSA_TRADE",
-  "name": "Hawassa City Administration Trade Bureau",
-  "icon": "/city.jpg",
-  "floorRoomNumber": "Main Hall, Counter 4",
-  "contactPhone": "+251 46 220 1137",
-  "services": [
-    {
-      "id": "c1f7ad42-124b-4b47-...",
-      "title": "Trade Name Amendment for Business Organizations",
-      "description": "Approval of legal business name modifications.",
-      "requirements": [
-        "National ID",
-        "Renewed passport, driver license or digital ID",
-        "Draft meeting minutes authorizing name change"
-      ],
-      "estimatedFee": 150.0,
-      "processingDays": 2
-    }
-  ]
-}
-```
-
-### 3. Global Public Services Catalog
-
-```http
-GET /api/services?locale=en&page=1&limit=20&search=Commercial
-```
-
-Returns flat paginated services with embedded institution profile on each item.
+> 💡 **Image URL Resolution**: The `logo` field contains relative paths like `/logos/post.png`. To display images in your frontend, prepend the server URL:  
+> `http://10.20.254.64:5000/logos/post.png`
 
 ---
 
-## 🛠️ Admin Dashboard Management API (Manager/Admin CRUD)
+### Step 2: Fetching Services on Institution Click
 
-> **For the frontend developer building the MESOB Admin / Manager Dashboard.**  
-> These endpoints enable center administrators to manage institutions and the public services they offer — adding new bureaus, instantly registering services, editing requirements, updating fees, or archiving obsolete services.
+When a user clicks on an institution card, the client has **three seamless options**:
 
-### 🌟 Admin Query Parameters
+#### Option A (Recommended): Single Institution with Embedded Services
+```http
+GET http://10.20.254.64:5000/api/institutions/c2590f1a-eeae-46a0-a31b-ee13d315e818?locale=en
+```
 
-| Parameter | Type | Purpose | Example |
-| :--- | :---: | :--- | :--- |
-| `raw=true` | boolean | Returns complete trilingual JSONB objects `{ en, am, sid }` instead of a single string. **Essential for populating Admin Edit Forms.** | `GET /api/institutions/:id?raw=true` |
-| `includeInactive=true` | boolean | Includes deactivated / archived institutions and services. | `GET /api/institutions?includeInactive=true` |
+#### Option B: Paginated Services Endpoint
+```http
+GET http://10.20.254.64:5000/api/institutions/c2590f1a-eeae-46a0-a31b-ee13d315e818/services?locale=en
+```
+
+#### Option C: Filter Global Services Catalog by Provider ID or Code
+```http
+GET http://10.20.254.64:5000/api/services?providerId=c2590f1a-eeae-46a0-a31b-ee13d315e818&locale=en
+GET http://10.20.254.64:5000/api/services?providerCode=ETHIO_POST&locale=en
+```
+
+#### Option D (Zero Extra Network Requests): Pre-fetch with `includeServices=true`
+```http
+GET http://10.20.254.64:5000/api/institutions?includeServices=true&locale=en
+```
+Every institution object in `data` will already include its `services: [...]` array!
 
 ---
 
-### 1. Add a New Institution (Optionally with Instant Services)
+### Step 3: Service Data Schema & Accordion Fields
 
-```http
-POST /api/institutions
-Content-Type: application/json
-```
+When fetching the services of **Ethiopian Postal Service**, the backend returns:
 
-Admins can supply localized names `{ en, am, sid }` or a plain string (which automatically populates all three languages). You can also pass a `services` array to **instantly register all active services** in one single request!
-
-#### Request Body
 ```json
 {
-  "name": {
-    "en": "Hawassa City Water Supply & Sewerage Enterprise",
-    "am": "የሀዋሳ ከተማ የውሃ እና ፍሳሽ አገልግሎት ድርጅት",
-    "sid": "Hawaasa Quchumi Wotonna Fushshote Owaante Ejeensi"
-  },
-  "code": "HAWASSA_WATER",
-  "icon": "/icons/water.svg",
-  "floorRoomNumber": "Counter 7 & 8, Ground Floor",
-  "contactPhone": "+251 46 220 4455",
-  "isActive": true,
+  "id": "c2590f1a-eeae-46a0-a31b-ee13d315e818",
+  "code": "ETHIO_POST",
+  "name": "Ethiopian Postal Service",
+  "logo": "/logos/post.png",
+  "icon": "/logos/post.png",
   "services": [
     {
-      "title": {
-        "en": "New Residential Water Meter Installation",
-        "am": "አዲስ የመኖሪያ ቤት የውሃ ቆጣሪ ዝርጋታ",
-        "sid": "Haaro Mini Wotonna Kootare Harinsho"
-      },
-      "description": "Application and technical inspection for domestic water meter connection.",
+      "id": "457d08c9-be16-4de4-a172-2e17f9e262c3",
+      "title": "National Examination Document Handling",
+      "name": "National Examination Document Handling",
+      "description": "Booking, express handling, and delivery of national examination documents and educational certificates. Processing time is ~15 minutes depending on document/shipment size. EMS fee: 450 ETB; some standard services free.",
       "requirements": [
-        "Kebele Resident ID",
-        "House ownership deed or verified lease agreement",
-        "Kebele clearance letter"
+        "National ID or Passport",
+        "Support letters for registration or booking",
+        "Full recipient address and contact details"
       ],
-      "estimatedFee": 850.0,
-      "processingDays": 5
+      "requiredDocuments": [
+        "National ID or Passport",
+        "Support letters for registration or booking",
+        "Full recipient address and contact details"
+      ],
+      "estimatedFee": 450,
+      "cost": "450 ETB",
+      "processingDays": 1,
+      "duration": "1 day",
+      "isActive": true
     },
     {
-      "title": "Water Meter Relocation or Maintenance",
-      "description": "Request to move existing meter during compound renovation.",
-      "requirements": ["Customer account number", "Latest paid water utility bill"],
-      "estimatedFee": 200.0,
-      "processingDays": 2
+      "id": "7a086be4-3b48-47bb-a873-be379a9bf696",
+      "title": "National ID (NID) Card Printing & Distribution",
+      "name": "National ID (NID) Card Printing & Distribution",
+      "description": "Printing and distribution of physical Fayda National Digital ID cards in collaboration with the National ID Program.",
+      "requirements": [
+        "National ID (Fayda) Registration Slip or FIN Number (to be added)"
+      ],
+      "requiredDocuments": [
+        "National ID (Fayda) Registration Slip or FIN Number (to be added)"
+      ],
+      "estimatedFee": null,
+      "cost": "Free / Variable",
+      "processingDays": null,
+      "duration": "Same day / Variable",
+      "isActive": true
     }
   ]
 }
 ```
 
-#### Response (`201 Created`)
-```json
-{
-  "message": "Institution created successfully.",
-  "data": {
-    "id": "cuid_9876543210",
-    "code": "HAWASSA_WATER",
-    "name": { "en": "...", "am": "...", "sid": "..." },
-    "icon": "/icons/water.svg",
-    "floorRoomNumber": "Counter 7 & 8, Ground Floor",
-    "contactPhone": "+251 46 220 4455",
-    "isActive": true,
-    "services": [ ... ]
-  }
-}
-```
+#### Data Field Mapping Table
+
+| UI Element in Screenshot | Backend Property | Fallback / Formatting |
+| :--- | :--- | :--- |
+| **Modal Header** | `institution.name + " Services"` | `"Ethiopian Postal Service Services"` |
+| **Institution Logo** | `BASE_URL + institution.logo` | `http://10.20.254.64:5000/logos/post.png` |
+| **Accordion Item Title** | `service.title` or `service.name` | `"National Examination Document Handling"` |
+| **Required Documents** | `service.requirements` or `service.requiredDocuments` | Array of strings (render with `<ul><li>...</li></ul>`) |
+| **Processing Time** | `service.duration` or `service.processingDays` | `"1 day"`, or extracted from `service.description` |
+| **Service Fee** | `service.cost` or `service.estimatedFee` | `"450 ETB"` or `"Free of charge"` |
 
 ---
 
-### 2. Update Institution Details
+### Step 4: Ready-to-Use React Implementation
 
-```http
-PUT /api/institutions/:id
-PATCH /api/institutions/:id
-Content-Type: application/json
-```
+Below is the clean, drop-in React implementation showing how to bind `InstitutionCard` and `InstitutionModal` with live API data.
 
-Update any field: `name`, `code`, `icon`, `floorRoomNumber`, `contactPhone`, or `isActive`.
+#### 1. `useInstitutions.js` (Custom Hook)
 
-#### Request Body
-```json
-{
-  "floorRoomNumber": "Main Hall, Counter 9",
-  "contactPhone": "+251 46 220 8888",
-  "isActive": true
-}
-```
+```javascript
+import { useState, useEffect, useCallback } from 'react';
 
-#### Response (`200 OK`)
-```json
-{
-  "message": "Institution updated successfully.",
-  "data": {
-    "id": "cuid_9876543210",
-    "code": "HAWASSA_WATER",
-    "floorRoomNumber": "Main Hall, Counter 9",
-    "contactPhone": "+251 46 220 8888",
-    "serviceCount": 2
-  }
-}
-```
+const API_BASE = 'http://10.20.254.64:5000';
 
----
-
-### 3. Add Services to an Institution (Single or Batch)
-
-```http
-POST /api/institutions/:id/services
-Content-Type: application/json
-```
-
-Admins can send a single service or an array of services.
-
-#### Request Body (Single Service)
-```json
-{
-  "title": {
-    "en": "Commercial Water Connection",
-    "am": "ለንግድ ተቋማት የውሃ መስመር ዝርጋታ",
-    "sid": "Dureeyyete Dagate Wotonna Harinsho"
-  },
-  "description": "High-volume water connection for hotels, factories, and commercial centers.",
-  "requirements": [
-    "Renewed Business Trade License",
-    "TIN Registration Certificate",
-    "Site Engineering Plan"
-  ],
-  "estimatedFee": 3500.0,
-  "processingDays": 10,
-  "isActive": true
-}
-```
-
-#### Request Body (Batch Services)
-```json
-{
-  "services": [
-    {
-      "title": "Service A",
-      "description": "...",
-      "requirements": ["Document 1"],
-      "estimatedFee": 100.0,
-      "processingDays": 1
-    },
-    {
-      "title": "Service B",
-      "description": "...",
-      "requirements": ["Document 2"],
-      "estimatedFee": 250.0,
-      "processingDays": 3
-    }
-  ]
-}
-```
-
-#### Response (`201 Created`)
-```json
-{
-  "message": "1 service(s) created successfully.",
-  "data": {
-    "id": "cuid_srv_12345",
-    "providerId": "cuid_9876543210",
-    "title": { ... },
-    "estimatedFee": 3500.0,
-    "processingDays": 10,
-    "isActive": true
-  }
-}
-```
-
----
-
-### 4. Update Existing Service Details
-
-```http
-PUT /api/services/:id
-PATCH /api/services/:id
-Content-Type: application/json
-```
-
-Update any service properties: `title`, `description`, `requirements`, `estimatedFee`, `processingDays`, or `isActive`.
-
-#### Request Body
-```json
-{
-  "estimatedFee": 1200.0,
-  "processingDays": 3,
-  "requirements": [
-    "National Digital ID (Fayda)",
-    "Verified Site Plan",
-    "Receipt of Processing Fee"
-  ]
-}
-```
-
-#### Response (`200 OK`)
-```json
-{
-  "message": "Service updated successfully.",
-  "data": {
-    "id": "cuid_srv_12345",
-    "estimatedFee": 1200.0,
-    "processingDays": 3,
-    "updatedAt": "2026-10-16T15:30:00.000Z"
-  }
-}
-```
-
----
-
-### 5. Deactivate or Delete Institution / Service
-
-#### Soft Delete (Archive / Hide from Citizens)
-```http
-DELETE /api/institutions/:id
-DELETE /api/services/:id
-```
-- Sets `isActive: false` (archives the record).
-- For an institution, automatically archives all its child services as well.
-- Citizens will no longer see it; administrators can still view it via `?includeInactive=true` and reactivate it anytime via `PUT`.
-
-#### Permanent Hard Delete (Purge from Database)
-```http
-DELETE /api/institutions/:id?permanent=true
-DELETE /api/services/:id?permanent=true
-```
-- Permanently removes the record from PostgreSQL.
-
----
-
-## 🌐 Multilingual Support
-
-The portal natively supports Ethiopia's prominent administrative languages:
-
-| Code | Language | Native Name | Default |
-| :---: | :--- | :--- | :---: |
-| `en` | English | English | ✅ Yes |
-| `am` | Amharic | አማርኛ | — |
-| `sid` | Sidaamu Afoo | Sidaamu Afoo | — |
-
-```json
-// Example in Sidaamu Afoo:
-GET /api/institutions?locale=sid
-{
-  "name": "Hawaasa Quchumi Gashshooti Dureeyye Biiro",
-  ...
-}
-```
-
----
-
-## 🛡️ Security, Rate Limits & Error Handling
-
-### Rate Limiting
-
-- **Chatbot (`POST /api/chat`)**: **30 requests / minute** per IP.
-- **General Endpoints (`/api/*`)**: **120 requests / minute** per IP.
-
-Each response contains rate-limit metadata headers:
-- `RateLimit-Limit`: Maximum quota for the window.
-- `RateLimit-Remaining`: Remaining calls available.
-- `RateLimit-Reset`: Seconds remaining until quota reset.
-
-### Error Response Schema
-
-When an error occurs (`400`, `403`, `429`, or `500`), the API returns:
-
-```json
-{
-  "reply": "Friendly message suitable for UI display",
-  "error": "Descriptive technical error message"
-}
-```
-
-| HTTP Status | Trigger Condition | Code |
-| :---: | :--- | :--- |
-| `400` | Message is missing, empty, or exceeds 500 characters | `Message exceeds 500 characters.` |
-| `400` | Invalid locale parameter | `Unsupported locale specified.` |
-| `400` | Malformed JSON payload | `Invalid JSON payload` |
-| `403` | Unauthorized browser domain violating CORS | `Origin not allowed by CORS policy` |
-| `404` | Institution or Service ID not found | `Institution not found.` |
-| `429` | IP exceeded 30 chat requests / minute | `Too many requests. Rate limit exceeded.` |
-| `500` | Internal server or unhandled runtime error | `Internal server error` |
-
----
-
-## 💻 Frontend Integration Examples
-
-### React Hook (`useChatbot.js`)
-
-```jsx
-import { useState, useCallback } from "react";
-
-const CHAT_ENDPOINT = "http://10.20.254.64:5000/api/chat";
-
-export function useChatbot(locale = "en") {
-  const [messages, setMessages] = useState([]);
-  const [isThinking, setIsThinking] = useState(false);
+export function useInstitutions(locale = 'en') {
+  const [institutions, setInstitutions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const sendMessage = useCallback(async (userText) => {
-    const text = userText?.trim();
-    if (!text || text.length > 500) return;
-
-    // Append user message immediately
-    setMessages((prev) => [...prev, { role: "user", content: text }]);
-    setIsThinking(true);
+  // Load all institutions with their services included in 1 clean request
+  const loadInstitutions = useCallback(async () => {
+    setLoading(true);
     setError(null);
-
     try {
-      const res = await fetch(CHAT_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, locale }),
-      });
+      const res = await fetch(`${API_BASE}/api/institutions?includeServices=true&locale=${locale}`);
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      const json = await res.json();
+      
+      // Ensure data is formatted with absolute image URLs
+      const formatted = (json.data || []).map((inst) => ({
+        ...inst,
+        logo: inst.logo?.startsWith('http') ? inst.logo : `${API_BASE}${inst.logo}`,
+      }));
 
-      if (res.status === 429) {
-        throw new Error("Rate limit exceeded. Please wait a minute.");
-      }
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.reply || data.error);
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.reply, tier: data.tier }
-      ]);
+      setInstitutions(formatted);
     } catch (err) {
-      setError(err.message || "Failed to communicate with MESOB.");
+      setError(err.message || 'Failed to fetch institutions');
     } finally {
-      setIsThinking(false);
+      setLoading(false);
     }
   }, [locale]);
 
-  return { messages, isThinking, error, sendMessage };
+  useEffect(() => {
+    loadInstitutions();
+  }, [loadInstitutions]);
+
+  return { institutions, loading, error, refresh: loadInstitutions };
 }
 ```
 
-### Complete UI Component with Markdown (`ChatWidget.jsx`)
+#### 2. `InstitutionsSection.jsx` (Grid with Modal)
 
 ```jsx
-import React, { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import { useChatbot } from "./useChatbot";
+import React, { useState } from 'react';
+import { useInstitutions } from './useInstitutions';
+import InstitutionCard from './InstitutionCard';
+import InstitutionModal from './InstitutionModal';
 
-export function ChatWidget({ locale = "en" }) {
-  const [input, setInput] = useState("");
-  const { messages, isThinking, error, sendMessage } = useChatbot(locale);
+export function InstitutionsSection({ locale = 'en' }) {
+  const { institutions, loading, error } = useInstitutions(locale);
+  const [selectedInstitution, setSelectedInstitution] = useState(null);
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    if (!input.trim() || isThinking) return;
-    sendMessage(input);
-    setInput("");
+  const handleCardClick = (inst) => {
+    setSelectedInstitution(inst);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedInstitution(null);
+  };
+
+  if (loading) {
+    return <div className="p-12 text-center text-white">Loading institutions...</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-center text-red-400">Error: {error}</div>;
+  }
+
+  return (
+    <section className="bg-[#0f172a] py-16 px-6">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-4xl font-bold text-white text-center mb-10">
+          Service Provider Institutions
+        </h2>
+
+        {/* 4 Cards Per Row Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {institutions.map((inst) => (
+            <InstitutionCard
+              key={inst.id}
+              institution={inst}
+              onClick={() => handleCardClick(inst)}
+            />
+          ))}
+        </div>
+
+        {/* Modal Popup with Services Accordion */}
+        {selectedInstitution && (
+          <InstitutionModal
+            institution={selectedInstitution}
+            onClose={handleCloseModal}
+          />
+        )}
+      </div>
+    </section>
+  );
+}
+```
+
+#### 3. `InstitutionModal.jsx` (Accordion Displaying Requirements, Fee & Duration)
+
+```jsx
+import React, { useState } from 'react';
+
+export default function InstitutionModal({ institution, onClose }) {
+  const [expandedId, setExpandedId] = useState(
+    institution.services?.[0]?.id || null // Open first item by default
+  );
+
+  if (!institution) return null;
+
+  const toggleService = (id) => {
+    setExpandedId((prev) => (prev === id ? null : id));
   };
 
   return (
-    <div className="flex flex-col h-[500px] w-96 rounded-2xl shadow-2xl bg-white border border-slate-200 overflow-hidden font-sans">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white">
-        <h3 className="font-bold text-lg">MESOB Assistant</h3>
-        <p className="text-xs text-emerald-100">Hawassa Public Services & AI Guide</p>
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fadeIn">
+      <div className="bg-[#1e293b] border border-slate-700 w-full max-w-2xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        
+        {/* Modal Header */}
+        <div className="bg-[#0f172a] px-6 py-4 flex items-center justify-between border-b border-slate-700">
+          <h2 className="text-white text-xl font-bold">
+            {institution.name} Services
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-      {/* Message List */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50">
-        {messages.map((m, idx) => (
-          <div key={idx} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`p-3 max-w-[85%] rounded-2xl text-sm ${
-              m.role === "user"
-                ? "bg-emerald-600 text-white rounded-br-none"
-                : "bg-white text-slate-800 shadow-sm border border-slate-200 rounded-bl-none prose prose-sm"
-            }`}>
-              {/* Note: Assistant replies may contain markdown bullet lists & bold text */}
-              <ReactMarkdown>{m.content}</ReactMarkdown>
-            </div>
-          </div>
-        ))}
-        {isThinking && (
-          <div className="flex items-center space-x-1.5 text-slate-400 text-xs italic p-2">
-            <span className="animate-bounce">●</span>
-            <span className="animate-bounce delay-100">●</span>
-            <span className="animate-bounce delay-200">●</span>
-            <span>MESOB AI is checking service guides...</span>
-          </div>
-        )}
-        {error && (
-          <div className="p-2 text-xs bg-red-50 text-red-600 rounded border border-red-200 text-center">
-            {error}
-          </div>
-        )}
-      </div>
+        {/* Modal Body / Services Accordion List */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-3">
+          {(!institution.services || institution.services.length === 0) ? (
+            <p className="text-slate-400 text-center py-8">No services listed for this institution.</p>
+          ) : (
+            institution.services.map((srv) => {
+              const isExpanded = expandedId === srv.id;
+              return (
+                <div key={srv.id} className="bg-[#334155] rounded-xl overflow-hidden border border-slate-600/50">
+                  {/* Accordion Title Header */}
+                  <button
+                    onClick={() => toggleService(srv.id)}
+                    className="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-slate-600/40 transition-colors"
+                  >
+                    <span className="text-white font-semibold text-base">
+                      {srv.title || srv.name}
+                    </span>
+                    <svg
+                      className={`w-5 h-5 text-slate-300 transition-transform duration-200 ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
 
-      {/* Input Field */}
-      <form onSubmit={onSubmit} className="p-3 border-t bg-white flex gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask a question..."
-          maxLength={500}
-          className="flex-1 px-3 py-2 text-sm border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() || isThinking}
-          className="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition"
-        >
-          Send
-        </button>
-      </form>
+                  {/* Accordion Content */}
+                  {isExpanded && (
+                    <div className="px-5 py-4 bg-[#1e293b]/80 border-t border-slate-700 text-sm space-y-3">
+                      {/* Description */}
+                      {srv.description && (
+                        <p className="text-slate-300 leading-relaxed">{srv.description}</p>
+                      )}
+
+                      {/* Required Documents */}
+                      {srv.requirements && srv.requirements.length > 0 && (
+                        <div>
+                          <p className="text-emerald-400 font-semibold mb-1">Required Documents:</p>
+                          <ul className="list-disc list-inside space-y-1 text-slate-300">
+                            {srv.requirements.map((reqText, idx) => (
+                              <li key={idx}>{reqText}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Processing Time */}
+                      <div>
+                        <span className="text-slate-400 font-semibold">Processing Time:: </span>
+                        <span className="text-slate-200 font-medium">
+                          {srv.duration || (srv.processingDays ? `${srv.processingDays} days` : 'Same day / Variable')}
+                        </span>
+                      </div>
+
+                      {/* Service Fee */}
+                      <div>
+                        <span className="text-slate-400 font-semibold">Service Fee:: </span>
+                        <span className="text-amber-300 font-medium">
+                          {srv.cost || (srv.estimatedFee ? `${srv.estimatedFee} ETB` : 'Free of charge')}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+      </div>
     </div>
   );
 }
@@ -641,31 +548,228 @@ export function ChatWidget({ locale = "en" }) {
 
 ---
 
-## 🧪 Local Development & Testing
+## 🤖 AI Chatbot API Integration
+
+```http
+POST http://10.20.254.64:5000/api/chat
+Content-Type: application/json
+```
+
+The chatbot leverages a **3-tier hybrid intelligence architecture**:
+
+1. **Tier 1 (Instant Greetings)**: Welcomes citizens in English, Amharic, or Sidaamu Afoo in `<5ms`.
+2. **Tier 2 (Instant FAQ Match)**: High-speed keyword and exact phrase cache for top inquiries (`<50ms`).
+3. **Tier 3 (Google Gemini 2.5 Flash)**: Context-grounded LLM injected with authentic Hawassa MESOB institutions, counter numbers, and fee schedules (`3–8s`).
+4. **Scope-Guard & Prompt Defense**: Strictly prevents off-topic inquiries and system prompt leakage.
+
+### 1. Request Body Schema
+
+```json
+{
+  "message": "What documents do I need for Ethiopian Origin ID?",
+  "locale": "en",
+  "sessionId": "b47c87c2-9e32-4d2b-9831-7b0b8d2ef020"
+}
+```
+
+| Field | Type | Required | Default | Rules |
+| :--- | :---: | :---: | :---: | :--- |
+| `message` | `string` | **Yes** | — | 1 to 500 characters. Sanitized against control codes. |
+| `locale` | `string` | No | `"en"` | Supported: `"en"` (English), `"am"` (Amharic), `"sid"` (Sidaamu Afoo). |
+| `sessionId` | `string` | No | — | Optional UUID (v1–v5). |
+
+### 2. Response Body Schema
+
+```json
+{
+  "reply": "**Requirements for Ethiopian Origin ID (Yellow Card):**\n\n1. Properly filled out application form\n2. Ordinary passport valid for >6 months\n3. Copy of entry visa or e-visa\n4. Machine-readable Ethiopian passport or birth certificate\n5. Fee: 300 USD regular / 400 USD urgent\n\n📍 Visit **Counter 1 & 2** at Hawassa MESOB Center.",
+  "tier": 2
+}
+```
+
+---
+
+## 📺 Portal Features API (Videos, Map, News, Announcements)
+
+### 1. YouTube Videos Gallery (`/api/videos`)
+
+#### `GET /api/videos`
+Returns the 8 curated Hawassa MESOB YouTube documentaries and citizen guides with automatic embed links and thumbnails:
+
+```json
+[
+  {
+    "id": "vid-1",
+    "title": "MESOB Center Inauguration Speech",
+    "youtubeUrl": "https://www.youtube.com/watch?v=WGRWiVXvlQY",
+    "embedUrl": "https://www.youtube.com/embed/WGRWiVXvlQY",
+    "thumbnail": "https://img.youtube.com/vi/WGRWiVXvlQY/maxresdefault.jpg",
+    "description": "Official keynote speech delivered at the inauguration of Hawassa City MESOB Center.",
+    "duration": "15:32",
+    "views": "1.3M views",
+    "category": "Inauguration"
+  }
+]
+```
+
+---
+
+### 2. Map & Headquarters Location (`/api/map`)
+
+#### `GET /api/map` *(or `/api/location`)*
+Returns authentic coordinates, office operating hours, address, and the verified Google Maps iframe embed for Hawassa City MESOB Center:
+
+```json
+{
+  "contact": {
+    "address": "MESOB Center, Hawassa, Ethiopia",
+    "plusCode": "2FWM+V23, Hawassa, Ethiopia",
+    "operatingHours": "Monday - Friday: 8:00 AM - 6:00 PM",
+    "officeHoursDetailed": [
+      { "days": "Monday - Friday", "hours": "8:00 AM - 6:00 PM" },
+      { "days": "Saturday", "hours": "8:30 AM - 12:30 PM" },
+      { "days": "Sunday", "hours": "Closed" }
+    ],
+    "phone": "+251974270600",
+    "phoneDisplay": "+251 97 427 0600",
+    "email": "admin@hawassamesobcenter.et",
+    "website": "https://hawassamesobcenter.et"
+  },
+  "map": {
+    "placeName": "HAWASSA CITY MESOB CENTER",
+    "coordinates": { "latitude": 7.0472875, "longitude": 38.4830077 },
+    "embedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2561.4752292494895!2d38.48300768684871!3d7.047287523046484!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17b145005515512d%3A0xe78217b9f10cede0!2sHAWASSA%20CITY%20MESOB%20CENTER!5e1!3m2!1sen!2set!4v1792568981976!5m2!1sen!2set",
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=HAWASSA+CITY+MESOB+CENTER"
+  }
+}
+```
+
+---
+
+### 3. Citizen Contact Form (`/api/contact`)
+
+#### `POST /api/contact` *(or `/api/contact/submit`)*
+```json
+{
+  "name": "Abebe Kebede",
+  "email": "abebe@example.com",
+  "phone": "+251911223344",
+  "message": "Inquiry regarding Fayda national ID card replacement."
+}
+```
+
+---
+
+### 4. News & Announcements (`/api/news` & `/api/announcements`)
+
+- `GET /api/news`: Latest public service bulletins, center updates, and press releases.
+- `GET /api/announcements`: High-priority operational alerts and extended hours notifications.
+
+---
+
+## 🛠️ Admin Management API
+
+Center managers can administer institutions and services through CRUD endpoints.
+
+### Query Parameters for Admins
+
+| Param | Type | Purpose |
+| :--- | :---: | :--- |
+| `raw=true` | boolean | Returns complete trilingual JSONB `{ en, am, sid }` for populating admin edit inputs. |
+| `includeInactive=true` | boolean | Includes deactivated/archived institutions and services. |
+
+### Creating an Institution with Instant Services
+```http
+POST /api/institutions
+Content-Type: application/json
+
+{
+  "name": {
+    "en": "Hawassa Water & Sewerage",
+    "am": "የሀዋሳ ከተማ የውሃ እና ፍሳሽ",
+    "sid": "Hawaasa Quchumi Wotonna Fushshote"
+  },
+  "code": "HAWASSA_WATER",
+  "icon": "/logos/water.png",
+  "floorRoomNumber": "Counter 7 & 8",
+  "contactPhone": "+251 46 220 4455",
+  "services": [
+    {
+      "title": "New Water Meter Installation",
+      "description": "Inspection and domestic meter setup.",
+      "requirements": ["Kebele Resident ID", "Title deed"],
+      "estimatedFee": 850.0,
+      "processingDays": 5
+    }
+  ]
+}
+```
+
+---
+
+## 🌐 Multilingual Support
+
+The portal natively supports the 3 official working languages of Hawassa City and the Sidama Region:
+
+| Code | Language | Native Name | Status |
+| :---: | :--- | :--- | :---: |
+| `en` | English | English | Default |
+| `am` | Amharic | አማርኛ | Fully Supported |
+| `sid` | Sidaamu Afoo | Sidaamu Afoo | Fully Supported |
+
+Query with `?locale=am` or `?locale=sid` on all institutions, services, news, and chat endpoints to get localized responses automatically.
+
+---
+
+## 🛡️ Security, Rate Limits & CORS
+
+- **Helmet Security Headers**: Active with `Cross-Origin-Resource-Policy: cross-origin` to ensure images and logos load without browser blocking.
+- **CORS Hardening**: Accepts requests from `localhost:5173`, `localhost:3000`, and private local networks (`10.x.x.x` and `192.168.x.x`).
+- **Rate Limiting**:
+  - Chatbot: **30 req / min / IP**
+  - General API: **120 req / min / IP**
+  - Includes standard `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` HTTP headers.
+
+---
+
+## 🧪 Local Development & Setup
 
 ### Prerequisites
 - **Node.js**: v20 or higher
-- **PostgreSQL**: Running instance with `DATABASE_URL` configured in `server/.env`
+- **PostgreSQL**: Running instance with database created
 
-### Quick Start
+### Step-by-Step Setup
 
 ```bash
-# 1. Clone repository
+# 1. Clone the repository
 git clone https://github.com/GurmesaAyele/hawassa-mesob.git
 cd hawassa-mesob
 
-# 2. Setup Server
+# 2. Install Server Dependencies
 cd server
 npm install
-npx prisma generate
-npm run dev
 
-# Server will start on http://localhost:5000
+# 3. Configure Environment Variables
+# Create a .env file inside server/ with:
+# PORT=5000
+# DATABASE_URL="postgresql://postgres:password@localhost:5432/hawassa_mesob?schema=public"
+# GEMINI_API_KEY="your-gemini-api-key"
+# CORS_ORIGIN="http://localhost:5173,http://10.20.254.64:5173"
+
+# 4. Generate Prisma Client & Run Migrations
+npx prisma generate
+npx prisma db push
+
+# 5. Start Development Server
+npm run dev
+# Server runs on http://localhost:5000 (and LAN http://10.20.254.64:5000)
 ```
 
-### 🔬 Running Automated Tests
+---
 
-The repository includes a comprehensive, 100% automated test suite validating security, rate limiting, CORS, input sanitization, and REST API contracts:
+## 🔬 Automated Testing Suite
+
+The backend repository includes an extensive, **100% automated test suite** covering security, rate limiting, CORS, input sanitization, multilingual fidelity, institutions, services, and chatbot tiers:
 
 ```bash
 cd server
@@ -673,29 +777,38 @@ npm test
 ```
 
 ```text
-▶ Security Headers & Server Identification
+▶ 1. Security Headers & Server Identification
   ✔ GET /api/health should include Helmet security headers and omit X-Powered-By
-▶ Input Validation & Body Sanitization (POST /api/chat)
-  ✔ Valid English, Amharic, Sidaamu Afoo queries return 200
-  ✔ Empty / Whitespace-only / 500+ char messages return 400
-  ✔ Unsupported locales & malformed JSON return 400
-▶ Scope Guard & Prompt Injection Defense
-  ✔ Off-topic inquiries trigger scope-guard refusal
-  ✔ System prompt leaks / injection attempts are securely deflected
-▶ CORS Origin Hardening
+▶ 2. Input Validation & Body Sanitization (POST /api/chat)
+  ✔ Valid English, Amharic, and Sidaamu Afoo queries return 200
+  ✔ Empty / Whitespace / 500+ char messages return 400 Bad Request
+  ✔ Malformed JSON body returns 400 Bad Request
+▶ 3. Scope Guard & Prompt Injection Defense
+  ✔ Off-topic questions trigger polite scope refusal
+  ✔ System prompt leaks / injection attempts safely deflected
+▶ 4. CORS Origin Hardening
   ✔ Trusted origins accepted; untrusted origins rejected with 403
-▶ Rate Limiting Enforcement
-  ✔ POST /api/chat enforces per-IP limits and returns RateLimit headers
-▶ Institutions & Services API Endpoints
-  ✔ GET /api/institutions returns multilingual service counts & pagination
+▶ 5. Rate Limiting Enforcement
+  ✔ POST /api/chat enforces per-IP limits with RateLimit headers
+▶ 6. Institutions & Services API Endpoints
+  ✔ GET /api/institutions returns verified service counts & logos
   ✔ GET /api/institutions/:id returns details + nested active services
   ✔ GET /api/services returns catalog with parent institution metadata
+  ✔ Support for ?includeServices=true and ?providerId= filter
+▶ 7. YouTube Videos & Media Endpoints
+  ✔ GET /api/videos returns all 8 verified video items with embeds
+▶ 8. Map & Location Endpoints
+  ✔ GET /api/map returns Hawassa MESOB Center coordinates & embed iframe
+▶ 9. Contact & Citizen Inquiries
+  ✔ POST /api/contact receives and stores citizen feedback
+▶ 10. News & Announcements Endpoints
+  ✔ GET /api/news and GET /api/announcements return active bulletins
 
-ℹ tests 25 | suites 6 | pass 25 | fail 0
+ℹ tests 46 | suites 12 | pass 46 | fail 0
 ```
 
 ---
 
 <div align="center">
-  <sub>Developed for Hawassa MESOB Center • Hawassa City Administration, Sidama Region, Ethiopia</sub>
+  <sub>Hawassa MESOB Center Portal • Developed for the Citizens of Hawassa City Administration, Sidama Region, Ethiopia</sub>
 </div>

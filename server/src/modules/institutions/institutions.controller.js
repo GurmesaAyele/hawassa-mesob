@@ -46,6 +46,38 @@ function parsePosInt(value, defaultVal) {
   return Number.isFinite(n) && n > 0 ? n : defaultVal;
 }
 
+function formatDuration(days) {
+  if (days === null || days === undefined) return "Same day / Variable";
+  return days === 1 ? "1 day" : `${days} days`;
+}
+
+function formatCost(fee) {
+  if (fee === null || fee === undefined) return "Free / Variable";
+  return fee === 0 ? "Free of charge" : `${fee} ETB`;
+}
+
+function transformService(s, locale, isRaw) {
+  const title = isRaw ? s.title : localize(s.title, locale);
+  const description = isRaw ? s.description : localize(s.description, locale);
+  const requirements = isRaw ? s.requirements : localizeArray(s.requirements, locale);
+
+  return {
+    id:                s.id,
+    title,
+    name:              title,
+    description,
+    requirements,
+    requiredDocuments: requirements,
+    estimatedFee:      s.estimatedFee,
+    cost:              formatCost(s.estimatedFee),
+    processingDays:    s.processingDays,
+    duration:          formatDuration(s.processingDays),
+    isActive:          s.isActive,
+    createdAt:         s.createdAt,
+    updatedAt:         s.updatedAt,
+  };
+}
+
 /**
  * Normalizes a localized field ({ en, am, sid } or a string).
  * If admin supplies a single string, populates across all three locales.
@@ -105,6 +137,7 @@ export async function listInstitutions(req, res) {
     }
 
     const includeInactive = req.query.includeInactive === "true";
+    const includeServices = req.query.includeServices === "true";
     const page  = parsePosInt(req.query.page,  1);
     const limit = Math.min(parsePosInt(req.query.limit, 20), 50);
     const skip  = (page - 1) * limit;
@@ -143,6 +176,23 @@ export async function listInstitutions(req, res) {
               },
             },
           },
+          ...(includeServices && {
+            services: {
+              where: includeInactive ? {} : { isActive: true },
+              select: {
+                id:             true,
+                title:          true,
+                description:    true,
+                requirements:   true,
+                estimatedFee:   true,
+                processingDays: true,
+                isActive:       true,
+                createdAt:      true,
+                updatedAt:      true,
+              },
+              orderBy: { createdAt: "asc" },
+            },
+          }),
         },
         orderBy: { createdAt: "asc" },
         skip,
@@ -162,6 +212,9 @@ export async function listInstitutions(req, res) {
       serviceCount:    p._count.services,
       createdAt:       p.createdAt,
       updatedAt:       p.updatedAt,
+      ...(includeServices && {
+        services: (p.services || []).map((s) => transformService(s, locale, isRaw)),
+      }),
     }));
 
     return res.json({
@@ -246,17 +299,7 @@ export async function getInstitution(req, res) {
       isActive:        provider.isActive,
       createdAt:       provider.createdAt,
       updatedAt:       provider.updatedAt,
-      services: provider.services.map((s) => ({
-        id:             s.id,
-        title:          isRaw ? s.title : localize(s.title, locale),
-        description:    isRaw ? s.description : localize(s.description, locale),
-        requirements:   isRaw ? s.requirements : localizeArray(s.requirements, locale),
-        estimatedFee:   s.estimatedFee,
-        processingDays: s.processingDays,
-        isActive:       s.isActive,
-        createdAt:      s.createdAt,
-        updatedAt:      s.updatedAt,
-      })),
+      services: provider.services.map((s) => transformService(s, locale, isRaw)),
     });
   } catch (err) {
     console.error("[institutions] getInstitution error:", err);
@@ -288,7 +331,7 @@ export async function listInstitutionServices(req, res) {
         id: req.params.id,
         ...(!includeInactive && { isActive: true }),
       },
-      select: { id: true, name: true, code: true, isActive: true },
+      select: { id: true, name: true, code: true, icon: true, isActive: true },
     });
 
     if (!providerExists) {
@@ -326,19 +369,11 @@ export async function listInstitutionServices(req, res) {
         id:   providerExists.id,
         code: providerExists.code,
         name: isRaw ? providerExists.name : localize(providerExists.name, locale),
+        icon: providerExists.icon,
+        logo: providerExists.icon,
         isActive: providerExists.isActive,
       },
-      data: services.map((s) => ({
-        id:             s.id,
-        title:          isRaw ? s.title : localize(s.title, locale),
-        description:    isRaw ? s.description : localize(s.description, locale),
-        requirements:   isRaw ? s.requirements : localizeArray(s.requirements, locale),
-        estimatedFee:   s.estimatedFee,
-        processingDays: s.processingDays,
-        isActive:       s.isActive,
-        createdAt:      s.createdAt,
-        updatedAt:      s.updatedAt,
-      })),
+      data: services.map((s) => transformService(s, locale, isRaw)),
       meta: {
         total,
         page,
@@ -565,12 +600,16 @@ export async function listAllServices(req, res) {
     const limit = Math.min(parsePosInt(req.query.limit, 20), 50);
     const skip  = (page - 1) * limit;
     const searchTerm = req.query.search?.trim() ?? "";
+    const providerId = req.query.providerId || req.query.institutionId;
+    const providerCode = req.query.providerCode || req.query.code;
 
     const whereClause = {
       ...(!includeInactive && {
         isActive: true,
         provider: { isActive: true },
       }),
+      ...(providerId && { providerId }),
+      ...(providerCode && { provider: { code: providerCode.toUpperCase() } }),
       ...(searchTerm && {
         OR: [
           { title: { path: ["en"],  string_contains: searchTerm, mode: "insensitive" } },
@@ -614,20 +653,13 @@ export async function listAllServices(req, res) {
 
     return res.json({
       data: services.map((s) => ({
-        id:             s.id,
-        title:          isRaw ? s.title : localize(s.title, locale),
-        description:    isRaw ? s.description : localize(s.description, locale),
-        requirements:   isRaw ? s.requirements : localizeArray(s.requirements, locale),
-        estimatedFee:   s.estimatedFee,
-        processingDays: s.processingDays,
-        isActive:       s.isActive,
-        createdAt:      s.createdAt,
-        updatedAt:      s.updatedAt,
+        ...transformService(s, locale, isRaw),
         institution: {
           id:              s.provider.id,
           code:            s.provider.code,
           name:            isRaw ? s.provider.name : localize(s.provider.name, locale),
           icon:            s.provider.icon,
+          logo:            s.provider.icon,
           floorRoomNumber: s.provider.floorRoomNumber,
           contactPhone:    s.provider.contactPhone,
           isActive:        s.provider.isActive,
@@ -697,20 +729,13 @@ export async function getService(req, res) {
     }
 
     return res.json({
-      id:             service.id,
-      title:          isRaw ? service.title : localize(service.title, locale),
-      description:    isRaw ? service.description : localize(service.description, locale),
-      requirements:   isRaw ? service.requirements : localizeArray(service.requirements, locale),
-      estimatedFee:   service.estimatedFee,
-      processingDays: service.processingDays,
-      isActive:       service.isActive,
-      createdAt:      service.createdAt,
-      updatedAt:      service.updatedAt,
+      ...transformService(service, locale, isRaw),
       institution: {
         id:              service.provider.id,
         code:            service.provider.code,
         name:            isRaw ? service.provider.name : localize(service.provider.name, locale),
         icon:            service.provider.icon,
+        logo:            service.provider.icon,
         floorRoomNumber: service.provider.floorRoomNumber,
         contactPhone:    service.provider.contactPhone,
         isActive:        service.provider.isActive,
