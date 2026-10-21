@@ -98,11 +98,11 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
       assert.equal(data.contact.email, "admin@hawassamesobcenter.et");
 
       assert.equal(data.map.placeName, "HAWASSA CITY MESOB CENTER");
-      assert.equal(data.map.coordinates.latitude, 7.0471372);
-      assert.equal(data.map.coordinates.longitude, 38.4825464);
+      assert.equal(data.map.coordinates.latitude, 7.0472875);
+      assert.equal(data.map.coordinates.longitude, 38.4830077);
       assert.ok(data.map.embedUrl.includes("maps/embed"));
       assert.ok(data.map.iframeHtml.includes("<iframe"));
-      assert.ok(data.map.directionsUrl.includes("7.0471372"));
+      assert.ok(data.map.directionsUrl.includes("7.0472875"));
     });
 
     test("GET /api/location returns alias of map info", async () => {
