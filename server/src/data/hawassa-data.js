@@ -11,7 +11,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Imigreeshiinete fi Lamroomu Agurro"
     },
     "code": "ICS",
-    "logoUrl": "/immigration.png",
+    "logoUrl": "/logos/immigration.png",
     "services": [
       {
         "id": "1bff5669-64e8-44b2-a5e9-105d537a1b29",
@@ -298,7 +298,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Itiyoophiyu Postaho Agurro"
     },
     "code": "ETHIO_POST",
-    "logoUrl": "/post.png",
+    "logoUrl": "/logos/post.png",
     "services": [
       {
         "id": "457d08c9-be16-4de4-a172-2e17f9e262c3",
@@ -376,7 +376,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Daldalu fi Gabaate Agurro"
     },
     "code": "HAWASSA_TRADE",
-    "logoUrl": "/city.jpg",
+    "logoUrl": "/logos/Trade_and_Market.png",
     "services": [
       {
         "id": "00e2b64f-3441-4f7b-a068-8f15b9e7dbe0",
@@ -699,7 +699,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Itiyoophiyu Elektirike Agurro"
     },
     "code": "EEU",
-    "logoUrl": "/eeu.png",
+    "logoUrl": "/logos/eeu.png",
     "services": [
       {
         "id": "5d49b7d5-f92a-4564-a85f-64baa633c1bf",
@@ -736,7 +736,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Katamu Lophphonna Konistiraakshiine Biiro"
     },
     "code": "URBAN_DEV_CONSTRUCTION",
-    "logoUrl": "/city.jpg",
+    "logoUrl": "/logos/Urban_Development.png",
     "services": []
   },
   {
@@ -747,7 +747,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Baattoote Gashshootinna Investermente Biiro"
     },
     "code": "HAWASSA_LAND",
-    "logoUrl": "/city.jpg",
+    "logoUrl": "/logos/Land_Administration.png",
     "services": []
   },
   {
@@ -758,7 +758,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Loosunna Dandote Agurro"
     },
     "code": "LABOR_AND_SKILLS",
-    "logoUrl": "/city.jpg",
+    "logoUrl": "/logos/LABOR_AND_SKILLS.png",
     "services": [
       {
         "id": "6bc7b09b-3570-4af7-ad5c-3206f9ea8364",
@@ -845,7 +845,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Gibiru Biiro"
     },
     "code": "HAWASSA_REVENUE",
-    "logoUrl": "/city.jpg",
+    "logoUrl": "/logos/HAWASSA_REVENUE.png",
     "services": [
       {
         "id": "a73c718d-0a3c-4a89-a9d1-8543721703d7",
@@ -890,7 +890,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Yoote Biiro"
     },
     "code": "JUSTICE_DEPT",
-    "logoUrl": "/city.jpg",
+    "logoUrl": "/logos/JUSTICE_DEPT.png",
     "services": []
   },
   {
@@ -901,7 +901,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Itiyo Telekoome"
     },
     "code": "ETHIO_TELECOM",
-    "logoUrl": "/telecom.png",
+    "logoUrl": "/logos/telecom.png",
     "services": [
       {
         "id": "8b63234a-ace8-4ab1-a117-c3ae5efb1822",
@@ -1003,7 +1003,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Itiyoophiyu Daldalu Baanke"
     },
     "code": "CBE",
-    "logoUrl": "/cbe.jpeg",
+    "logoUrl": "/logos/cbe.png",
     "services": [
       {
         "id": "6b33e7f6-37be-4d3d-a4dc-7ccf8c83ebbb",
@@ -1097,7 +1097,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Sidaamu Baanke"
     },
     "code": "SIDAMA_BANK",
-    "logoUrl": "/sidama-bank.png",
+    "logoUrl": "/logos/sidama_bank.png",
     "services": [
       {
         "id": "859e85eb-98ea-4442-a6ae-2e2bcb253b6f",
@@ -1159,7 +1159,7 @@ export const HAWASSA_INSTITUTIONS = [
       "sid": "Daganna Fayda Wolooma Pirogiraame"
     },
     "code": "NATIONAL_ID_PROGRAM",
-    "logoUrl": "/fayda.png",
+    "logoUrl": "/logos/fayda.png",
     "services": [
       {
         "id": "7f5a0f97-b726-4dbf-aa19-0bbf76ab67a1",
