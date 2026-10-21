@@ -74,14 +74,31 @@ const Home = () => {
     setInstitutionsError(null);
 
     try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}`;
+      console.log('Fetching institutions from:', url);
+      
       // Fetch institutions from your backend API
       const data = await apiCall(API_CONFIG.ENDPOINTS.INSTITUTIONS);
-      setInstitutions(data);
+      console.log('Institutions API response:', data);
+      
+      // Check if data is wrapped in a property like "data" or "institutions"
+      let institutionsArray = data;
+      if (data.data) {
+        institutionsArray = data.data;
+      } else if (data.institutions) {
+        institutionsArray = data.institutions;
+      }
+      
+      console.log('Institutions array:', institutionsArray);
+      
+      // Ensure data is an array
+      setInstitutions(Array.isArray(institutionsArray) ? institutionsArray : []);
       setInstitutionsLoading(false);
     } catch (error) {
       console.error('Error fetching institutions:', error);
       setInstitutionsError('Failed to load institutions. Please try again later.');
       setInstitutionsLoading(false);
+      setInstitutions([]); // Set empty array on error
     }
   };
 
