@@ -14,6 +14,10 @@ import {
   updateService,
   deleteService,
 } from "./institutions.controller.js";
+import {
+  getVipServiceSlots,
+  getVipServiceDates,
+} from "./vip-schedule.controller.js";
 
 const router = express.Router();
 
@@ -46,6 +50,8 @@ export {
   listVipServices,
   getService,
   getVipService,
+  getVipServiceSlots,
+  getVipServiceDates,
   createService,
   updateService,
   deleteService,
