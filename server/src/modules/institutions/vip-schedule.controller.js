@@ -17,6 +17,22 @@ function localize(jsonField, locale = "en") {
 }
 
 /**
+ * Helper to query VIP tickets by serviceId, supporting both single-service legacy
+ * tickets and multi-service tickets via vip_ticket_services join relation.
+ */
+function getServiceTicketWhere(serviceId) {
+  if (prisma.vip_ticket_services) {
+    return {
+      OR: [
+        { serviceId },
+        { ticket_services: { some: { serviceId } } },
+      ],
+    };
+  }
+  return { serviceId };
+}
+
+/**
  * Searches forward from the given date (up to BOOKING_WINDOW_DAYS)
  * to find the earliest eligible working slot with remaining capacity.
  */
@@ -42,7 +58,7 @@ async function findNextEligibleSlot(serviceId, fromDateStr = null) {
 
     const bookedTickets = await prisma.vip_tickets.findMany({
       where: {
-        serviceId,
+        ...getServiceTicketWhere(serviceId),
         slotDate: { gte: startOfDay, lte: endOfDay },
         status: { in: ["PENDING", "CONFIRMED"] },
       },
@@ -143,7 +159,7 @@ export async function getVipServiceSlots(req, res) {
 
     const bookedTickets = await prisma.vip_tickets.findMany({
       where: {
-        serviceId: service.id,
+        ...getServiceTicketWhere(service.id),
         slotDate: { gte: startOfDay, lte: endOfDay },
         status: { in: ["PENDING", "CONFIRMED"] },
       },
@@ -276,7 +292,7 @@ export async function getVipServiceDates(req, res) {
     // Fetch all active tickets in the requested calendar window
     const bookedTickets = await prisma.vip_tickets.findMany({
       where: {
-        serviceId: service.id,
+        ...getServiceTicketWhere(service.id),
         slotDate: { gte: rangeStart, lte: rangeEnd },
         status: { in: ["PENDING", "CONFIRMED"] },
       },

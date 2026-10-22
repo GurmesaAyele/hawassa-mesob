@@ -43,3 +43,22 @@ export function getVipServiceConfig(service, providerOrActive = true) {
     currency: VIP_CONFIG.DEFAULT_CURRENCY,
   };
 }
+
+/**
+ * Calculates the total VIP application fee for a multi-service VIP application.
+ *
+ * Business Rule:
+ * The total VIP application fee is a fixed 1,000 ETB, regardless of the number
+ * of selected services (1 or more). The customer pays once for the whole application.
+ *
+ * @param {Array<Object>|number} [services=[]] - List of selected services or count
+ * @returns {{ vipFee: number, currency: string, isFlatFee: boolean }}
+ */
+export function calculateVipApplicationFee(services = []) {
+  return {
+    vipFee: VIP_CONFIG.DEFAULT_FEE,
+    currency: VIP_CONFIG.DEFAULT_CURRENCY,
+    isFlatFee: true,
+  };
+}
+

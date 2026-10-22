@@ -8,6 +8,7 @@ import videoRoutes from "./modules/videos/videos.routes.js";
 import mapRoutes, { contactRouter } from "./modules/map/map.routes.js";
 import newsRoutes from "./modules/news/news.routes.js";
 import announcementRoutes from "./modules/announcements/announcements.routes.js";
+import vipTicketRoutes from "./modules/vip-tickets/vip-tickets.routes.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generalRateLimiter } from "./middleware/rate-limiter.js";
@@ -86,6 +87,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/chat", chatRoutes);
 app.use("/api/institutions", institutionRoutes);
 app.use("/api/services", serviceRoutes);
+app.use("/api/vip-tickets", vipTicketRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/map", mapRoutes);
 app.use("/api/location", mapRoutes);

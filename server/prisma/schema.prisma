@@ -38,7 +38,8 @@ model Service {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   provider       ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  vip_tickets    vip_tickets[]
+  vip_tickets         vip_tickets[]
+  vip_ticket_services vip_ticket_services[]
 
   @@map("services")
 }
@@ -100,17 +101,34 @@ model vip_tickets {
   citizenPhone String
   serviceId    String?
   purpose      String?
-  slotDate     DateTime
-  slotTime     String
-  status       TicketStatus @default(PENDING)
-  paymentRef   String?
-  qrCodeUrl    String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime
-  services     Service?     @relation(fields: [serviceId], references: [id])
+  slotDate     DateTime?
+  slotTime     String?
+  status          TicketStatus          @default(PENDING)
+  paymentRef      String?
+  qrCodeUrl       String?
+  vipFee          Float                 @default(1000)
+  currency        String                @default("ETB")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime
+  services        Service?              @relation(fields: [serviceId], references: [id])
+  ticket_services vip_ticket_services[]
 
   @@index([slotDate, slotTime])
   @@index([ticketCode])
+}
+
+model vip_ticket_services {
+  id        String      @id
+  ticketId  String
+  serviceId String
+  createdAt DateTime    @default(now())
+  ticket    vip_tickets @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  service   Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, serviceId])
+  @@index([ticketId])
+  @@index([serviceId])
+  @@map("vip_ticket_services")
 }
 
 enum TicketStatus {
