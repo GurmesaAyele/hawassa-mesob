@@ -8,7 +8,9 @@ import {
   deleteInstitution,
   createService,
   listAllServices,
+  listVipServices,
   getService,
+  getVipService,
   updateService,
   deleteService,
 } from "./institutions.controller.js";
@@ -41,7 +43,9 @@ router.post("/:id/services", createService);
 
 export {
   listAllServices,
+  listVipServices,
   getService,
+  getVipService,
   createService,
   updateService,
   deleteService,

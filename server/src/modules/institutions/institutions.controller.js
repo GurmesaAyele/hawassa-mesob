@@ -1,4 +1,5 @@
 import prisma from "../../config/db.js";
+import { getVipServiceConfig } from "./vip.config.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -56,10 +57,11 @@ function formatCost(fee) {
   return fee === 0 ? "Free of charge" : `${fee} ETB`;
 }
 
-function transformService(s, locale, isRaw) {
+function transformService(s, locale, isRaw, providerOrActive) {
   const title = isRaw ? s.title : localize(s.title, locale);
   const description = isRaw ? s.description : localize(s.description, locale);
   const requirements = isRaw ? s.requirements : localizeArray(s.requirements, locale);
+  const vipInfo = getVipServiceConfig(s, providerOrActive);
 
   return {
     id:                s.id,
@@ -73,6 +75,9 @@ function transformService(s, locale, isRaw) {
     processingDays:    s.processingDays,
     duration:          formatDuration(s.processingDays),
     isActive:          s.isActive,
+    vipAvailable:      vipInfo.vipAvailable,
+    vipFee:            vipInfo.vipFee,
+    currency:          vipInfo.currency,
     createdAt:         s.createdAt,
     updatedAt:         s.updatedAt,
   };
@@ -213,7 +218,7 @@ export async function listInstitutions(req, res) {
       createdAt:       p.createdAt,
       updatedAt:       p.updatedAt,
       ...(includeServices && {
-        services: (p.services || []).map((s) => transformService(s, locale, isRaw)),
+        services: (p.services || []).map((s) => transformService(s, locale, isRaw, p.isActive)),
       }),
     }));
 
@@ -299,7 +304,7 @@ export async function getInstitution(req, res) {
       isActive:        provider.isActive,
       createdAt:       provider.createdAt,
       updatedAt:       provider.updatedAt,
-      services: provider.services.map((s) => transformService(s, locale, isRaw)),
+      services: provider.services.map((s) => transformService(s, locale, isRaw, provider.isActive)),
     });
   } catch (err) {
     console.error("[institutions] getInstitution error:", err);
@@ -321,7 +326,8 @@ export async function listInstitutionServices(req, res) {
       if (!locale) return;
     }
 
-    const includeInactive = req.query.includeInactive === "true";
+    const isVipOnly = req.query.vipOnly === "true" || req.query.vip === "true";
+    const includeInactive = req.query.includeInactive === "true" && !isVipOnly;
     const page  = parsePosInt(req.query.page,  1);
     const limit = Math.min(parsePosInt(req.query.limit, 20), 50);
     const skip  = (page - 1) * limit;
@@ -373,7 +379,7 @@ export async function listInstitutionServices(req, res) {
         logo: providerExists.icon,
         isActive: providerExists.isActive,
       },
-      data: services.map((s) => transformService(s, locale, isRaw)),
+      data: services.map((s) => transformService(s, locale, isRaw, providerExists.isActive)),
       meta: {
         total,
         page,
@@ -595,7 +601,8 @@ export async function listAllServices(req, res) {
       if (!locale) return;
     }
 
-    const includeInactive = req.query.includeInactive === "true";
+    const isVipOnly = req.query.vipOnly === "true" || req.query.vip === "true";
+    const includeInactive = req.query.includeInactive === "true" && !isVipOnly;
     const page  = parsePosInt(req.query.page,  1);
     const limit = Math.min(parsePosInt(req.query.limit, 20), 50);
     const skip  = (page - 1) * limit;
@@ -603,13 +610,18 @@ export async function listAllServices(req, res) {
     const providerId = req.query.providerId || req.query.institutionId;
     const providerCode = req.query.providerCode || req.query.code;
 
+    const providerFilter = {};
+    if (!includeInactive || isVipOnly) {
+      providerFilter.isActive = true;
+    }
+    if (providerCode) {
+      providerFilter.code = providerCode.toUpperCase();
+    }
+
     const whereClause = {
-      ...(!includeInactive && {
-        isActive: true,
-        provider: { isActive: true },
-      }),
+      ...((!includeInactive || isVipOnly) && { isActive: true }),
+      ...(Object.keys(providerFilter).length > 0 && { provider: providerFilter }),
       ...(providerId && { providerId }),
-      ...(providerCode && { provider: { code: providerCode.toUpperCase() } }),
       ...(searchTerm && {
         OR: [
           { title: { path: ["en"],  string_contains: searchTerm, mode: "insensitive" } },
@@ -653,7 +665,7 @@ export async function listAllServices(req, res) {
 
     return res.json({
       data: services.map((s) => ({
-        ...transformService(s, locale, isRaw),
+        ...transformService(s, locale, isRaw, s.provider),
         institution: {
           id:              s.provider.id,
           code:            s.provider.code,
@@ -729,7 +741,7 @@ export async function getService(req, res) {
     }
 
     return res.json({
-      ...transformService(service, locale, isRaw),
+      ...transformService(service, locale, isRaw, service.provider),
       institution: {
         id:              service.provider.id,
         code:            service.provider.code,
@@ -910,3 +922,26 @@ export async function deleteService(req, res) {
     return res.status(500).json({ error: "Failed to delete service." });
   }
 }
+
+// ─── VIP Specific Service Queries ─────────────────────────────────────────────
+
+/**
+ * GET /api/services/vip
+ *
+ * Thin VIP-specific listing endpoint reusing existing service catalog logic.
+ * Returns only active services from active providers with VIP metadata.
+ */
+export async function listVipServices(req, res) {
+  req.query.vipOnly = "true";
+  return listAllServices(req, res);
+}
+
+/**
+ * GET /api/services/vip/:id
+ *
+ * Thin VIP-specific single service endpoint reusing getService.
+ */
+export async function getVipService(req, res) {
+  return getService(req, res);
+}
+
