@@ -686,11 +686,12 @@ const Home = () => {
 
               {/* 4 Cards per Row Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {currentInstitutions.map((institution) => (
+                {currentInstitutions.map((institution, idx) => (
                   <InstitutionCard
                     key={institution.id}
                     institution={institution}
                     onClick={handleInstitutionClick}
+                    index={startIndex + idx}
                   />
                 ))}
               </div>
