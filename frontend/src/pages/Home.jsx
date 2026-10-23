@@ -790,17 +790,47 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Map Section - Only show if data is successfully fetched */}
-      {mapData && !mapLoading && !mapError && (
-        <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
-              Find Us
-            </h2>
-            <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-              Visit our location in Hawassa City
-            </p>
+      {/* Map Section - Always show section, but conditionally show content */}
+      <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
+            Find Us
+          </h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
+            Visit our location in Hawassa City
+          </p>
 
+          {/* Loading State */}
+          {mapLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#2563EB]"></div>
+              <p className="ml-4 text-gray-600 dark:text-gray-400 text-lg">Loading map data...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {!mapLoading && mapError && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-6 py-4 rounded-lg mb-4">
+                <p className="font-semibold">Failed to load map data</p>
+                <p className="text-sm mt-1">{mapError}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Empty/No Data State */}
+          {!mapLoading && !mapError && !mapData && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <svg className="w-24 h-24 text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">Location information will be available soon</p>
+            </div>
+          )}
+
+          {/* Map Content - Only show if data exists */}
+          {!mapLoading && !mapError && mapData && (
             <div className="bg-gray-50 dark:bg-[#1F2A39] rounded-2xl p-8 border border-gray-200 dark:border-[#2D3748] shadow-lg">
               {/* Map Embed - Only show if embedUrl exists */}
               {mapData?.map?.embedUrl && (
@@ -941,9 +971,9 @@ const Home = () => {
                 </div>
               )}
             </div>
-          </div>
-        </section>
-      )}
+          )}
+        </div>
+      </section>
 
       {/* Footer */}
       <Footer />
