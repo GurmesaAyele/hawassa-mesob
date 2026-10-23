@@ -1,15 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 import { HAWASSA_INSTITUTIONS } from "../src/data/hawassa-data.js";
+import { INITIAL_VIDEOS } from "../src/modules/videos/videos.data.js";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Starting Hawassa MESOB Center database seed...");
 
-  // 1. Clean existing chatbot-related records
+  // 1. Clean existing records
   await prisma.service.deleteMany();
   await prisma.serviceProvider.deleteMany();
   await prisma.chatbotFAQ.deleteMany();
+  await prisma.video.deleteMany();
 
   // 2. Seed Hawassa Institutions and their Services
   for (const inst of HAWASSA_INSTITUTIONS) {
@@ -143,6 +145,27 @@ async function main() {
   });
 
   console.log("✅ Seeded Chatbot FAQs.");
+  
+  // 4. Seed Official YouTube Videos
+  for (const v of INITIAL_VIDEOS) {
+    await prisma.video.create({
+      data: {
+        id: v.id,
+        title: v.title,
+        youtubeUrl: v.youtubeUrl,
+        embedUrl: v.embedUrl,
+        thumbnail: v.thumbnail,
+        description: v.description,
+        duration: v.duration,
+        views: v.views,
+        author: v.author,
+        category: v.category,
+        date: new Date(v.date),
+      },
+    });
+  }
+
+  console.log(`✅ Seeded ${INITIAL_VIDEOS.length} trilingual Hawassa MESOB YouTube videos.`);
   console.log("🎉 Seed finished successfully!");
 }
 

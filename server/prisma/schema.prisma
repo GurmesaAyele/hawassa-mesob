@@ -59,6 +59,28 @@ model ChatbotFAQ {
   @@map("chatbot_faqs")
 }
 
+model Video {
+  id          String   @id @default(cuid())
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  title       Json
+  youtubeUrl  String
+  embedUrl    String
+  thumbnail   String
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  description Json
+  duration    String
+  views       String
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  author      Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  category    Json
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("videos")
+}
+
 model comments {
   id           String   @id
   name         String

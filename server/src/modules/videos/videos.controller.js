@@ -1,6 +1,7 @@
+import { prisma } from "../../config/db.js";
 import { INITIAL_VIDEOS } from "./videos.data.js";
 
-// In-memory persistent video store initialized with authentic Hawassa MESOB videos
+// In-memory fallback / cache store
 let videos = [...INITIAL_VIDEOS];
 
 const ALLOWED_LOCALES = ["en", "am", "sid"];
@@ -47,7 +48,7 @@ function transformVideoItem(item, locale = "en", isRaw = false) {
     thumbnail: item.thumbnail,
     duration: item.duration,
     views: item.views,
-    date: item.date,
+    date: item.date instanceof Date ? item.date.toISOString() : item.date,
     translations: {
       title: item.title,
       description: item.description,
@@ -79,6 +80,25 @@ export function extractYouTubeId(url) {
 }
 
 /**
+ * Fetch video list from Neon database with fallback to in-memory store.
+ */
+async function getStoredVideos() {
+  try {
+    if (prisma && prisma.video) {
+      const dbVideos = await prisma.video.findMany({
+        orderBy: { date: "asc" },
+      });
+      if (dbVideos && dbVideos.length > 0) {
+        return dbVideos;
+      }
+    }
+  } catch (error) {
+    console.warn("Neon DB query fallback to in-memory videos:", error.message);
+  }
+  return videos;
+}
+
+/**
  * GET /api/videos
  * Returns list of videos formatted for the frontend VideosSection and API guide.
  * Supports:
@@ -102,7 +122,7 @@ export async function listVideos(req, res) {
       locale = req.query.locale;
     }
 
-    let result = [...videos];
+    let result = await getStoredVideos();
 
     const { category, search, limit } = req.query;
 
@@ -128,7 +148,7 @@ export async function listVideos(req, res) {
         if (typeof f === "string") return f.toLowerCase().includes(q);
         if (typeof f === "object") {
           return Object.values(f).some(
-            (val) => typeof val === "string" && val.toLowerCase().includes(q)
+            (val) => typeof val === "string" && val.toLowerCase() === cat
           );
         }
         return false;
@@ -170,7 +190,19 @@ export async function listVideos(req, res) {
 export async function getVideo(req, res) {
   try {
     const { id } = req.params;
-    const video = videos.find((v) => v.id === id);
+    let video = null;
+
+    try {
+      if (prisma && prisma.video) {
+        video = await prisma.video.findUnique({ where: { id } });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (!video) {
+      video = videos.find((v) => v.id === id);
+    }
 
     if (!video) {
       return res.status(404).json({ error: `Video with ID '${id}' not found` });
@@ -197,7 +229,7 @@ export async function getVideo(req, res) {
 
 /**
  * POST /api/videos
- * Adds a new YouTube video link to the catalog.
+ * Adds a new YouTube video link to the catalog in Neon DB.
  */
 export async function createVideo(req, res) {
   try {
@@ -234,8 +266,18 @@ export async function createVideo(req, res) {
       views: views || "0 views",
       author: normalizedAuthor,
       category: normalizedCat,
-      date: new Date().toISOString(),
+      date: new Date(),
     };
+
+    try {
+      if (prisma && prisma.video) {
+        await prisma.video.create({
+          data: newVideo,
+        });
+      }
+    } catch (e) {
+      console.warn("Could not insert video into Neon DB, kept in memory:", e.message);
+    }
 
     videos.unshift(newVideo);
 
@@ -251,15 +293,27 @@ export async function createVideo(req, res) {
 
 /**
  * DELETE /api/videos/:id
- * Removes a video by ID.
+ * Removes a video by ID from Neon DB.
  */
 export async function deleteVideo(req, res) {
   try {
     const { id } = req.params;
+    let found = false;
+
+    try {
+      if (prisma && prisma.video) {
+        const deleted = await prisma.video.delete({ where: { id } }).catch(() => null);
+        if (deleted) found = true;
+      }
+    } catch {
+      // Fallback
+    }
+
     const initialLen = videos.length;
     videos = videos.filter((v) => v.id !== id);
+    if (videos.length < initialLen) found = true;
 
-    if (videos.length === initialLen) {
+    if (!found) {
       return res.status(404).json({ error: `Video with ID '${id}' not found` });
     }
 
