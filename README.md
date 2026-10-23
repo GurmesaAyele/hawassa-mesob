@@ -233,22 +233,45 @@ GET http://10.20.254.64:5000/api/institutions?locale=en
 
 ### Step 2: Fetching Services on Institution Click
 
-When a user clicks on an institution card, the client has **three seamless options**:
+When a user clicks on an institution card, the client has **four seamless options**. You can query institutions using either their **Full UUID**, **Official Code** (e.g. `ETHIO_POST`), **Web Slug** (e.g. `ethio-post`), or **Short Pro Alias** (e.g. `post`):
 
 #### Option A (Recommended): Single Institution with Embedded Services
 ```http
+# Query by Full UUID:
 GET http://10.20.254.64:5000/api/institutions/c2590f1a-eeae-46a0-a31b-ee13d315e818?locale=en
+
+# Query by Pro Short Code or Slug (New!):
+GET http://10.20.254.64:5000/api/institutions/ETHIO_POST?locale=en
+GET http://10.20.254.64:5000/api/institutions/ethio-post?locale=en
+GET http://10.20.254.64:5000/api/institutions/post?locale=en
 ```
 
-#### Option B: Paginated Services Endpoint
+> 🎯 **Pro Short Code Cheat-Sheet**:
+> - `ETHIO_POST` / `ethio-post` / `post` -> Ethiopian Postal Service
+> - `ICS` / `ics` -> Immigration and Citizenship Service
+> - `EEU` / `eeu` / `electric` -> Ethiopian Electric Utility
+> - `CBE` / `cbe` -> Commercial Bank of Ethiopia
+> - `SIDAMA_BANK` / `sidama-bank` / `sidama` -> Sidama Bank
+> - `HAWASSA_TRADE` / `trade` -> Trade and Market Services
+> - `HAWASSA_LAND` / `land` -> Land Administration and Investment
+> - `LABOR_AND_SKILLS` / `labor` -> Labor and Skill Services
+> - `HAWASSA_REVENUE` / `revenue` -> Revenue Authority
+> - `ETHIO_TELECOM` / `telecom` -> Ethio Telecom
+> - `NATIONAL_ID_PROGRAM` / `fayda` / `nid` -> National ID Program
+> - `JUSTICE_DEPT` / `justice` -> Justice Department
+> - `URBAN_DEV_CONSTRUCTION` / `urban` -> Urban Development and Construction
+
+#### Option B: Paginated Services Endpoint (Supports Code & Slug)
 ```http
+GET http://10.20.254.64:5000/api/institutions/ETHIO_POST/services?locale=en
+GET http://10.20.254.64:5000/api/institutions/post/services?locale=en
 GET http://10.20.254.64:5000/api/institutions/c2590f1a-eeae-46a0-a31b-ee13d315e818/services?locale=en
 ```
 
 #### Option C: Filter Global Services Catalog by Provider ID or Code
 ```http
-GET http://10.20.254.64:5000/api/services?providerId=c2590f1a-eeae-46a0-a31b-ee13d315e818&locale=en
 GET http://10.20.254.64:5000/api/services?providerCode=ETHIO_POST&locale=en
+GET http://10.20.254.64:5000/api/services?providerId=c2590f1a-eeae-46a0-a31b-ee13d315e818&locale=en
 ```
 
 #### Option D (Zero Extra Network Requests): Pre-fetch with `includeServices=true`
