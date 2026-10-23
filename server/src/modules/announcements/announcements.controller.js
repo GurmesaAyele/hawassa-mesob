@@ -2,12 +2,78 @@ import { INITIAL_ANNOUNCEMENTS } from "./announcements.data.js";
 
 let announcements = [...INITIAL_ANNOUNCEMENTS];
 
+const ALLOWED_LOCALES = ["en", "am", "sid"];
+
+/**
+ * Extract localized string from JSONB / localized object.
+ */
+function localize(field, locale = "en") {
+  if (!field || typeof field !== "object") return field ?? "";
+  return field[locale] ?? field["en"] ?? Object.values(field)[0] ?? "";
+}
+
+/**
+ * Normalizes field into { en, am, sid }.
+ * If string provided, replicates across all 3 locales.
+ */
+function normalizeLocalizedField(val) {
+  if (!val) return { en: "", am: "", sid: "" };
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    return { en: trimmed, am: trimmed, sid: trimmed };
+  }
+  if (typeof val === "object" && !Array.isArray(val)) {
+    const en = (val.en || val.am || val.sid || "").trim();
+    const am = (val.am || val.en || val.sid || "").trim();
+    const sid = (val.sid || val.en || val.am || "").trim();
+    return { en, am, sid };
+  }
+  return { en: "", am: "", sid: "" };
+}
+
+/**
+ * Transform an announcement into client-friendly format.
+ */
+function transformAnnouncement(item, locale = "en", isRaw = false) {
+  return {
+    id: item.id,
+    title: isRaw ? item.title : localize(item.title, locale),
+    content: isRaw ? item.content : localize(item.content, locale),
+    priority: item.priority,
+    type: item.type,
+    date: item.date,
+    translations: {
+      title: item.title,
+      content: item.content,
+    },
+  };
+}
+
 /**
  * GET /api/announcements
  * Returns announcements formatted for AnnouncementsSection and API guide.
+ * Supports:
+ *   ?locale=en|am|sid  (default: "en")
+ *   ?raw=true          (returns full { en, am, sid } objects)
+ *   ?priority=...      (high, medium, low)
+ *   ?type=...          (event, update, alert, general)
+ *   ?search=...        (searches across all language variations)
+ *   ?limit=...         (limits returned count)
  */
 export async function listAnnouncements(req, res) {
   try {
+    const isRaw = req.query.raw === "true";
+    let locale = "en";
+
+    if (!isRaw && req.query.locale) {
+      if (!ALLOWED_LOCALES.includes(req.query.locale)) {
+        return res.status(400).json({
+          error: `Invalid locale '${req.query.locale}'. Supported: en, am, sid.`,
+        });
+      }
+      locale = req.query.locale;
+    }
+
     let result = [...announcements];
     const { priority, type, search, limit } = req.query;
 
@@ -24,11 +90,20 @@ export async function listAnnouncements(req, res) {
     }
 
     if (search && typeof search === "string") {
-      const q = search.toLowerCase();
+      const q = search.toLowerCase().trim();
+      const matchField = (f) => {
+        if (!f) return false;
+        if (typeof f === "string") return f.toLowerCase().includes(q);
+        if (typeof f === "object" && f !== null) {
+          return Object.values(f).some(
+            (v) => typeof v === "string" && v.toLowerCase() === q
+          );
+        }
+        return false;
+      };
+
       result = result.filter(
-        (a) =>
-          a.title?.toLowerCase().includes(q) ||
-          a.content?.toLowerCase().includes(q)
+        (a) => matchField(a.title) || matchField(a.content)
       );
     }
 
@@ -39,7 +114,7 @@ export async function listAnnouncements(req, res) {
       }
     }
 
-    return res.json(result);
+    return res.json(result.map((item) => transformAnnouncement(item, locale, isRaw)));
   } catch (error) {
     console.error("Error in listAnnouncements:", error);
     return res.status(500).json({ error: "Failed to retrieve announcements" });
@@ -48,10 +123,22 @@ export async function listAnnouncements(req, res) {
 
 /**
  * GET /api/announcements/:id
- * Returns a single announcement by ID.
+ * Returns a single announcement by ID with multilingual localization support.
  */
 export async function getAnnouncementById(req, res) {
   try {
+    const isRaw = req.query.raw === "true";
+    let locale = "en";
+
+    if (!isRaw && req.query.locale) {
+      if (!ALLOWED_LOCALES.includes(req.query.locale)) {
+        return res.status(400).json({
+          error: `Invalid locale '${req.query.locale}'. Supported: en, am, sid.`,
+        });
+      }
+      locale = req.query.locale;
+    }
+
     const { id } = req.params;
     const item = announcements.find((a) => a.id === id);
 
@@ -59,7 +146,7 @@ export async function getAnnouncementById(req, res) {
       return res.status(404).json({ error: `Announcement with ID '${id}' not found` });
     }
 
-    return res.json(item);
+    return res.json(transformAnnouncement(item, locale, isRaw));
   } catch (error) {
     console.error("Error in getAnnouncementById:", error);
     return res.status(500).json({ error: "Failed to retrieve announcement" });
@@ -68,17 +155,17 @@ export async function getAnnouncementById(req, res) {
 
 /**
  * POST /api/announcements
- * Creates a new announcement.
+ * Creates a new announcement. Accepts either strings or localized objects { en, am, sid }.
  */
 export async function createAnnouncement(req, res) {
   try {
-    const { title, content, priority, type, date } = req.body;
+    const { title, content, priority, type, date } = req.body || {};
 
-    if (!title || typeof title !== "string" || !title.trim()) {
+    if (!title || (typeof title === "string" && !title.trim())) {
       return res.status(400).json({ error: "Validation failed: 'title' is required" });
     }
 
-    if (!content || typeof content !== "string" || !content.trim()) {
+    if (!content || (typeof content === "string" && !content.trim())) {
       return res.status(400).json({ error: "Validation failed: 'content' is required" });
     }
 
@@ -95,8 +182,8 @@ export async function createAnnouncement(req, res) {
 
     const newAnnouncement = {
       id: `ann-${Date.now()}`,
-      title: title.trim(),
-      content: content.trim(),
+      title: normalizeLocalizedField(title),
+      content: normalizeLocalizedField(content),
       priority: selectedPriority,
       type: selectedType,
       date: date || new Date().toISOString(),
@@ -106,7 +193,7 @@ export async function createAnnouncement(req, res) {
 
     return res.status(201).json({
       message: "Announcement created successfully",
-      announcement: newAnnouncement,
+      announcement: transformAnnouncement(newAnnouncement, "en", false),
     });
   } catch (error) {
     console.error("Error in createAnnouncement:", error);
