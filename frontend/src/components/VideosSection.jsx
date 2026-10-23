@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react';
-import { API_CONFIG, apiCall } from '../config/api';
+import { API_CONFIG, apiCall, getLocaleCode } from '../config/api';
 
-const VideosSection = () => {
+const VideosSection = ({ language = 'English' }) => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchVideos();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   const fetchVideos = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await apiCall(API_CONFIG.ENDPOINTS.VIDEOS);
+      const locale = getLocaleCode(language);
+      const data = await apiCall(`${API_CONFIG.ENDPOINTS.VIDEOS}?locale=${locale}`);
       setVideos(data);
       setLoading(false);
     } catch (error) {
@@ -55,14 +56,41 @@ const VideosSection = () => {
     });
   };
 
+  // Translations
+  const translations = {
+    English: {
+      title: 'Videos',
+      subtitle: 'Watch videos about our services and activities',
+      error: 'Failed to load videos.',
+      tryAgain: 'Try Again',
+      noVideos: 'No videos available at the moment.'
+    },
+    Amharic: {
+      title: 'ቪዲዮዎች',
+      subtitle: 'ስለ አገልግሎቶቻችን እና ተግባራቶቻችን ቪዲዮዎችን ይመልከቱ',
+      error: 'ቪዲዮዎችን መጫን አልተቻለም።',
+      tryAgain: 'እንደገና ሞክር',
+      noVideos: 'በአሁኑ ጊዜ ምንም ቪዲዮዎች የሉም።'
+    },
+    Sidama: {
+      title: 'Viidiyoowwan',
+      subtitle: 'Waa\'ee tajaajila keenyaafi hojiiwwan keenya ilaali',
+      error: 'Viidiyoowwan fe\'uun hin milkoofne.',
+      tryAgain: 'Irra Deebi\'ii Yaali',
+      noVideos: 'Yeroo ammaa kana viidiyoowwan hin jiran.'
+    }
+  };
+
+  const t = translations[language] || translations.English;
+
   return (
     <section id="videos" className="min-h-screen bg-gray-100 dark:bg-gray-900 py-20 px-6 transition-colors">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          Videos
+          {t.title}
         </h2>
         <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-          Watch videos about our services and activities
+          {t.subtitle}
         </p>
 
         {/* Loading State */}
@@ -75,12 +103,12 @@ const VideosSection = () => {
         {/* Error State */}
         {error && (
           <div className="bg-red-500/10 border border-red-500 rounded-lg p-6 text-center">
-            <p className="text-red-600 dark:text-red-400 text-lg">{error}</p>
+            <p className="text-red-600 dark:text-red-400 text-lg">{t.error}</p>
             <button
               onClick={fetchVideos}
               className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
             >
-              Try Again
+              {t.tryAgain}
             </button>
           </div>
         )}
@@ -91,7 +119,7 @@ const VideosSection = () => {
             <svg className="w-24 h-24 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            <p className="text-gray-500 dark:text-gray-400 text-xl">No videos available at the moment.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xl">{t.noVideos}</p>
           </div>
         )}
 

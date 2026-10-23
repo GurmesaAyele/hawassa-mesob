@@ -139,13 +139,13 @@ const AboutUs = () => {
       </section>
 
       {/* News Section */}
-      <NewsSection />
+      <NewsSection language={language} />
 
       {/* Videos Section */}
-      <VideosSection />
+      <VideosSection language={language} />
 
       {/* Announcements Section */}
-      <AnnouncementsSection />
+      <AnnouncementsSection language={language} />
 
       {/* Footer */}
       <Footer />

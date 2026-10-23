@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react';
-import { API_CONFIG, apiCall } from '../config/api';
+import { API_CONFIG, apiCall, getLocaleCode } from '../config/api';
 
-const NewsSection = () => {
+const NewsSection = ({ language = 'English' }) => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchNews();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   const fetchNews = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await apiCall(API_CONFIG.ENDPOINTS.NEWS);
+      const locale = getLocaleCode(language);
+      const data = await apiCall(`${API_CONFIG.ENDPOINTS.NEWS}?locale=${locale}`);
       setNews(data);
       setLoading(false);
     } catch (error) {
@@ -35,14 +36,41 @@ const NewsSection = () => {
     });
   };
 
+  // Translations
+  const translations = {
+    English: {
+      title: 'Latest News',
+      subtitle: 'Stay updated with the latest news and updates from Hawassa Mesob',
+      error: 'Failed to load news.',
+      tryAgain: 'Try Again',
+      noNews: 'No news available at the moment.'
+    },
+    Amharic: {
+      title: 'የቅርብ ጊዜ ዜናዎች',
+      subtitle: 'ከሐዋሳ መሶብ የቅርብ ጊዜ ዜናዎችን እና ዝመናዎችን ይከታተሉ',
+      error: 'ዜናዎችን መጫን አልተቻለም።',
+      tryAgain: 'እንደገና ሞክር',
+      noNews: 'በአሁኑ ጊዜ ምንም ዜና የለም።'
+    },
+    Sidama: {
+      title: 'Ammammino Oduu',
+      subtitle: 'Hawassa Mesob irraa oduu fi fooyya\'inoota haaraa waliin turaa',
+      error: 'Oduu fe\'uun hin milkoofne.',
+      tryAgain: 'Irra Deebi\'ii Yaali',
+      noNews: 'Yeroo ammaa kana oduu hin jiru.'
+    }
+  };
+
+  const t = translations[language] || translations.English;
+
   return (
     <section id="news" className="min-h-screen bg-white dark:bg-[#172231] py-20 px-6 transition-colors">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          Latest News
+          {t.title}
         </h2>
         <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-          Stay updated with the latest news and updates from Hawassa Mesob
+          {t.subtitle}
         </p>
 
         {/* Loading State */}
@@ -55,12 +83,12 @@ const NewsSection = () => {
         {/* Error State */}
         {error && (
           <div className="bg-red-500/10 border border-red-500 rounded-lg p-6 text-center">
-            <p className="text-red-600 dark:text-red-400 text-lg">{error}</p>
+            <p className="text-red-600 dark:text-red-400 text-lg">{t.error}</p>
             <button
               onClick={fetchNews}
               className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
             >
-              Try Again
+              {t.tryAgain}
             </button>
           </div>
         )}
@@ -71,7 +99,7 @@ const NewsSection = () => {
             <svg className="w-24 h-24 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
-            <p className="text-gray-500 dark:text-gray-400 text-xl">No news available at the moment.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xl">{t.noNews}</p>
           </div>
         )}
 
