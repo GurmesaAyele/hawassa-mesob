@@ -73,7 +73,24 @@ const Navbar = () => {
     if (savedLanguage) {
       setLanguage(savedLanguage);
     }
-  }, []);
+
+    // Close dropdowns when clicking outside
+    const handleClickOutside = (event) => {
+      // Close About dropdown
+      if (showAboutDropdown && !event.target.closest('.about-dropdown-container')) {
+        setShowAboutDropdown(false);
+      }
+      // Close Language dropdown
+      if (showLanguageDropdown && !event.target.closest('.language-dropdown-container')) {
+        setShowLanguageDropdown(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showAboutDropdown, showLanguageDropdown]);
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -191,16 +208,24 @@ const Navbar = () => {
           
           {/* About Dropdown */}
           <div 
-            className="relative"
+            className="relative about-dropdown-container"
             onMouseEnter={() => setShowAboutDropdown(true)}
             onMouseLeave={() => setShowAboutDropdown(false)}
           >
             <button 
-              onClick={() => handleNavigation('/about-us')}
+              onClick={(e) => {
+                e.stopPropagation();
+                // Toggle dropdown on click (for mobile/touch devices)
+                setShowAboutDropdown(!showAboutDropdown);
+              }}
               className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap flex items-center gap-1"
             >
               {t.about}
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <svg 
+                className={`w-4 h-4 transition-transform duration-200 ${showAboutDropdown ? 'rotate-180' : ''}`} 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
                 <path 
                   fillRule="evenodd" 
                   d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
@@ -287,7 +312,7 @@ const Navbar = () => {
           </button>
 
           {/* Language Selector - Pill shape with globe emoji */}
-          <div className="relative ml-2">
+          <div className="relative ml-2 language-dropdown-container">
             <button 
               onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
               className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#374151] text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-500 hover:scale-105 font-medium transition-all duration-200 whitespace-nowrap shadow-sm hover:shadow-md"
