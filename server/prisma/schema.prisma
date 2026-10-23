@@ -91,16 +91,47 @@ model comments {
   createdAt    DateTime @default(now())
 }
 
-model news_announcements {
-  id          String   @id
-  title       Json
-  content     Json
-  imageUrl    String?
-  category    String   @default("general")
-  publishedAt DateTime @default(now())
-  isPinned    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime
+model NewsItem {
+  id        String   @id @default(cuid())
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  title     Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  content   Json
+  image     String?
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  author    Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  category  Json
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("news_items")
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  title     Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  content   Json
+  priority  String   @default("medium") // high, medium, low
+  type      String   @default("update") // update, alert, event, general
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("announcements")
+}
+
+model MapLocation {
+  id        String   @id @default("default-location")
+  contact   Json
+  map       Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("map_locations")
 }
 
 model users {

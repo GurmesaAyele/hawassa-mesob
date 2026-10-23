@@ -1,6 +1,6 @@
-import { INITIAL_NEWS } from "./news.data.js";
+import prisma from "../../config/db.js";
 
-let newsList = [...INITIAL_NEWS];
+let inMemoryNews = [];
 
 const ALLOWED_LOCALES = ["en", "am", "sid"];
 
@@ -41,7 +41,7 @@ function transformNewsItem(item, locale = "en", isRaw = false) {
     content: isRaw ? item.content : localize(item.content, locale),
     category: isRaw ? item.category : localize(item.category, locale),
     author: isRaw ? item.author : localize(item.author, locale),
-    date: item.date,
+    date: item.date instanceof Date ? item.date.toISOString() : item.date,
     image: item.image,
     translations: {
       title: item.title,
@@ -50,6 +50,25 @@ function transformNewsItem(item, locale = "en", isRaw = false) {
       author: item.author,
     },
   };
+}
+
+/**
+ * Fetch news articles from Neon DB with in-memory fallback.
+ */
+async function fetchNewsArticles() {
+  try {
+    if (prisma && prisma.newsItem) {
+      const dbNews = await prisma.newsItem.findMany({
+        orderBy: { date: "desc" },
+      });
+      if (dbNews && dbNews.length > 0) {
+        return dbNews;
+      }
+    }
+  } catch (err) {
+    console.warn("DB newsItem lookup failed, using fallback:", err.message);
+  }
+  return inMemoryNews;
 }
 
 /**
@@ -76,7 +95,7 @@ export async function listNews(req, res) {
       locale = req.query.locale;
     }
 
-    let result = [...newsList];
+    let result = await fetchNewsArticles();
     const { category, search, limit } = req.query;
 
     if (category && typeof category === "string") {
@@ -148,7 +167,19 @@ export async function getNewsById(req, res) {
     }
 
     const { id } = req.params;
-    const article = newsList.find((item) => item.id === id);
+    let article = null;
+
+    try {
+      if (prisma && prisma.newsItem) {
+        article = await prisma.newsItem.findUnique({ where: { id } });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (!article) {
+      article = inMemoryNews.find((item) => item.id === id);
+    }
 
     if (!article) {
       return res.status(404).json({ error: `News article with ID '${id}' not found` });
@@ -163,7 +194,7 @@ export async function getNewsById(req, res) {
 
 /**
  * POST /api/news
- * Creates a new news article. Accepts either strings or localized objects { en, am, sid }.
+ * Creates a new news article in Neon DB.
  */
 export async function createNews(req, res) {
   try {
@@ -181,13 +212,23 @@ export async function createNews(req, res) {
       id: `news-${Date.now()}`,
       title: normalizeLocalizedField(title),
       content: normalizeLocalizedField(content),
-      date: date || new Date().toISOString(),
+      date: date ? new Date(date) : new Date(),
       image: image ? String(image).trim() : null,
       author: author ? normalizeLocalizedField(author) : normalizeLocalizedField("MESOB News Desk"),
       category: category ? normalizeLocalizedField(category) : normalizeLocalizedField("General"),
     };
 
-    newsList.unshift(newArticle);
+    try {
+      if (prisma && prisma.newsItem) {
+        await prisma.newsItem.create({
+          data: newArticle,
+        });
+      }
+    } catch (err) {
+      console.warn("DB insert newsItem failed, saving in memory:", err.message);
+    }
+
+    inMemoryNews.unshift(newArticle);
 
     return res.status(201).json({
       message: "News article published successfully",
@@ -201,15 +242,27 @@ export async function createNews(req, res) {
 
 /**
  * DELETE /api/news/:id
- * Deletes a news article.
+ * Deletes a news article from Neon DB.
  */
 export async function deleteNews(req, res) {
   try {
     const { id } = req.params;
-    const initialLen = newsList.length;
-    newsList = newsList.filter((item) => item.id !== id);
+    let found = false;
 
-    if (newsList.length === initialLen) {
+    try {
+      if (prisma && prisma.newsItem) {
+        const deleted = await prisma.newsItem.delete({ where: { id } }).catch(() => null);
+        if (deleted) found = true;
+      }
+    } catch {
+      // Fallback
+    }
+
+    const initialLen = inMemoryNews.length;
+    inMemoryNews = inMemoryNews.filter((item) => item.id !== id);
+    if (inMemoryNews.length < initialLen) found = true;
+
+    if (!found) {
       return res.status(404).json({ error: `News article with ID '${id}' not found` });
     }
 

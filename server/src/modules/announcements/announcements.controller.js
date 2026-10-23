@@ -1,6 +1,6 @@
-import { INITIAL_ANNOUNCEMENTS } from "./announcements.data.js";
+import prisma from "../../config/db.js";
 
-let announcements = [...INITIAL_ANNOUNCEMENTS];
+let inMemoryAnnouncements = [];
 
 const ALLOWED_LOCALES = ["en", "am", "sid"];
 
@@ -41,12 +41,31 @@ function transformAnnouncement(item, locale = "en", isRaw = false) {
     content: isRaw ? item.content : localize(item.content, locale),
     priority: item.priority,
     type: item.type,
-    date: item.date,
+    date: item.date instanceof Date ? item.date.toISOString() : item.date,
     translations: {
       title: item.title,
       content: item.content,
     },
   };
+}
+
+/**
+ * Fetch announcements from Neon DB with in-memory fallback.
+ */
+async function fetchAnnouncements() {
+  try {
+    if (prisma && prisma.announcement) {
+      const dbAnnouncements = await prisma.announcement.findMany({
+        orderBy: { date: "desc" },
+      });
+      if (dbAnnouncements && dbAnnouncements.length > 0) {
+        return dbAnnouncements;
+      }
+    }
+  } catch (err) {
+    console.warn("DB announcement lookup failed, using fallback:", err.message);
+  }
+  return inMemoryAnnouncements;
 }
 
 /**
@@ -74,19 +93,17 @@ export async function listAnnouncements(req, res) {
       locale = req.query.locale;
     }
 
-    let result = [...announcements];
+    let result = await fetchAnnouncements();
     const { priority, type, search, limit } = req.query;
 
     if (priority && typeof priority === "string") {
-      result = result.filter(
-        (a) => a.priority?.toLowerCase() === priority.toLowerCase()
-      );
+      const p = priority.toLowerCase().trim();
+      result = result.filter((item) => item.priority?.toLowerCase() === p);
     }
 
     if (type && typeof type === "string") {
-      result = result.filter(
-        (a) => a.type?.toLowerCase() === type.toLowerCase()
-      );
+      const t = type.toLowerCase().trim();
+      result = result.filter((item) => item.type?.toLowerCase() === t);
     }
 
     if (search && typeof search === "string") {
@@ -96,14 +113,14 @@ export async function listAnnouncements(req, res) {
         if (typeof f === "string") return f.toLowerCase().includes(q);
         if (typeof f === "object" && f !== null) {
           return Object.values(f).some(
-            (v) => typeof v === "string" && v.toLowerCase() === q
+            (v) => typeof v === "string" && v.toLowerCase().includes(q)
           );
         }
         return false;
       };
 
       result = result.filter(
-        (a) => matchField(a.title) || matchField(a.content)
+        (item) => matchField(item.title) || matchField(item.content)
       );
     }
 
@@ -140,13 +157,25 @@ export async function getAnnouncementById(req, res) {
     }
 
     const { id } = req.params;
-    const item = announcements.find((a) => a.id === id);
+    let announcement = null;
 
-    if (!item) {
+    try {
+      if (prisma && prisma.announcement) {
+        announcement = await prisma.announcement.findUnique({ where: { id } });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (!announcement) {
+      announcement = inMemoryAnnouncements.find((item) => item.id === id);
+    }
+
+    if (!announcement) {
       return res.status(404).json({ error: `Announcement with ID '${id}' not found` });
     }
 
-    return res.json(transformAnnouncement(item, locale, isRaw));
+    return res.json(transformAnnouncement(announcement, locale, isRaw));
   } catch (error) {
     console.error("Error in getAnnouncementById:", error);
     return res.status(500).json({ error: "Failed to retrieve announcement" });
@@ -155,7 +184,7 @@ export async function getAnnouncementById(req, res) {
 
 /**
  * POST /api/announcements
- * Creates a new announcement. Accepts either strings or localized objects { en, am, sid }.
+ * Creates a new announcement in Neon DB.
  */
 export async function createAnnouncement(req, res) {
   try {
@@ -170,26 +199,38 @@ export async function createAnnouncement(req, res) {
     }
 
     const validPriorities = ["high", "medium", "low"];
-    const validTypes = ["event", "update", "alert", "general"];
+    const validTypes = ["update", "alert", "event", "general"];
 
-    const selectedPriority = validPriorities.includes(priority?.toLowerCase())
-      ? priority.toLowerCase()
-      : "medium";
+    const normalizedPriority =
+      priority && validPriorities.includes(priority.toLowerCase())
+        ? priority.toLowerCase()
+        : "medium";
 
-    const selectedType = validTypes.includes(type?.toLowerCase())
-      ? type.toLowerCase()
-      : "general";
+    const normalizedType =
+      type && validTypes.includes(type.toLowerCase())
+        ? type.toLowerCase()
+        : "update";
 
     const newAnnouncement = {
       id: `ann-${Date.now()}`,
       title: normalizeLocalizedField(title),
       content: normalizeLocalizedField(content),
-      priority: selectedPriority,
-      type: selectedType,
-      date: date || new Date().toISOString(),
+      priority: normalizedPriority,
+      type: normalizedType,
+      date: date ? new Date(date) : new Date(),
     };
 
-    announcements.unshift(newAnnouncement);
+    try {
+      if (prisma && prisma.announcement) {
+        await prisma.announcement.create({
+          data: newAnnouncement,
+        });
+      }
+    } catch (err) {
+      console.warn("DB insert announcement failed, saving in memory:", err.message);
+    }
+
+    inMemoryAnnouncements.unshift(newAnnouncement);
 
     return res.status(201).json({
       message: "Announcement created successfully",
@@ -203,15 +244,27 @@ export async function createAnnouncement(req, res) {
 
 /**
  * DELETE /api/announcements/:id
- * Deletes an announcement.
+ * Deletes an announcement from Neon DB.
  */
 export async function deleteAnnouncement(req, res) {
   try {
     const { id } = req.params;
-    const initialLen = announcements.length;
-    announcements = announcements.filter((a) => a.id !== id);
+    let found = false;
 
-    if (announcements.length === initialLen) {
+    try {
+      if (prisma && prisma.announcement) {
+        const deleted = await prisma.announcement.delete({ where: { id } }).catch(() => null);
+        if (deleted) found = true;
+      }
+    } catch {
+      // Fallback
+    }
+
+    const initialLen = inMemoryAnnouncements.length;
+    inMemoryAnnouncements = inMemoryAnnouncements.filter((item) => item.id !== id);
+    if (inMemoryAnnouncements.length < initialLen) found = true;
+
+    if (!found) {
       return res.status(404).json({ error: `Announcement with ID '${id}' not found` });
     }
 

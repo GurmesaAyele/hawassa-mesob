@@ -1,8 +1,67 @@
-import { INITIAL_MAP_LOCATION } from "./map.data.js";
 import prisma from "../../config/db.js";
 
-let mapLocation = JSON.parse(JSON.stringify(INITIAL_MAP_LOCATION));
+// In-memory fallback
+let inMemoryMapLocation = {
+  contact: {
+    address: "MESOB Center, Hawassa, Ethiopia",
+    plusCode: "2FWM+V23, Hawassa, Ethiopia",
+    operatingHours: "Monday - Friday: 8:00 AM - 6:00 PM",
+    officeHoursDetailed: [
+      { days: "Monday - Friday", hours: "8:00 AM - 6:00 PM" },
+      { days: "Saturday", hours: "8:30 AM - 12:30 PM" },
+      { days: "Sunday", hours: "Closed" },
+    ],
+    phone: "+251974270600",
+    phoneDisplay: "+251 97 427 0600",
+    email: "admin@hawassamesobcenter.et",
+    website: "https://hawassamesobcenter.et",
+  },
+  map: {
+    placeName: "HAWASSA CITY MESOB CENTER",
+    coordinates: {
+      latitude: 7.0472875,
+      longitude: 38.4830077,
+    },
+    rating: {
+      score: 5.0,
+      reviewsCount: 1,
+    },
+    embedUrl:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2561.4752292494895!2d38.48300768684871!3d7.047287523046484!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17b145005515512d%3A0xe78217b9f10cede0!2sHAWASSA%20CITY%20MESOB%20CENTER!5e1!3m2!1sen!2set!4v1792568981976!5m2!1sen!2set",
+    iframeHtml:
+      '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2561.4752292494895!2d38.48300768684871!3d7.047287523046484!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17b145005515512d%3A0xe78217b9f10cede0!2sHAWASSA%20CITY%20MESOB%20CENTER!5e1!3m2!1sen!2set!4v1792568981976!5m2!1sen!2set" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>',
+    googleMapsUrl:
+      "https://www.google.com/maps/search/?api=1&query=HAWASSA+CITY+MESOB+CENTER",
+    directionsUrl:
+      "https://www.google.com/maps/dir/?api=1&destination=7.0472875,38.4830077",
+  },
+  updatedAt: new Date().toISOString(),
+};
+
 let contactMessages = [];
+
+/**
+ * Fetch map location from Neon DB with in-memory fallback.
+ */
+async function fetchMapLocation() {
+  try {
+    if (prisma && prisma.mapLocation) {
+      const dbLocation = await prisma.mapLocation.findUnique({
+        where: { id: "default-location" },
+      });
+      if (dbLocation && dbLocation.contact && dbLocation.map) {
+        return {
+          contact: dbLocation.contact,
+          map: dbLocation.map,
+          updatedAt: dbLocation.updatedAt ? dbLocation.updatedAt.toISOString() : inMemoryMapLocation.updatedAt,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("DB mapLocation lookup failed, using fallback:", err.message);
+  }
+  return inMemoryMapLocation;
+}
 
 /**
  * GET /api/map (also alias /api/location)
@@ -10,7 +69,8 @@ let contactMessages = [];
  */
 export async function getMapLocation(req, res) {
   try {
-    return res.json(mapLocation);
+    const loc = await fetchMapLocation();
+    return res.json(loc);
   } catch (error) {
     console.error("Error in getMapLocation:", error);
     return res.status(500).json({ error: "Failed to retrieve map and location information" });
@@ -19,13 +79,17 @@ export async function getMapLocation(req, res) {
 
 /**
  * PUT & POST /api/map (also alias /api/location)
- * Updates the address, operating hours, phone, email, or map coordinates.
+ * Updates the address, operating hours, phone, email, or map coordinates in Neon DB.
  */
 export async function updateMapLocation(req, res) {
   try {
+    const current = await fetchMapLocation();
+    let contact = { ...current.contact };
+    let map = { ...current.map };
+
     const {
-      contact,
-      map,
+      contact: contactBody,
+      map: mapBody,
       address,
       operatingHours,
       phone,
@@ -35,48 +99,59 @@ export async function updateMapLocation(req, res) {
       longitude,
     } = req.body;
 
-    if (contact && typeof contact === "object") {
-      mapLocation.contact = {
-        ...mapLocation.contact,
-        ...contact,
-      };
+    if (contactBody && typeof contactBody === "object") {
+      contact = { ...contact, ...contactBody };
     }
 
-    if (map && typeof map === "object") {
-      mapLocation.map = {
-        ...mapLocation.map,
-        ...map,
-      };
+    if (mapBody && typeof mapBody === "object") {
+      map = { ...map, ...mapBody };
     }
 
-    // Direct convenience field overrides from forms
-    if (address) mapLocation.contact.address = address.trim();
-    if (operatingHours) mapLocation.contact.operatingHours = operatingHours.trim();
+    if (address) contact.address = address.trim();
+    if (operatingHours) contact.operatingHours = operatingHours.trim();
     if (phone) {
-      mapLocation.contact.phone = phone.trim();
-      mapLocation.contact.phoneDisplay = phone.trim();
+      contact.phone = phone.trim();
+      contact.phoneDisplay = phone.trim();
     }
-    if (email) mapLocation.contact.email = email.trim();
+    if (email) contact.email = email.trim();
 
     if (latitude !== undefined && longitude !== undefined) {
       const lat = parseFloat(latitude);
       const lng = parseFloat(longitude);
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        mapLocation.map.coordinates = { latitude: lat, longitude: lng };
-        mapLocation.map.directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        map.coordinates = { latitude: lat, longitude: lng };
+        map.directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
       }
     }
 
     if (embedUrl && typeof embedUrl === "string") {
-      mapLocation.map.embedUrl = embedUrl.trim();
-      mapLocation.map.iframeHtml = `<iframe src="${embedUrl.trim()}" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+      map.embedUrl = embedUrl.trim();
+      map.iframeHtml = `<iframe src="${embedUrl.trim()}" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
     }
 
-    mapLocation.updatedAt = new Date().toISOString();
+    const updated = {
+      contact,
+      map,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      if (prisma && prisma.mapLocation) {
+        await prisma.mapLocation.upsert({
+          where: { id: "default-location" },
+          update: { contact, map },
+          create: { id: "default-location", contact, map },
+        });
+      }
+    } catch (err) {
+      console.warn("DB update mapLocation failed, saving in memory:", err.message);
+    }
+
+    inMemoryMapLocation = updated;
 
     return res.json({
       message: "Map and location details updated successfully",
-      location: mapLocation,
+      location: updated,
     });
   } catch (error) {
     console.error("Error in updateMapLocation:", error);
@@ -90,17 +165,18 @@ export async function updateMapLocation(req, res) {
  */
 export async function getContactInfo(req, res) {
   try {
+    const loc = await fetchMapLocation();
     return res.json({
       title: "Hawassa City MESOB Center",
-      address: mapLocation.contact.address,
-      phone: mapLocation.contact.phone,
-      phoneDisplay: mapLocation.contact.phoneDisplay,
-      email: mapLocation.contact.email,
-      website: mapLocation.contact.website,
-      operatingHours: mapLocation.contact.operatingHours,
-      officeHoursDetailed: mapLocation.contact.officeHoursDetailed,
-      googleMapsUrl: mapLocation.map.googleMapsUrl,
-      directionsUrl: mapLocation.map.directionsUrl,
+      address: loc.contact.address,
+      phone: loc.contact.phone,
+      phoneDisplay: loc.contact.phoneDisplay,
+      email: loc.contact.email,
+      website: loc.contact.website,
+      operatingHours: loc.contact.operatingHours,
+      officeHoursDetailed: loc.contact.officeHoursDetailed,
+      googleMapsUrl: loc.map.googleMapsUrl,
+      directionsUrl: loc.map.directionsUrl,
     });
   } catch (error) {
     console.error("Error in getContactInfo:", error);
@@ -110,7 +186,7 @@ export async function getContactInfo(req, res) {
 
 /**
  * POST /api/contact
- * Handles citizen contact message submission (as seen in Contact.jsx).
+ * Handles citizen contact message submission.
  */
 export async function submitContactMessage(req, res) {
   try {
@@ -139,7 +215,6 @@ export async function submitContactMessage(req, res) {
 
     contactMessages.unshift(newMessage);
 
-    // Also attempt persisting to db comments if available
     try {
       if (prisma && prisma.comments) {
         await prisma.comments.create({
@@ -153,8 +228,8 @@ export async function submitContactMessage(req, res) {
           },
         });
       }
-    } catch (dbErr) {
-      // In-memory fallback is active
+    } catch {
+      // In-memory fallback
     }
 
     return res.status(201).json({
@@ -170,7 +245,7 @@ export async function submitContactMessage(req, res) {
 
 /**
  * GET /api/contact/messages
- * Retrieves submitted citizen messages (for admin oversight).
+ * Retrieves submitted citizen messages.
  */
 export async function listContactMessages(req, res) {
   try {

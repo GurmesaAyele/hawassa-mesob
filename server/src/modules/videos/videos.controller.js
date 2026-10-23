@@ -1,8 +1,7 @@
 import { prisma } from "../../config/db.js";
-import { INITIAL_VIDEOS } from "./videos.data.js";
 
 // In-memory fallback / cache store
-let videos = [...INITIAL_VIDEOS];
+let videos = [];
 
 const ALLOWED_LOCALES = ["en", "am", "sid"];
 
