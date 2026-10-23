@@ -1,47 +1,19 @@
 import { PrismaClient } from "@prisma/client";
-import { HAWASSA_INSTITUTIONS } from "../src/data/hawassa-data.js";
 import { INITIAL_VIDEOS } from "../src/modules/videos/videos.data.js";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting Hawassa MESOB Center database seed...");
+  console.log("🌱 Verifying Hawassa MESOB Center online Neon database...");
 
-  // 1. Clean existing records
-  await prisma.service.deleteMany();
-  await prisma.serviceProvider.deleteMany();
+  // 1. Check existing authentic institutions and services in the cloud DB
+  const instCount = await prisma.serviceProvider.count();
+  const servCount = await prisma.service.count();
+  console.log(`🏛️ Cloud Database Status: ${instCount} institutions & ${servCount} services active in Neon.`);
+
+  // 2. Clean and refresh FAQ & Video collections
   await prisma.chatbotFAQ.deleteMany();
   await prisma.video.deleteMany();
-
-  // 2. Seed Hawassa Institutions and their Services
-  for (const inst of HAWASSA_INSTITUTIONS) {
-    await prisma.serviceProvider.create({
-      data: {
-        id: inst.id,
-        code: inst.code,
-        name: inst.name,
-        icon: inst.logoUrl,
-        floorRoomNumber: inst.floorRoomNumber || null,
-        contactPhone: inst.contactPhone || null,
-        services: {
-          create: inst.services.map((s) => ({
-            id: s.id,
-            title: s.title,
-            description: s.description || {
-              en: `Official government service provided at Hawassa MESOB Center for ${inst.name.en}.`,
-              am: `በሀዋሳ መሶብ ማዕከል በ${inst.name.am} የሚሰጥ ይፋዊ የመንግስት አገልግሎት።`,
-              sid: `Hawaasa MESOOBE Bayicho ${inst.name.sid} uyitanno seeramu agurrote.`,
-            },
-            requirements: s.requirements.map((r) => r.requirement || r),
-            estimatedFee: s.estimatedFee,
-            processingDays: s.processingDays,
-          })),
-        },
-      },
-    });
-  }
-
-  console.log(`✅ Seeded ${HAWASSA_INSTITUTIONS.length} authentic Hawassa institutions & services.`);
 
   // 3. Seed Chatbot FAQs
   await prisma.chatbotFAQ.createMany({

@@ -1,5 +1,4 @@
 import { prisma } from "../../config/db.js";
-import { HAWASSA_INSTITUTIONS } from "../../data/hawassa-data.js";
 
 export const FALLBACK_FAQS = [
   {
@@ -623,28 +622,11 @@ export async function searchServicesForContext(query, locale = "en") {
       },
     });
   } catch (err) {
-    console.warn("DB service lookup failed, using static fallback:", err.message);
+    console.warn("DB service lookup failed:", err.message);
   }
 
-  if (services.length === 0) {
-    services = HAWASSA_INSTITUTIONS.flatMap((inst) =>
-      inst.services.map((s) => ({
-        id: s.id,
-        title: s.title,
-        description: s.description || {
-          en: `Official government service provided at Hawassa MESOB Center for ${inst.name.en}.`,
-          am: `በሀዋሳ መሶብ ማዕከል በ${inst.name.am} የሚሰጥ ይፋዊ የመንግስት አገልግሎት።`,
-          sid: `Hawaasa MESOOBE Bayicho ${inst.name.sid} uyitanno seeramu agurrote.`,
-        },
-        requirements: s.requirements.map((r) => r.requirement || r),
-        estimatedFee: s.estimatedFee,
-        processingDays: s.processingDays,
-        provider: {
-          name: inst.name,
-          floorRoomNumber: inst.floorRoomNumber || null,
-        },
-      }))
-    );
+  if (!services || services.length === 0) {
+    return "";
   }
 
   const scored = services
