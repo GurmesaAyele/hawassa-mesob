@@ -790,37 +790,21 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Map Section */}
-      <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
-            Find Us
-          </h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Visit our location in Hawassa City
-          </p>
+      {/* Map Section - Only show if data is successfully fetched */}
+      {mapData && !mapLoading && !mapError && (
+        <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
+              Find Us
+            </h2>
+            <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
+              Visit our location in Hawassa City
+            </p>
 
-          {/* Loading State */}
-          {mapLoading && (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#2563EB]"></div>
-            </div>
-          )}
-
-          {/* Map Content - Show if data exists OR if not loading */}
-          {!mapLoading && (
             <div className="bg-gray-50 dark:bg-[#1F2A39] rounded-2xl p-8 border border-gray-200 dark:border-[#2D3748] shadow-lg">
-              {/* Error Message (if any) */}
-              {mapError && (
-                <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4 mb-6 text-center">
-                  <p className="text-yellow-600 dark:text-yellow-400 text-sm mb-2">{mapError}</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Showing default location</p>
-                </div>
-              )}
-
-              {/* Map Embed */}
-              <div className="w-full h-[500px] rounded-xl overflow-hidden mb-6 bg-gray-200 dark:bg-gray-700">
-                {mapData?.map?.embedUrl ? (
+              {/* Map Embed - Only show if embedUrl exists */}
+              {mapData?.map?.embedUrl && (
+                <div className="w-full h-[500px] rounded-xl overflow-hidden mb-6 bg-gray-200 dark:bg-gray-700">
                   <iframe
                     src={mapData.map.embedUrl}
                     width="100%"
@@ -831,76 +815,72 @@ const Home = () => {
                     referrerPolicy="no-referrer-when-downgrade"
                     title="Hawassa Mesob Location"
                   ></iframe>
-                ) : (
-                  // Default Hawassa City map
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63220.45887947!2d38.4458!3d7.0622!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17b14e4c5c7c8c47%3A0x7c6f6d6f6d6f6d6f!2sHawassa%2C%20Ethiopia!5e0!3m2!1sen!2sus!4v1635000000000!5m2!1sen!2sus"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Hawassa Mesob Location"
-                  ></iframe>
-                )}
-              </div>
-
-              {/* Location Details */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                {/* Address */}
-                <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                  <div className="flex-shrink-0 w-12 h-12 bg-[#2563EB] rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Address</h3>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {mapData?.contact?.address || 'Hawassa City, SNNPR, Ethiopia'}
-                    </p>
-                    {mapData?.contact?.plusCode && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Plus Code: {mapData.contact.plusCode}
-                      </p>
-                    )}
-                  </div>
                 </div>
+              )}
 
-                {/* Phone */}
-                <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                  <div className="flex-shrink-0 w-12 h-12 bg-[#10B981] rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Phone</h3>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {mapData?.contact?.phoneDisplay || mapData?.contact?.phone || '+251-XX-XXX-XXXX'}
-                    </p>
-                  </div>
+              {/* Location Details - Only show if contact data exists */}
+              {mapData?.contact && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  {/* Address - Only show if exists */}
+                  {mapData.contact.address && (
+                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                      <div className="flex-shrink-0 w-12 h-12 bg-[#2563EB] rounded-full flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Address</h3>
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {mapData.contact.address}
+                        </p>
+                        {mapData.contact.plusCode && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Plus Code: {mapData.contact.plusCode}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Phone - Only show if exists */}
+                  {(mapData.contact.phoneDisplay || mapData.contact.phone) && (
+                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                      <div className="flex-shrink-0 w-12 h-12 bg-[#10B981] rounded-full flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Phone</h3>
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {mapData.contact.phoneDisplay || mapData.contact.phone}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Email - Only show if exists */}
+                  {mapData.contact.email && (
+                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                      <div className="flex-shrink-0 w-12 h-12 bg-[#F59E0B] rounded-full flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {mapData.contact.email}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              )}
 
-                {/* Email */}
-                <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                  <div className="flex-shrink-0 w-12 h-12 bg-[#F59E0B] rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {mapData?.contact?.email || 'info@hawassamesob.gov.et'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Website Link */}
+              {/* Website Link - Only show if exists */}
               {mapData?.contact?.website && (
                 <div className="mb-6">
                   <a
@@ -917,34 +897,36 @@ const Home = () => {
                 </div>
               )}
 
-              {/* Working Hours */}
-              <div className="p-6 bg-white dark:bg-[#0F1419] rounded-xl">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Working Hours
-                </h3>
-                
-                {mapData?.contact?.officeHoursDetailed ? (
-                  <div className="space-y-2">
-                    {mapData.contact.officeHoursDetailed.map((schedule, index) => (
-                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
-                        <span className="text-gray-700 dark:text-gray-300 font-medium">{schedule.days}</span>
-                        <span className="text-gray-600 dark:text-gray-400">{schedule.hours}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {mapData?.contact?.operatingHours || 'Monday - Friday: 8:00 AM - 5:00 PM'}
-                  </p>
-                )}
-              </div>
+              {/* Working Hours - Only show if exists */}
+              {(mapData?.contact?.officeHoursDetailed || mapData?.contact?.operatingHours) && (
+                <div className="p-6 bg-white dark:bg-[#0F1419] rounded-xl mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Working Hours
+                  </h3>
+                  
+                  {mapData.contact.officeHoursDetailed ? (
+                    <div className="space-y-2">
+                      {mapData.contact.officeHoursDetailed.map((schedule, index) => (
+                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                          <span className="text-gray-700 dark:text-gray-300 font-medium">{schedule.days}</span>
+                          <span className="text-gray-600 dark:text-gray-400">{schedule.hours}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {mapData.contact.operatingHours}
+                    </p>
+                  )}
+                </div>
+              )}
 
-              {/* Map Rating */}
+              {/* Map Rating - Only show if exists */}
               {mapData?.map?.rating && (
-                <div className="mt-6 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                <div className="p-4 bg-white dark:bg-[#0F1419] rounded-xl">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold text-gray-900 dark:text-white">{mapData.map.rating.score}</span>
                     <div className="flex">
@@ -959,9 +941,9 @@ const Home = () => {
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* Footer */}
       <Footer />
