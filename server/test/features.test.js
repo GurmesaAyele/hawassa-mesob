@@ -71,6 +71,26 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
       );
     });
 
+    test("GET /api/videos?locale=am returns Amharic localized titles and translations", async () => {
+      const res = await fetch(`${baseUrl}/api/videos?locale=am`);
+      assert.equal(res.status, 200);
+      const data = await res.json();
+      const first = data.find((v) => v.id === "vid-1");
+      assert.ok(first);
+      assert.equal(first.title, "የመሶብ ማዕከል የምረቃ ንግግር");
+      assert.ok(first.translations);
+      assert.equal(first.translations.title.sid, "Mesob Xonchi Fanoote Ayyaani Xawishsha");
+    });
+
+    test("GET /api/videos?locale=sid returns Sidaamu Afoo localized titles", async () => {
+      const res = await fetch(`${baseUrl}/api/videos?locale=sid`);
+      assert.equal(res.status, 200);
+      const data = await res.json();
+      const first = data.find((v) => v.id === "vid-1");
+      assert.ok(first);
+      assert.equal(first.title, "Mesob Xonchi Fanoote Ayyaani Xawishsha");
+    });
+
     test("POST /api/videos rejects invalid URL", async () => {
       const res = await fetch(`${baseUrl}/api/videos`, {
         method: "POST",

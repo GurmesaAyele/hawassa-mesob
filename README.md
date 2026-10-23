@@ -10,7 +10,7 @@
 [![Prisma ORM](https://img.shields.io/badge/Prisma-v6.19-2d3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![Google Gemini AI](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285f4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20AM%20%7C%20SID-ff6b6b?style=for-the-badge)](#-multilingual-support)
-[![Tests Passing](https://img.shields.io/badge/Tests-46%2F46%20Passing-brightgreen?style=for-the-badge)](#-automated-testing-suite)
+[![Tests Passing](https://img.shields.io/badge/Tests-48%2F48%20Passing-brightgreen?style=for-the-badge)](#-automated-testing-suite)
 
 <p align="center">
   <b>The single digital gateway for citizens of Hawassa City to explore government institutions, inspect document requirements, verify processing times & service fees, watch documentary videos, locate the physical MESOB Center on Google Maps, and consult a context-grounded AI assistant.</b>
@@ -614,25 +614,269 @@ The chatbot leverages a **3-tier hybrid intelligence architecture**:
 
 ## 📺 Portal Features API (Videos, Map, News, Announcements)
 
-### 1. YouTube Videos Gallery (`/api/videos`)
+### 1. 🎬 Official YouTube Videos API Client Integration Guide
 
-#### `GET /api/videos`
-Returns the 8 curated Hawassa MESOB YouTube documentaries and citizen guides with automatic embed links and thumbnails:
+```http
+GET http://10.20.254.64:5000/api/videos
+```
+
+The Videos API delivers verified YouTube documentaries, inaugurations, walk-through guides, and service explanations with **trilingual localization** (`en`, `am`, `sid`), high-res thumbnail covers, embedded iframe player URLs, view counts, and duration stamps.
+
+#### 1. Endpoints & Query Parameters
+
+| Method | Endpoint | Query Parameters | Description |
+| :---: | :--- | :--- | :--- |
+| `GET` | `/api/videos` | `?locale=en\|am\|sid`<br>`?category=Inauguration\|Services\|Documentary\|...`<br>`?search=...`<br>`?limit=8`<br>`?raw=true` | Returns all video records formatted for client display. The `search` and `category` filters match across all 3 languages simultaneously. |
+| `GET` | `/api/videos/:id` | `?locale=en\|am\|sid&raw=true` | Fetch a single video item by ID with full metadata and `translations`. |
+| `POST` | `/api/videos` | — | Submit a new YouTube video link. Accepts plain strings or `{ en, am, sid }` localized payloads. |
+| `DELETE` | `/api/videos/:id` | — | Remove a video from the catalog by ID. |
+
+#### 2. JSON Response Example (`GET /api/videos?locale=am&limit=1`)
 
 ```json
 [
   {
     "id": "vid-1",
-    "title": "MESOB Center Inauguration Speech",
+    "title": "የመሶብ ማዕከል የምረቃ ንግግር",
+    "description": "በሀዋሳ ከተማ መሶብ ማዕከል የምረቃ ስነ-ስርዓት ላይ የቀረበ ይፋዊ የመክፈቻ ንግግር።",
+    "category": "ምረቃ",
+    "author": "መሶብ",
     "youtubeUrl": "https://www.youtube.com/watch?v=WGRWiVXvlQY",
     "embedUrl": "https://www.youtube.com/embed/WGRWiVXvlQY",
     "thumbnail": "https://img.youtube.com/vi/WGRWiVXvlQY/maxresdefault.jpg",
-    "description": "Official keynote speech delivered at the inauguration of Hawassa City MESOB Center.",
     "duration": "15:32",
     "views": "1.3M views",
-    "category": "Inauguration"
+    "date": "2024-05-10T10:00:00.000Z",
+    "translations": {
+      "title": {
+        "en": "MESOB Center Inauguration Speech",
+        "am": "የመሶብ ማዕከል የምረቃ ንግግር",
+        "sid": "Mesob Xonchi Fanoote Ayyaani Xawishsha"
+      },
+      "description": {
+        "en": "Official keynote speech delivered at the inauguration ceremony of the Hawassa City MESOB Center.",
+        "am": "በሀዋሳ ከተማ መሶብ ማዕከል የምረቃ ስነ-ስርዓት ላይ የቀረበ ይፋዊ የመክፈቻ ንግግር።",
+        "sid": "Hawaasa Katamara Mesob xonchi fanoote ayyaana aana shiqino babbaxxino xawishsha."
+      },
+      "category": {
+        "en": "Inauguration",
+        "am": "ምረቃ",
+        "sid": "Fanoote"
+      },
+      "author": {
+        "en": "MESOB",
+        "am": "መሶብ",
+        "sid": "MESOB"
+      }
+    }
   }
 ]
+```
+
+#### 3. Ready-to-Use React Hook (`useVideos.js`)
+
+Save this file in `src/hooks/useVideos.js` or `src/features/videos/useVideos.js`:
+
+```javascript
+import { useState, useEffect, useCallback } from 'react';
+
+const API_BASE = 'http://10.20.254.64:5000';
+
+export function useVideos(locale = 'en', category = '', search = '') {
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchVideos = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ locale });
+      if (category) params.append('category', category);
+      if (search) params.append('search', search);
+
+      const res = await fetch(`${API_BASE}/api/videos?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+      const data = await res.json();
+      setVideos(data);
+    } catch (err) {
+      setError(err.message || 'Failed to load videos.');
+    } finally {
+      setLoading(false);
+    }
+  }, [locale, category, search]);
+
+  useEffect(() => {
+    fetchVideos();
+  }, [fetchVideos]);
+
+  return { videos, loading, error, refresh: fetchVideos };
+}
+```
+
+#### 4. Frontend Component (`VideosSection.jsx`) with Modal Player
+
+This component renders responsive video cards with duration pills, views counts, hover effects, category filtering, and an interactive pop-up YouTube player:
+
+```jsx
+import React, { useState } from 'react';
+import { useVideos } from './useVideos';
+
+export default function VideosSection({ locale = 'en' }) {
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [activeVideo, setActiveVideo] = useState(null);
+  const { videos, loading, error, refresh } = useVideos(locale, selectedCategory);
+
+  const categories = [
+    { label: 'All', value: '' },
+    { label: 'Inauguration', value: 'Inauguration' },
+    { label: 'Services', value: 'Services' },
+    { label: 'Documentary', value: 'Documentary' },
+    { label: 'Innovation', value: 'Innovation' },
+  ];
+
+  return (
+    <section className="bg-slate-950 py-20 px-6 text-slate-100">
+      <div className="max-w-7xl mx-auto">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+          <div>
+            <span className="text-xs font-semibold text-blue-400 tracking-wider uppercase">
+              Video Gallery
+            </span>
+            <h2 className="text-3xl font-extrabold text-white mt-1">
+              Hawassa MESOB in Action
+            </h2>
+            <p className="text-slate-400 text-sm mt-1 max-w-xl">
+              Watch keynote inauguration speeches, citizen workflow walkthroughs, and documentaries.
+            </p>
+          </div>
+
+          {/* Category Filter Chips */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setSelectedCategory(cat.value)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  selectedCategory === cat.value
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                    : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-white'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Loading & Error States */}
+        {loading && (
+          <div className="text-center py-16 text-slate-400">Loading videos...</div>
+        )}
+        {error && (
+          <div className="text-center py-12 text-red-400">
+            {error} <button onClick={refresh} className="underline ml-2">Retry</button>
+          </div>
+        )}
+
+        {/* Video Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {videos.map((vid) => (
+            <div
+              key={vid.id}
+              onClick={() => setActiveVideo(vid)}
+              className="group bg-slate-900 border border-slate-800 hover:border-blue-500/40 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/50 flex flex-col justify-between"
+            >
+              {/* Thumbnail Container */}
+              <div className="relative aspect-video overflow-hidden bg-slate-950">
+                <img
+                  src={vid.thumbnail}
+                  alt={vid.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                {/* Play Button Overlay */}
+                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <svg className="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+                {/* Duration Badge */}
+                <span className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                  {vid.duration}
+                </span>
+              </div>
+
+              {/* Video Info */}
+              <div className="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2">
+                    <span className="text-blue-400 font-medium">{vid.category}</span>
+                    <span>{vid.views}</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white line-clamp-2 mb-2 group-hover:text-blue-400 transition-colors">
+                    {vid.title}
+                  </h3>
+                  <p className="text-slate-400 text-xs line-clamp-2">
+                    {vid.description}
+                  </p>
+                </div>
+                <div className="text-[11px] text-slate-400 pt-3 mt-3 border-t border-slate-800/80">
+                  By <span className="text-slate-300 font-medium">{vid.author}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Video Pop-up Modal Player */}
+        {activeVideo && (
+          <div
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setActiveVideo(null)}
+          >
+            <div
+              className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden max-w-4xl w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="p-4 flex items-center justify-between border-b border-slate-800">
+                <h4 className="text-white font-semibold truncate pr-4 text-sm sm:text-base">
+                  {activeVideo.title}
+                </h4>
+                <button
+                  onClick={() => setActiveVideo(null)}
+                  className="text-slate-400 hover:text-white p-1 text-lg leading-none"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* YouTube 16:9 Iframe Embed */}
+              <div className="relative aspect-video bg-black">
+                <iframe
+                  src={`${activeVideo.embedUrl}?autoplay=1`}
+                  title={activeVideo.title}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+
+              {/* Modal Footer Description */}
+              <div className="p-4 text-xs sm:text-sm text-slate-300 bg-slate-950/60">
+                <p className="leading-relaxed">{activeVideo.description}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 ```
 
 ---
@@ -1155,6 +1399,8 @@ npm test
   ✔ Support for ?includeServices=true and ?providerId= filter
 ▶ 7. YouTube Videos & Media Endpoints
   ✔ GET /api/videos returns all 8 verified video items with embeds
+  ✔ GET /api/videos?locale=am returns Amharic localized titles and translations
+  ✔ GET /api/videos?locale=sid returns Sidaamu Afoo localized titles
 ▶ 8. Map & Location Endpoints
   ✔ GET /api/map returns Hawassa MESOB Center coordinates & embed iframe
 ▶ 9. Contact & Citizen Inquiries
@@ -1162,7 +1408,7 @@ npm test
 ▶ 10. News & Announcements Endpoints
   ✔ GET /api/news and GET /api/announcements return active bulletins
 
-ℹ tests 46 | suites 12 | pass 46 | fail 0
+ℹ tests 48 | suites 12 | pass 48 | fail 0
 ```
 
 ---
