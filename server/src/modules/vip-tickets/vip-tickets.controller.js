@@ -1,10 +1,27 @@
 import crypto from "node:crypto";
+import rateLimit from "express-rate-limit";
 import prisma from "../../config/db.js";
 import {
   getVipServiceConfig,
   calculateVipApplicationFee,
   VIP_CONFIG,
 } from "../institutions/vip.config.js";
+
+/**
+ * Dedicated Rate Limiter for Application Tracking.
+ * Protects against brute-force enumeration of application references and phone numbers.
+ * Limit: 20 tracking attempts per minute per IP.
+ */
+export const trackRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  statusCode: 429,
+  message: {
+    error: "Too many tracking requests. Please wait a minute before trying again.",
+  },
+});
 
 /**
  * Generate a unique, readable VIP application ticket code.
@@ -33,7 +50,7 @@ async function getUniqueTicketCode() {
  * Normalize and validate Ethiopian or international phone numbers.
  * Supports: 0912345678, 0712345678, +251912345678, +251712345678, 251912345678, etc.
  */
-function normalizePhoneNumber(phone) {
+export function normalizePhoneNumber(phone) {
   if (typeof phone !== "string") return null;
   const cleaned = phone.trim().replace(/[\s\-()]/g, "");
 
@@ -49,8 +66,66 @@ function normalizePhoneNumber(phone) {
 }
 
 /**
+ * Compares two phone numbers for identity match.
+ * Intelligently recognizes Ethiopian mobile equivalence between local (09...)
+ * and international (+2519... / 2519...) formats by checking the trailing 9 digits.
+ */
+export function arePhoneNumbersMatching(phoneA, phoneB) {
+  if (!phoneA || !phoneB) return false;
+  const normA = phoneA.replace(/[\s\-()]/g, "");
+  const normB = phoneB.replace(/[\s\-()]/g, "");
+
+  if (normA === normB) return true;
+
+  // Ethiopian mobile numbers have 9 core digits (e.g. 912345678)
+  const last9A = normA.slice(-9);
+  const last9B = normB.slice(-9);
+  if (last9A.length === 9 && last9B.length === 9 && last9A === last9B) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Masks a phone number to protect citizen PII.
+ * Example: "0912345678" -> "09****5678", "+251912345678" -> "+2519****5678"
+ */
+export function maskPhoneNumber(phone) {
+  if (!phone || typeof phone !== "string") return "";
+  const cleaned = phone.trim().replace(/[\s\-()]/g, "");
+  if (cleaned.length <= 4) return "****";
+
+  const prefixLength = cleaned.startsWith("+251") ? 5 : cleaned.startsWith("251") ? 4 : 2;
+  const suffixLength = 4;
+
+  if (cleaned.length <= prefixLength + suffixLength) {
+    return cleaned.slice(0, 2) + "****" + cleaned.slice(-2);
+  }
+
+  const prefix = cleaned.slice(0, prefixLength);
+  const suffix = cleaned.slice(-suffixLength);
+  return `${prefix}****${suffix}`;
+}
+
+/**
+ * Masks a citizen's full name to protect personal identity.
+ * Example: "Abebe Kebede" -> "Abebe K."
+ */
+export function maskName(name) {
+  if (!name || typeof name !== "string") return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].length > 2
+      ? parts[0][0] + "*".repeat(Math.min(parts[0].length - 2, 4)) + parts[0].slice(-1)
+      : parts[0];
+  }
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}
+
+/**
  * Formats a VIP ticket application record into the standard API response structure,
- * returning selected services as an array.
+ * returning selected services as an array and protecting citizen PII and internal secrets.
  *
  * @param {Object} ticket - Database ticket record
  * @param {Array<Object>} [fallbackServices=[]] - Pre-fetched services if join relation is not yet hydrated
@@ -91,24 +166,86 @@ function formatVipApplication(ticket, fallbackServices = []) {
       : VIP_CONFIG.DEFAULT_FEE;
   const currency = ticket.currency || VIP_CONFIG.DEFAULT_CURRENCY;
 
+  // Structure appointment details
+  const appointment = ticket.slotDate
+    ? {
+        isAssigned: true,
+        status: "ASSIGNED",
+        slotDate: ticket.slotDate,
+        slotTime: ticket.slotTime || null,
+        message: "Appointment slot confirmed. Please arrive 10 minutes prior to your scheduled time.",
+      }
+    : {
+        isAssigned: false,
+        status: "UNASSIGNED",
+        slotDate: null,
+        slotTime: null,
+        message: "Appointment has not been scheduled yet. Your application is currently under review.",
+      };
+
+  // Structure walk-in queue details
+  // An application reference alone is NOT a confirmed queue position.
+  // Physical check-in at the center is required to receive a queue position and queue number.
+  const queue = ticket.queueNumber
+    ? {
+        isQueued: true,
+        queueNumber: ticket.queueNumber,
+        queueDisplay: `VIP-${String(ticket.queueNumber).padStart(3, "0")}`,
+        queueDate: ticket.queueDate,
+        checkedInAt: ticket.checkedInAt,
+        servedAt: ticket.servedAt || null,
+        completedAt: ticket.completedAt || null,
+        message: "Customer has physically checked in and is active in the priority walk-in queue.",
+      }
+    : {
+        isQueued: false,
+        queueNumber: null,
+        queueDisplay: null,
+        queueDate: null,
+        checkedInAt: null,
+        servedAt: null,
+        completedAt: null,
+        message: "Application reference only. Not yet in queue. Physical check-in at Hawassa MESOB Center is required to join the priority walk-in queue.",
+      };
+
+  // Parse capacity reservation status if held in PENDING status
+  let capacityReservation = null;
+  if (ticket.status === "PENDING" && ticket.paymentRef) {
+    try {
+      const parsed = JSON.parse(ticket.paymentRef);
+      if (parsed && parsed.type === "CAPACITY_RESERVATION") {
+        const expiresAt = new Date(parsed.expiresAt);
+        const now = new Date();
+        const isExpired = expiresAt <= now;
+        capacityReservation = {
+          hasActiveReservation: !isExpired,
+          isExpired,
+          reservedAt: parsed.reservedAt,
+          expiresAt: parsed.expiresAt,
+          expiresInSeconds: isExpired ? 0 : Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000)),
+          queueDate: parsed.date,
+        };
+      }
+    } catch {
+      // not a capacity reservation JSON payload
+    }
+  }
+
   return {
-    id: ticket.id,
-    ticketCode: ticket.ticketCode,
     reference: ticket.ticketCode,
     status: ticket.status,
-    citizenName: ticket.citizenName,
-    citizenPhone: ticket.citizenPhone,
     purpose: ticket.purpose,
-    vipFee: fee,
-    currency,
     serviceCount: formattedServices.length,
     services: formattedServices,
-    // Legacy alias for single-service consumers
     service: formattedServices[0] || null,
-    slotDate: ticket.slotDate,
-    slotTime: ticket.slotTime,
-    paymentRef: ticket.paymentRef,
-    qrCodeUrl: ticket.qrCodeUrl,
+    vipFee: fee,
+    currency,
+    isFlatFee: true,
+    maskedPhone: maskPhoneNumber(ticket.citizenPhone),
+    maskedCitizenName: maskName(ticket.citizenName),
+    appointment,
+    queue,
+    capacityReservation,
     createdAt: ticket.createdAt,
     updatedAt: ticket.updatedAt,
   };
@@ -143,25 +280,7 @@ function getTicketQueryInclude() {
 
 /**
  * POST /api/vip-tickets
- *
  * Customer submits a VIP application with one or more services.
- *
- * Business Rules:
- * 1. Customer can select 1 or more VIP-eligible services.
- * 2. All selected services belong to one VIP application with one reference.
- * 3. Total VIP application fee is a fixed 1,000 ETB regardless of service count.
- * 4. Customer pays once for the whole application.
- * 5. Backend is authoritative for eligibility, fee, currency, reference, and initial PENDING status.
- * 6. Appointments (slotDate, slotTime) remain unassigned during submission.
- * 7. Creation of application and service links is atomic inside a Prisma transaction.
- *
- * Expected Request Body:
- * {
- *   "citizenName": "Abebe Kebede",
- *   "citizenPhone": "0912345678",
- *   "purpose": "I need assistance with several services",
- *   "serviceIds": ["actual-service-id-1", "actual-service-id-2"]
- * }
  */
 export async function submitVipApplication(req, res) {
   try {
@@ -213,7 +332,6 @@ export async function submitVipApplication(req, res) {
     if (Array.isArray(serviceIds)) {
       rawServiceIds = serviceIds;
     } else if (typeof serviceId === "string" && serviceId.trim()) {
-      // Backwards-compatible single serviceId fallback
       rawServiceIds = [serviceId.trim()];
     } else {
       return res.status(400).json({
@@ -264,11 +382,9 @@ export async function submitVipApplication(req, res) {
       });
     }
 
-    // Maintain client submission order
     const serviceMap = new Map(services.map((s) => [s.id, s]));
     const orderedServices = uniqueServiceIds.map((id) => serviceMap.get(id));
 
-    // Verify each requested service & its provider meet active-status and VIP eligibility rules
     for (const service of orderedServices) {
       const serviceTitle = service.title?.en || service.id;
 
@@ -302,14 +418,13 @@ export async function submitVipApplication(req, res) {
     const now = new Date();
 
     const createdTicket = await prisma.$transaction(async (tx) => {
-      // 1. Create the application ticket
       const ticket = await tx.vip_tickets.create({
         data: {
           id: ticketId,
           ticketCode,
           citizenName: trimmedCitizenName,
           citizenPhone: normalizedPhone,
-          serviceId: orderedServices[0].id, // Primary service reference for legacy/scheduling backward compatibility
+          serviceId: orderedServices[0].id,
           purpose: trimmedPurpose,
           slotDate: null,
           slotTime: null,
@@ -323,7 +438,6 @@ export async function submitVipApplication(req, res) {
         },
       });
 
-      // 2. Persist join records for each selected service if join table model is available
       if (tx.vip_ticket_services) {
         for (const s of orderedServices) {
           await tx.vip_ticket_services.create({
@@ -356,8 +470,81 @@ export async function submitVipApplication(req, res) {
 }
 
 /**
+ * POST /api/vip-tickets/track
+ *
+ * Phase 4: Customer Application Tracking Endpoint.
+ *
+ * Accepts application reference and registered phone number.
+ * Verifies that both reference and phone match the same record.
+ * Returns application status, purpose, selected services, flat fee, and appointment info.
+ *
+ * Security:
+ * - Does not return full phone numbers, internal database IDs, or payment secrets.
+ * - Uses consistent 404 response for both unknown references and phone mismatches to prevent enumeration.
+ */
+export async function trackVipApplication(req, res) {
+  try {
+    const { reference, ticketCode, phone, citizenPhone } = req.body || {};
+
+    const rawReference = reference || ticketCode;
+    const rawPhone = phone || citizenPhone;
+
+    // 1. Validate inputs
+    if (!rawReference || typeof rawReference !== "string" || !rawReference.trim()) {
+      return res.status(400).json({
+        error: "Validation failed: 'reference' is required.",
+      });
+    }
+
+    if (!rawPhone || typeof rawPhone !== "string" || !rawPhone.trim()) {
+      return res.status(400).json({
+        error: "Validation failed: 'phone' is required.",
+      });
+    }
+
+    const normalizedPhone = normalizePhoneNumber(rawPhone);
+    if (!normalizedPhone) {
+      return res.status(400).json({
+        error: "Validation failed: 'phone' must be a valid phone number (e.g. 0912345678 or +251912345678).",
+      });
+    }
+
+    const cleanRef = rawReference.trim();
+
+    // 2. Query ticket by ticketCode / reference
+    const ticket = await prisma.vip_tickets.findFirst({
+      where: {
+        OR: [
+          { ticketCode: cleanRef },
+          { id: cleanRef },
+        ],
+      },
+      include: getTicketQueryInclude(),
+    });
+
+    // 3. Security: Consistent 404 response for both unknown reference and phone mismatch
+    if (!ticket || !arePhoneNumbersMatching(ticket.citizenPhone, normalizedPhone)) {
+      return res.status(404).json({
+        error: "No matching VIP application found with the provided reference and phone number.",
+      });
+    }
+
+    // 4. Return safe tracking details
+    return res.status(200).json({
+      success: true,
+      data: formatVipApplication(ticket),
+    });
+  } catch (err) {
+    console.error("[vip-tickets] trackVipApplication error:", err);
+    return res.status(500).json({
+      error: "Failed to track VIP application. Please try again later.",
+    });
+  }
+}
+
+/**
  * GET /api/vip-tickets/:id
- * Retrieve a VIP application by primary ID.
+ * Retrieve a VIP application by primary ID with masked PII.
  */
 export async function getVipTicketById(req, res) {
   try {
@@ -388,7 +575,7 @@ export async function getVipTicketById(req, res) {
 
 /**
  * GET /api/vip-tickets/reference/:code
- * Retrieve a VIP application by reference / ticketCode (e.g. VIP-845123-A4B2).
+ * Retrieve a VIP application by reference / ticketCode with masked PII.
  */
 export async function getVipTicketByReference(req, res) {
   try {
@@ -420,6 +607,7 @@ export async function getVipTicketByReference(req, res) {
 /**
  * GET /api/vip-tickets
  * List VIP applications with optional query filters (status, phone, serviceId).
+ * Masked PII to protect citizen privacy.
  */
 export async function listVipTickets(req, res) {
   try {
