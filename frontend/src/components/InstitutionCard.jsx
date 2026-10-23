@@ -1,3 +1,5 @@
+import { API_CONFIG } from '../config/api';
+
 const InstitutionCard = ({ institution, onClick }) => {
   // Fallback colors if institution doesn't have one
   const cardColors = [
@@ -15,6 +17,17 @@ const InstitutionCard = ({ institution, onClick }) => {
     return institution.bgColor || cardColors[index % cardColors.length];
   };
 
+  // Build full logo URL
+  const getLogoUrl = (logoPath) => {
+    if (!logoPath) return null;
+    // If already a full URL, return as is
+    if (logoPath.startsWith('http')) return logoPath;
+    // Otherwise, prepend the base URL
+    return `${API_CONFIG.BASE_URL}${logoPath}`;
+  };
+
+  const logoUrl = getLogoUrl(institution.logo || institution.icon);
+
   return (
     <button
       onClick={() => onClick(institution)}
@@ -22,12 +35,13 @@ const InstitutionCard = ({ institution, onClick }) => {
     >
       {/* Institution Logo */}
       <div className="w-24 h-24 mb-4 bg-white rounded-xl flex items-center justify-center p-3">
-        {institution.logo ? (
+        {logoUrl ? (
           <img
-            src={institution.logo}
+            src={logoUrl}
             alt={institution.name}
             className="w-full h-full object-contain"
             onError={(e) => {
+              console.error('Logo failed to load:', logoUrl);
               // Fallback if image fails to load
               e.target.style.display = 'none';
               e.target.nextSibling.style.display = 'flex';
@@ -35,8 +49,8 @@ const InstitutionCard = ({ institution, onClick }) => {
           />
         ) : null}
         <div
-          className="w-full h-full items-center justify-center text-gray-400 text-2xl font-bold hidden"
-          style={{ display: institution.logo ? 'none' : 'flex' }}
+          className="w-full h-full items-center justify-center text-gray-400 text-2xl font-bold"
+          style={{ display: logoUrl ? 'none' : 'flex' }}
         >
           {institution.name?.charAt(0) || '?'}
         </div>

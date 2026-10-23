@@ -5,7 +5,7 @@ import VIPTicket from '../components/VIPTicket';
 import InstitutionCard from '../components/InstitutionCard';
 import InstitutionModal from '../components/InstitutionModal';
 import Footer from '../components/Footer';
-import { API_CONFIG, apiCall } from '../config/api';
+import { API_CONFIG, apiCall, getLocaleCode } from '../config/api';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
 
@@ -72,7 +72,7 @@ const Home = () => {
   // Fetch institutions from API
   useEffect(() => {
     fetchInstitutions();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   // Fetch map data from API
   useEffect(() => {
@@ -126,11 +126,12 @@ const Home = () => {
     setInstitutionsError(null);
 
     try {
-      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}`;
+      const locale = getLocaleCode(language);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`;
       console.log('Fetching institutions from:', url);
       
       // Fetch institutions from your backend API
-      const data = await apiCall(API_CONFIG.ENDPOINTS.INSTITUTIONS);
+      const data = await apiCall(`${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`);
       console.log('Institutions API response:', data);
       
       // Check if data is wrapped in a property like "data" or "institutions"
@@ -172,8 +173,28 @@ const Home = () => {
     }
   };
 
-  const handleInstitutionClick = (institution) => {
-    setSelectedInstitution(institution);
+  const handleInstitutionClick = async (institution) => {
+    try {
+      // Fetch full institution details with services (Option A - Recommended)
+      const locale = getLocaleCode(language);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}/${institution.id}?locale=${locale}`;
+      console.log('Fetching institution services from:', url);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Institution with services:', data);
+      
+      setSelectedInstitution(data);
+    } catch (err) {
+      console.error('Error fetching institution services:', err);
+      // Fallback to showing institution without services
+      setSelectedInstitution(institution);
+    }
   };
 
   const handleCloseModal = () => {
@@ -311,6 +332,55 @@ const Home = () => {
     }
   };
 
+  // Map section translations
+  const mapTranslations = {
+    English: {
+      title: 'Find Us',
+      subtitle: 'Visit our location in Hawassa City',
+      loading: 'Loading map data...',
+      errorTitle: 'Failed to load map data',
+      emptyMessage: 'Location information will be available soon',
+      addressLabel: 'Address',
+      phoneLabel: 'Phone',
+      emailLabel: 'Email',
+      workingHoursLabel: 'Working Hours',
+      websiteBtn: 'Visit Website',
+      plusCode: 'Plus Code',
+      review: 'review',
+      reviews: 'reviews'
+    },
+    Amharic: {
+      title: 'አድራሻችን',
+      subtitle: 'በሀዋሳ ከተማ ያለንበትን ቦታ ይጎብኙ',
+      loading: 'የካርታ መረጃ በመጫን ላይ...',
+      errorTitle: 'የካርታ መረጃ መጫን አልተቻለም',
+      emptyMessage: 'የአድራሻ መረጃ በቅርቡ ይገኛል',
+      addressLabel: 'አድራሻ',
+      phoneLabel: 'ስልክ',
+      emailLabel: 'ኢሜይል',
+      workingHoursLabel: 'የስራ ሰዓታት',
+      websiteBtn: 'ድህረ ገጽ ይጎብኙ',
+      plusCode: 'ፕላስ ኮድ',
+      review: 'ግምገማ',
+      reviews: 'ግምገማዎች'
+    },
+    Sidama: {
+      title: 'Nooni Qoola',
+      subtitle: 'Hawassa Katama noo borrote hul',
+      loading: 'Kaarta maalla laaqqa gede...',
+      errorTitle: 'Kaarta maalla laaqqa dandaabokki',
+      emptyMessage: 'Borro maalla ammayyo hegerannooti',
+      addressLabel: 'Borro',
+      phoneLabel: 'Bilbila',
+      emailLabel: 'Imeela',
+      workingHoursLabel: 'Oso Saatto',
+      websiteBtn: 'Websaayiti Hul',
+      plusCode: 'Palaasi Koodi',
+      review: 'yaanni',
+      reviews: 'yaannoha'
+    }
+  };
+
   useEffect(() => {
     // Check for saved language preference
     const savedLanguage = localStorage.getItem('language');
@@ -367,6 +437,7 @@ const Home = () => {
   const t = heroTranslations[language] || heroTranslations.English;
   const st = servicesTranslations[language] || servicesTranslations.English;
   const ct = contactTranslations[language] || contactTranslations.English;
+  const mt = mapTranslations[language] || mapTranslations.English;
 
   return (
     <div className="min-h-screen">
@@ -633,6 +704,7 @@ const Home = () => {
         <InstitutionModal
           institution={selectedInstitution}
           onClose={handleCloseModal}
+          language={language}
         />
       )}
 
@@ -794,17 +866,17 @@ const Home = () => {
       <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
-            Find Us
+            {mt.title}
           </h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Visit our location in Hawassa City
+            {mt.subtitle}
           </p>
 
           {/* Loading State */}
           {mapLoading && (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#2563EB]"></div>
-              <p className="ml-4 text-gray-600 dark:text-gray-400 text-lg">Loading map data...</p>
+              <p className="ml-4 text-gray-600 dark:text-gray-400 text-lg">{mt.loading}</p>
             </div>
           )}
 
@@ -812,7 +884,7 @@ const Home = () => {
           {!mapLoading && mapError && (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-6 py-4 rounded-lg mb-4">
-                <p className="font-semibold">Failed to load map data</p>
+                <p className="font-semibold">{mt.errorTitle}</p>
                 <p className="text-sm mt-1">{mapError}</p>
               </div>
             </div>
@@ -825,7 +897,7 @@ const Home = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">Location information will be available soon</p>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">{mt.emptyMessage}</p>
             </div>
           )}
 
@@ -861,13 +933,13 @@ const Home = () => {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Address</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.addressLabel}</h3>
                         <p className="text-gray-600 dark:text-gray-300">
                           {mapData.contact.address}
                         </p>
                         {mapData.contact.plusCode && (
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Plus Code: {mapData.contact.plusCode}
+                            {mt.plusCode}: {mapData.contact.plusCode}
                           </p>
                         )}
                       </div>
@@ -883,7 +955,7 @@ const Home = () => {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Phone</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.phoneLabel}</h3>
                         <p className="text-gray-600 dark:text-gray-300">
                           {mapData.contact.phoneDisplay || mapData.contact.phone}
                         </p>
@@ -900,7 +972,7 @@ const Home = () => {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.emailLabel}</h3>
                         <p className="text-gray-600 dark:text-gray-300">
                           {mapData.contact.email}
                         </p>
@@ -922,7 +994,7 @@ const Home = () => {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                     </svg>
-                    Visit Website
+                    {mt.websiteBtn}
                   </a>
                 </div>
               )}
@@ -934,7 +1006,7 @@ const Home = () => {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Working Hours
+                    {mt.workingHoursLabel}
                   </h3>
                   
                   {mapData.contact.officeHoursDetailed ? (
@@ -966,7 +1038,7 @@ const Home = () => {
                         </svg>
                       ))}
                     </div>
-                    <span className="text-gray-600 dark:text-gray-400 text-sm">({mapData.map.rating.reviewsCount} {mapData.map.rating.reviewsCount === 1 ? 'review' : 'reviews'})</span>
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">({mapData.map.rating.reviewsCount} {mapData.map.rating.reviewsCount === 1 ? mt.review : mt.reviews})</span>
                   </div>
                 </div>
               )}

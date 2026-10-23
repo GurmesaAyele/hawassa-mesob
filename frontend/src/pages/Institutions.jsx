@@ -5,7 +5,7 @@ import VIPTicket from '../components/VIPTicket';
 import Footer from '../components/Footer';
 import InstitutionCard from '../components/InstitutionCard';
 import InstitutionModal from '../components/InstitutionModal';
-import { API_CONFIG } from '../config/api';
+import { API_CONFIG, getLocaleCode } from '../config/api';
 
 const Institutions = () => {
   const [institutions, setInstitutions] = useState([]);
@@ -13,6 +13,7 @@ const Institutions = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedInstitution, setSelectedInstitution] = useState(null);
+  const [loadingServices, setLoadingServices] = useState(false);
   const [language, setLanguage] = useState('English');
 
   const itemsPerPage = 4;
@@ -42,7 +43,8 @@ const Institutions = () => {
         setLoading(true);
         setError(null);
         
-        const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}`;
+        const locale = getLocaleCode(language);
+        const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`;
         console.log('Fetching institutions from:', url);
         
         const response = await fetch(url);
@@ -76,7 +78,7 @@ const Institutions = () => {
     };
 
     fetchInstitutions();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   // Translations
   const translations = {
@@ -132,8 +134,31 @@ const Institutions = () => {
     }
   };
 
-  const handleCardClick = (institution) => {
-    setSelectedInstitution(institution);
+  const handleCardClick = async (institution) => {
+    setLoadingServices(true);
+    try {
+      // Fetch full institution details with services (Option A - Recommended)
+      const locale = getLocaleCode(language);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}/${institution.id}?locale=${locale}`;
+      console.log('Fetching institution services from:', url);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Institution with services:', data);
+      
+      setSelectedInstitution(data);
+    } catch (err) {
+      console.error('Error fetching institution services:', err);
+      // Fallback to showing institution without services
+      setSelectedInstitution(institution);
+    } finally {
+      setLoadingServices(false);
+    }
   };
 
   const handleCloseModal = () => {

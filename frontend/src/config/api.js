@@ -31,6 +31,16 @@ export const API_CONFIG = {
   }
 };
 
+// Language to locale code mapping
+export const getLocaleCode = (language) => {
+  const localeMap = {
+    'English': 'en',
+    'Amharic': 'am',
+    'Sidama': 'sid'
+  };
+  return localeMap[language] || 'en';
+};
+
 // Helper function to build full URL
 export const buildUrl = (endpoint) => {
   // If endpoint is already a full URL, return as is
@@ -40,7 +50,7 @@ export const buildUrl = (endpoint) => {
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 
-// Helper function for API calls with error handling
+// Helper function for API calls with error handling and locale support
 export const apiCall = async (endpoint, options = {}) => {
   try {
     const url = buildUrl(endpoint);
