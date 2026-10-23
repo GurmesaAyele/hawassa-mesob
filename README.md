@@ -683,10 +683,345 @@ Returns authentic coordinates, office operating hours, address, and the verified
 
 ---
 
-### 4. News & Announcements (`/api/news` & `/api/announcements`)
+### 4. 📰 News API Client Integration Guide
 
-- `GET /api/news`: Latest public service bulletins, center updates, and press releases.
-- `GET /api/announcements`: High-priority operational alerts and extended hours notifications.
+```http
+GET http://10.20.254.64:5000/api/news
+```
+
+The News API provides verified press releases, inaugurations, operational milestones, and public service updates for Hawassa City MESOB Center with **trilingual localization** (`en`, `am`, `sid`).
+
+#### 1. Endpoints & Query Parameters
+
+| Method | Endpoint | Query Parameters | Description |
+| :---: | :--- | :--- | :--- |
+| `GET` | `/api/news` | `?locale=en\|am\|sid`<br>`?category=Public+Services`<br>`?search=Fayda`<br>`?limit=6`<br>`?raw=true` | Returns articles with localized strings (`locale`) or raw trilingual objects (`raw=true`). Search filter matches across all 3 languages. |
+| `GET` | `/api/news/:id` | `?locale=en\|am\|sid&raw=true` | Fetch a single news article by ID. |
+| `POST` | `/api/news` | — | Publish a new article (accepts plain strings or `{ en, am, sid }` objects). |
+| `DELETE` | `/api/news/:id` | — | Delete an article by ID. |
+
+#### 2. JSON Response Example (`GET /api/news?locale=am&limit=1`)
+
+```json
+[
+  {
+    "id": "news-1",
+    "title": "የሀዋሳ ከተማ መሶብ ማዕከል የተዋሃዱ የዲጂታል አገልግሎት መስኮቶችን አስመረቀ",
+    "content": "አዲሱ የሀዋሳ ከተማ መሶብ ማዕከል ከ13 በላይ ዋና ዋና የፌዴራል እና የክልል ተቋማትን በአንድ ጣራ ሥር አስተባብሯል። ዜጎች አሁን የፋይዳ ዲጂታል መታወቂያ፣ የፓስፖርት እድሳት፣ የመንጃ ፈቃድ፣ የመሬት ማረጋገጫ፣ የግብር ክሊራንስ እና የሲቪል ምዝገባ አገልግሎቶችን በራስ-ሰር የሰልፍ አስተዳደር ሥርዓት ማግኘት ይችላሉ።",
+    "category": "የህዝብ አገልግሎቶች",
+    "author": "የመሶብ ኮሙዩኒኬሽን ጉዳዮች መምሪያ",
+    "date": "2024-05-12T09:00:00.000Z",
+    "image": "https://img.youtube.com/vi/wjFu-pIMoXw/maxresdefault.jpg",
+    "translations": {
+      "title": {
+        "en": "Hawassa MESOB Center Launches Unified Digital Service Windows",
+        "am": "የሀዋሳ ከተማ መሶብ ማዕከል የተዋሃዱ የዲጂታል አገልግሎት መስኮቶችን አስመረቀ",
+        "sid": "Hawaasa Quchumi Mesob Kaa'lote Xoncho Mittimmaame Digitaalu Owaante Fanfi"
+      },
+      "category": {
+        "en": "Public Services",
+        "am": "የህዝብ አገልግሎቶች",
+        "sid": "Dagate Owaante"
+      }
+    }
+  }
+]
+```
+
+#### 3. Ready-to-Use React Hook (`useNews.js`)
+
+```javascript
+import { useState, useEffect, useCallback } from 'react';
+
+const API_BASE = 'http://10.20.254.64:5000';
+
+export function useNews(locale = 'en', category = '') {
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchNews = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ locale });
+      if (category) params.append('category', category);
+
+      const res = await fetch(`${API_BASE}/api/news?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+      const data = await res.json();
+      setNews(data);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch news articles.');
+    } finally {
+      setLoading(false);
+    }
+  }, [locale, category]);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
+
+  return { news, loading, error, refresh: fetchNews };
+}
+```
+
+#### 4. Frontend Component (`NewsSection.jsx`)
+
+```jsx
+import React, { useState } from 'react';
+import { useNews } from './useNews';
+
+export default function NewsSection({ locale = 'en' }) {
+  const [activeCategory, setActiveCategory] = useState('');
+  const { news, loading, error, refresh } = useNews(locale, activeCategory);
+
+  const categories = [
+    { key: '', label: 'All News' },
+    { key: 'Public Services', label: 'Public Services' },
+    { key: 'Governance', label: 'Governance' },
+    { key: 'Digital ID', label: 'Digital ID' },
+    { key: 'Utilities', label: 'Utilities' },
+    { key: 'Immigration', label: 'Immigration' },
+  ];
+
+  return (
+    <section className="bg-slate-900 py-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-4xl font-bold text-center text-white mb-4">Latest Center News</h2>
+        <p className="text-center text-slate-400 mb-8 max-w-2xl mx-auto">
+          Updates, inaugurations, and operational notices from Hawassa MESOB Center.
+        </p>
+
+        {/* Category Filter Tabs */}
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
+          {categories.map((cat) => (
+            <button
+              key={cat.key}
+              onClick={() => setActiveCategory(cat.key)}
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                activeCategory === cat.key
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {loading && <div className="text-center py-12 text-slate-400">Loading articles...</div>}
+        {error && (
+          <div className="text-center py-8 text-red-400">
+            {error} <button onClick={refresh} className="underline ml-2">Retry</button>
+          </div>
+        )}
+
+        {/* Responsive 3-Column News Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {news.map((item) => (
+            <article
+              key={item.id}
+              className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-slate-600 transition-all duration-300 flex flex-col"
+            >
+              {item.image && (
+                <div className="h-48 overflow-hidden bg-slate-950">
+                  <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
+                    <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 font-medium rounded-md border border-blue-500/20">
+                      {item.category}
+                    </span>
+                    <span>{new Date(item.date).toLocaleDateString()}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-3 line-clamp-2">{item.title}</h3>
+                  <p className="text-slate-300 text-sm leading-relaxed line-clamp-3 mb-4">{item.content}</p>
+                </div>
+                <div className="text-xs text-slate-400 border-t border-slate-700/60 pt-3">
+                  By <span className="text-slate-200 font-medium">{item.author}</span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### 5. 📢 Announcements API Client Integration Guide
+
+```http
+GET http://10.20.254.64:5000/api/announcements
+```
+
+The Announcements API returns urgent operational alerts, extended hours notices, service schedule adjustments, and priority desk notifications with **trilingual localization** (`en`, `am`, `sid`).
+
+#### 1. Endpoints & Query Parameters
+
+| Method | Endpoint | Query Parameters | Description |
+| :---: | :--- | :--- | :--- |
+| `GET` | `/api/announcements` | `?locale=en\|am\|sid`<br>`?priority=high\|medium\|low`<br>`?type=update\|alert\|event\|general`<br>`?search=...`<br>`?limit=6`<br>`?raw=true` | Returns announcements localized into the selected language. Includes color-coded priority and category types. |
+| `GET` | `/api/announcements/:id` | `?locale=en\|am\|sid&raw=true` | Fetch a single announcement by ID. |
+| `POST` | `/api/announcements` | — | Publish an announcement (accepts strings or `{ en, am, sid }` objects). |
+| `DELETE` | `/api/announcements/:id` | — | Delete an announcement by ID. |
+
+#### 2. JSON Response Example (`GET /api/announcements?locale=sid&limit=1`)
+
+```json
+[
+  {
+    "id": "ann-1",
+    "title": "Daganna Wolooma (Fayda) Borreessate Loosu Yanna Dheerinsate Egensiishsha",
+    "content": "Loosaasine dagoomanna rosaano kaa'late yitanno heddonni, Hawaasa Mesob xonchi giddo noo Fayda woloomu borreessiishshi qara loosu barubba aana hawado qorichu nookkiinni soodo 2:00 sa'aatinni haaro hawado 12:00 geeshsha owaante aanno.",
+    "priority": "high",
+    "type": "update",
+    "date": "2024-05-14T07:30:00.000Z",
+    "translations": {
+      "title": {
+        "en": "Extended Operating Hours for National ID (Fayda) Registration",
+        "am": "ለብሔራዊ መታወቂያ (ፋይዳ) ምዝገባ የተራዘመ የስራ ሰዓት ማስታወቂያ",
+        "sid": "Daganna Wolooma (Fayda) Borreessate Loosu Yanna Dheerinsate Egensiishsha"
+      }
+    }
+  }
+]
+```
+
+#### 3. Ready-to-Use React Hook (`useAnnouncements.js`)
+
+```javascript
+import { useState, useEffect, useCallback } from 'react';
+
+const API_BASE = 'http://10.20.254.64:5000';
+
+export function useAnnouncements(locale = 'en', priority = '') {
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchAnnouncements = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ locale });
+      if (priority) params.append('priority', priority);
+
+      const res = await fetch(`${API_BASE}/api/announcements?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+      const data = await res.json();
+      setAnnouncements(data);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch announcements.');
+    } finally {
+      setLoading(false);
+    }
+  }, [locale, priority]);
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [fetchAnnouncements]);
+
+  return { announcements, loading, error, refresh: fetchAnnouncements };
+}
+```
+
+#### 4. Frontend Component (`AnnouncementsSection.jsx`)
+
+```jsx
+import React, { useState } from 'react';
+import { useAnnouncements } from './useAnnouncements';
+
+export default function AnnouncementsSection({ locale = 'en' }) {
+  const [selectedPriority, setSelectedPriority] = useState('');
+  const { announcements, loading, error, refresh } = useAnnouncements(locale, selectedPriority);
+
+  // Color-coded priority badges
+  const priorityStyles = {
+    high: 'bg-red-500/10 text-red-400 border border-red-500/30',
+    medium: 'bg-amber-500/10 text-amber-400 border border-amber-500/30',
+    low: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30',
+  };
+
+  // Category/Type badge styling
+  const typeLabels = {
+    update: 'Service Update',
+    alert: 'System Alert',
+    event: 'Public Event',
+    general: 'General Notice',
+  };
+
+  return (
+    <section className="bg-slate-950 py-20 px-6">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-white">Center Announcements</h2>
+            <p className="text-slate-400 text-sm mt-1">
+              Live operational notices, schedule updates, and service guidelines.
+            </p>
+          </div>
+
+          {/* Priority Filter Buttons */}
+          <div className="flex gap-2">
+            {['', 'high', 'medium', 'low'].map((p) => (
+              <button
+                key={p}
+                onClick={() => setSelectedPriority(p)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${
+                  selectedPriority === p
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                }`}
+              >
+                {p || 'All'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading && <div className="text-center py-12 text-slate-400">Loading notices...</div>}
+        {error && (
+          <div className="text-center py-8 text-red-400">
+            {error} <button onClick={refresh} className="underline ml-2">Retry</button>
+          </div>
+        )}
+
+        {/* Announcement Cards Stack */}
+        <div className="space-y-4">
+          {announcements.map((item) => (
+            <div
+              key={item.id}
+              className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-6 transition-all duration-200"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${priorityStyles[item.priority] || priorityStyles.medium}`}>
+                    {item.priority} Priority
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 border border-slate-700">
+                    {typeLabels[item.type] || item.type}
+                  </span>
+                </div>
+                <time className="text-xs text-slate-400">{new Date(item.date).toLocaleDateString()}</time>
+              </div>
+
+              <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+              <p className="text-slate-300 text-sm leading-relaxed">{item.content}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
 
 ---
 
