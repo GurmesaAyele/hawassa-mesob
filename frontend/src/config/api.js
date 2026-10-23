@@ -26,7 +26,8 @@ export const API_CONFIG = {
     SERVICES: '/api/services',
     CHATBOT: 'http://10.20.254.64:5000/api/chat', // Your existing chatbot API
     VIP_TICKET: '/api/vip-ticket',
-    CONTACT: '/api/contact'
+    CONTACT: '/api/contact',
+    MAP: '/api/map' // Map data endpoint
   }
 };
 

@@ -49,6 +49,11 @@ const Home = () => {
   const [selectedInstitution, setSelectedInstitution] = useState(null);
   const itemsPerPage = 8; // 4 cards per row × 2 rows
 
+  // Map state
+  const [mapData, setMapData] = useState(null);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState(null);
+
   // Array of mesob images for slideshow
   const mesobImages = [
     mesob1, mesob2, mesob3, mesob4, mesob5, mesob6, mesob7, mesob8, mesob9,
@@ -68,6 +73,53 @@ const Home = () => {
   useEffect(() => {
     fetchInstitutions();
   }, []);
+
+  // Fetch map data from API
+  useEffect(() => {
+    fetchMapData();
+  }, []);
+
+  const fetchMapData = async () => {
+    setMapLoading(true);
+    setMapError(null);
+
+    try {
+      const fullUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MAP}`;
+      console.log('=== MAP API CALL ===');
+      console.log('Fetching map data from:', fullUrl);
+      
+      const data = await apiCall(API_CONFIG.ENDPOINTS.MAP);
+      
+      console.log('Map API raw response:', data);
+      console.log('Map data type:', typeof data);
+      console.log('Map data keys:', data ? Object.keys(data) : 'null');
+      
+      // Handle different response structures
+      let processedData = data;
+      
+      // Check if data is wrapped in a "data" property
+      if (data && data.data) {
+        processedData = data.data;
+        console.log('Using data.data:', processedData);
+      }
+      
+      // Check if it's an array (take first item)
+      if (Array.isArray(processedData) && processedData.length > 0) {
+        processedData = processedData[0];
+        console.log('Using first array item:', processedData);
+      }
+      
+      console.log('Final processed map data:', processedData);
+      
+      setMapData(processedData);
+      setMapLoading(false);
+    } catch (error) {
+      console.error('Error fetching map data:', error);
+      console.error('Error details:', error.message, error.stack);
+      setMapError('Failed to load map data. Please try again later.');
+      setMapLoading(false);
+    }
+  };
 
   const fetchInstitutions = async () => {
     setInstitutionsLoading(true);
@@ -735,6 +787,179 @@ const Home = () => {
               </button>
             </form>
           </div>
+        </div>
+      </section>
+
+      {/* Map Section */}
+      <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
+            Find Us
+          </h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
+            Visit our location in Hawassa City
+          </p>
+
+          {/* Loading State */}
+          {mapLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#2563EB]"></div>
+            </div>
+          )}
+
+          {/* Map Content - Show if data exists OR if not loading */}
+          {!mapLoading && (
+            <div className="bg-gray-50 dark:bg-[#1F2A39] rounded-2xl p-8 border border-gray-200 dark:border-[#2D3748] shadow-lg">
+              {/* Error Message (if any) */}
+              {mapError && (
+                <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-4 mb-6 text-center">
+                  <p className="text-yellow-600 dark:text-yellow-400 text-sm mb-2">{mapError}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Showing default location</p>
+                </div>
+              )}
+
+              {/* Map Embed */}
+              <div className="w-full h-[500px] rounded-xl overflow-hidden mb-6 bg-gray-200 dark:bg-gray-700">
+                {mapData?.map?.embedUrl ? (
+                  <iframe
+                    src={mapData.map.embedUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Hawassa Mesob Location"
+                  ></iframe>
+                ) : (
+                  // Default Hawassa City map
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63220.45887947!2d38.4458!3d7.0622!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x17b14e4c5c7c8c47%3A0x7c6f6d6f6d6f6d6f!2sHawassa%2C%20Ethiopia!5e0!3m2!1sen!2sus!4v1635000000000!5m2!1sen!2sus"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Hawassa Mesob Location"
+                  ></iframe>
+                )}
+              </div>
+
+              {/* Location Details */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                {/* Address */}
+                <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                  <div className="flex-shrink-0 w-12 h-12 bg-[#2563EB] rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Address</h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {mapData?.contact?.address || 'Hawassa City, SNNPR, Ethiopia'}
+                    </p>
+                    {mapData?.contact?.plusCode && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Plus Code: {mapData.contact.plusCode}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                  <div className="flex-shrink-0 w-12 h-12 bg-[#10B981] rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Phone</h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {mapData?.contact?.phoneDisplay || mapData?.contact?.phone || '+251-XX-XXX-XXXX'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                  <div className="flex-shrink-0 w-12 h-12 bg-[#F59E0B] rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {mapData?.contact?.email || 'info@hawassamesob.gov.et'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Website Link */}
+              {mapData?.contact?.website && (
+                <div className="mb-6">
+                  <a
+                    href={mapData.contact.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#2563EB] hover:bg-[#1e3470] text-white rounded-xl transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    Visit Website
+                  </a>
+                </div>
+              )}
+
+              {/* Working Hours */}
+              <div className="p-6 bg-white dark:bg-[#0F1419] rounded-xl">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Working Hours
+                </h3>
+                
+                {mapData?.contact?.officeHoursDetailed ? (
+                  <div className="space-y-2">
+                    {mapData.contact.officeHoursDetailed.map((schedule, index) => (
+                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">{schedule.days}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{schedule.hours}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {mapData?.contact?.operatingHours || 'Monday - Friday: 8:00 AM - 5:00 PM'}
+                  </p>
+                )}
+              </div>
+
+              {/* Map Rating */}
+              {mapData?.map?.rating && (
+                <div className="mt-6 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-gray-900 dark:text-white">{mapData.map.rating.score}</span>
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <svg key={i} className={`w-5 h-5 ${i < mapData.map.rating.score ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">({mapData.map.rating.reviewsCount} {mapData.map.rating.reviewsCount === 1 ? 'review' : 'reviews'})</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
