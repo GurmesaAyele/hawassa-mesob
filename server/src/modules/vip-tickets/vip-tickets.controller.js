@@ -151,12 +151,12 @@ function formatVipApplication(ticket, fallbackServices = []) {
     isActive: s.isActive,
     provider: s.provider
       ? {
-          id: s.provider.id,
-          code: s.provider.code,
-          name: s.provider.name,
-          icon: s.provider.icon,
-          floorRoomNumber: s.provider.floorRoomNumber,
-        }
+        id: s.provider.id,
+        code: s.provider.code,
+        name: s.provider.name,
+        icon: s.provider.icon,
+        floorRoomNumber: s.provider.floorRoomNumber,
+      }
       : null,
   }));
 
@@ -169,44 +169,44 @@ function formatVipApplication(ticket, fallbackServices = []) {
   // Structure appointment details
   const appointment = ticket.slotDate
     ? {
-        isAssigned: true,
-        status: "ASSIGNED",
-        slotDate: ticket.slotDate,
-        slotTime: ticket.slotTime || null,
-        message: "Appointment slot confirmed. Please arrive 10 minutes prior to your scheduled time.",
-      }
+      isAssigned: true,
+      status: "ASSIGNED",
+      slotDate: ticket.slotDate,
+      slotTime: ticket.slotTime || null,
+      message: "Appointment slot confirmed. Please arrive 10 minutes prior to your scheduled time.",
+    }
     : {
-        isAssigned: false,
-        status: "UNASSIGNED",
-        slotDate: null,
-        slotTime: null,
-        message: "Appointment has not been scheduled yet. Your application is currently under review.",
-      };
+      isAssigned: false,
+      status: "UNASSIGNED",
+      slotDate: null,
+      slotTime: null,
+      message: "Appointment has not been scheduled yet. Your application is currently under review.",
+    };
 
   // Structure walk-in queue details
   // An application reference alone is NOT a confirmed queue position.
   // Physical check-in at the center is required to receive a queue position and queue number.
   const queue = ticket.queueNumber
     ? {
-        isQueued: true,
-        queueNumber: ticket.queueNumber,
-        queueDisplay: `VIP-${String(ticket.queueNumber).padStart(3, "0")}`,
-        queueDate: ticket.queueDate,
-        checkedInAt: ticket.checkedInAt,
-        servedAt: ticket.servedAt || null,
-        completedAt: ticket.completedAt || null,
-        message: "Customer has physically checked in and is active in the priority walk-in queue.",
-      }
+      isQueued: true,
+      queueNumber: ticket.queueNumber,
+      queueDisplay: `VIP-${String(ticket.queueNumber).padStart(3, "0")}`,
+      queueDate: ticket.queueDate,
+      checkedInAt: ticket.checkedInAt,
+      servedAt: ticket.servedAt || null,
+      completedAt: ticket.completedAt || null,
+      message: "Customer has physically checked in and is active in the priority walk-in queue.",
+    }
     : {
-        isQueued: false,
-        queueNumber: null,
-        queueDisplay: null,
-        queueDate: null,
-        checkedInAt: null,
-        servedAt: null,
-        completedAt: null,
-        message: "Application reference only. Not yet in queue. Physical check-in at Hawassa MESOB Center is required to join the priority walk-in queue.",
-      };
+      isQueued: false,
+      queueNumber: null,
+      queueDisplay: null,
+      queueDate: null,
+      checkedInAt: null,
+      servedAt: null,
+      completedAt: null,
+      message: "Application reference only. Not yet in queue. Physical check-in at Hawassa MESOB Center is required to join the priority walk-in queue.",
+    };
 
   // Parse capacity reservation status if held in PENDING status
   let capacityReservation = null;
@@ -264,16 +264,16 @@ function getTicketQueryInclude() {
     },
     ...(prisma.vip_ticket_services
       ? {
-          ticket_services: {
-            include: {
-              service: {
-                include: {
-                  provider: true,
-                },
+        ticket_services: {
+          include: {
+            service: {
+              include: {
+                provider: true,
               },
             },
           },
-        }
+        },
+      }
       : {}),
   };
 }
@@ -407,6 +407,61 @@ export async function submitVipApplication(req, res) {
           error: `Service '${serviceTitle}' (${service.id}) is not eligible for VIP service.`,
         });
       }
+    }
+
+    // Check for an existing active application from this phone number.
+
+    const phoneSuffix = normalizedPhone.slice(-9);
+
+    const activeApplications = await prisma.vip_tickets.findMany({
+      where: {
+        status: { in: ["PENDING", "CONFIRMED"] },
+        citizenPhone: {
+          endsWith: phoneSuffix,
+        },
+      },
+      include: getTicketQueryInclude(),
+    });
+
+
+    const requestedServiceIds = [...uniqueServiceIds].sort();
+
+    const duplicate = activeApplications.find((application) => {
+      if (
+        !arePhoneNumbersMatching(
+          application.citizenPhone,
+          normalizedPhone
+        )
+      ) {
+        return false;
+      }
+
+      const existingServiceIds = [
+        ...new Set([
+          ...(application.ticket_services || []).map(
+            (item) => item.serviceId
+          ),
+          ...(application.serviceId ? [application.serviceId] : []),
+        ]),
+      ].sort();
+
+      return (
+        existingServiceIds.length === requestedServiceIds.length &&
+        existingServiceIds.every(
+          (id, index) => id === requestedServiceIds[index]
+        )
+      );
+    });
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        error: "An active VIP application already exists for this phone number and selected services.",
+        data: {
+          reference: duplicate.ticketCode,
+          status: duplicate.status,
+        },
+      });
     }
 
     // ─── 4. Authoritative Fee Calculation (Flat 1000 ETB) ───────────────────
