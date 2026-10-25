@@ -118,6 +118,7 @@ model vip_tickets {
   updatedAt       DateTime
   services        Service?              @relation(fields: [serviceId], references: [id])
   ticket_services vip_ticket_services[]
+  payments        vip_payments[]
 
   @@index([slotDate, slotTime])
   @@index([ticketCode])
@@ -138,6 +139,41 @@ model vip_ticket_services {
   @@map("vip_ticket_services")
 }
 
+model vip_payments {
+  id                String        @id
+  ticketId          String
+  provider          String        @default("CHAPA")
+  merchantReference String        @unique
+  providerReference String?       @unique
+  idempotencyKey    String        @unique
+  amount            Int           /// Integer minor units (e.g. 100,000 cents = 1,000 ETB)
+  currency          String        @default("ETB")
+  status            PaymentStatus @default(PENDING)
+  checkoutUrl       String?
+  paymentMethod     String?
+  errorMessage      String?
+  metadata          Json?
+  verifiedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime
+
+  ticket            vip_tickets   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([merchantReference])
+  @@index([providerReference])
+  @@index([status])
+  @@map("vip_payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
 enum TicketStatus {
   PENDING
   CONFIRMED
@@ -152,3 +188,4 @@ enum UserRole {
   OPERATOR
   SUPER_ADMIN
 }
+

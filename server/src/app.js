@@ -9,6 +9,7 @@ import mapRoutes, { contactRouter } from "./modules/map/map.routes.js";
 import newsRoutes from "./modules/news/news.routes.js";
 import announcementRoutes from "./modules/announcements/announcements.routes.js";
 import vipTicketRoutes from "./modules/vip-tickets/vip-tickets.routes.js";
+import vipPaymentRoutes from "./modules/vip-payments/vip-payments.routes.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generalRateLimiter } from "./middleware/rate-limiter.js";
@@ -57,13 +58,20 @@ const corsOptions = {
     return callback(new Error(`Origin '${origin}' not allowed by CORS policy`), false);
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-chapa-signature", "chapa-signature"],
   credentials: true,
   maxAge: 86400,
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: "100kb" }));
+app.use(
+  express.json({
+    limit: "100kb",
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // ─── Static Assets (Logos & Uploads) ─────────────────────────
 const publicDir = path.join(__dirname, "../public");
@@ -88,6 +96,8 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/institutions", institutionRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/vip-tickets", vipTicketRoutes);
+app.use("/api/vip-payments", vipPaymentRoutes);
+
 app.use("/api/videos", videoRoutes);
 app.use("/api/map", mapRoutes);
 app.use("/api/location", mapRoutes);
