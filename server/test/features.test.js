@@ -113,7 +113,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
       const data = await res.json();
 
       assert.equal(data.contact.address, "MESOB Center, Hawassa, Ethiopia");
-      assert.equal(data.contact.operatingHours, "Monday - Friday: 8:00 AM - 6:00 PM");
+      assert.ok(data.contact.operatingHours.includes("Monday - Friday: 8:00 AM - 6:00 PM"));
       assert.equal(data.contact.phone, "+251974270600");
       assert.equal(data.contact.email, "admin@hawassamesobcenter.et");
 

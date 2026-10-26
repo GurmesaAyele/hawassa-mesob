@@ -8,12 +8,7 @@ import videoRoutes from "./modules/videos/videos.routes.js";
 import mapRoutes, { contactRouter } from "./modules/map/map.routes.js";
 import newsRoutes from "./modules/news/news.routes.js";
 import announcementRoutes from "./modules/announcements/announcements.routes.js";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { generalRateLimiter } from "./middleware/rate-limiter.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -64,12 +59,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "100kb" }));
 
-// ─── Static Assets (Logos & Uploads) ─────────────────────────
-const publicDir = path.join(__dirname, "../public");
-const logosDir = path.join(publicDir, "logos");
-app.use("/logos", express.static(logosDir));
-app.use(express.static(logosDir));
-app.use(express.static(publicDir));
+
 
 // ─── Global API Rate Limiter ──────────────────────────────────
 app.use("/api", generalRateLimiter);
