@@ -86,6 +86,14 @@ describe("2. Input Validation & Body Sanitization (POST /api/chat)", () => {
       lowerReply.includes("cannot") || lowerReply.includes("can't") || lowerReply.includes("not") || lowerReply.includes("no"),
       "Must clarify that a 1-year-old cannot register"
     );
+    assert.ok(
+      lowerReply.includes("anything else") || lowerReply.includes("what else") || lowerReply.includes("know"),
+      "Must ask what else the client wants to know"
+    );
+    assert.ok(
+      !lowerReply.includes("**steps / procedure**"),
+      "Must not dump procedural steps on a short inquiry"
+    );
   });
 
   test("Empty message string returns 400 Bad Request", async () => {
