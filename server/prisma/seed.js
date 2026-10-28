@@ -64,6 +64,25 @@ async function main() {
           },
           isActive: true,
         },
+        {
+          category: "fayda_age_eligibility",
+          question: {
+            en: "Can a 1-year-old child register for a Fayda ID? What is the minimum age?",
+            am: "የ 1 ዓመት ህፃን ለፋይዳ መታወቂያ መመዝገብ ይችላል? ዝቅተኛው እድሜ ስንት ነው?",
+            sid: "Mitte diru qaaqqi Fayda woloomara borreessama dandaanno? Xaphihu diro me'eho?",
+          },
+          answer: {
+            en: "**Fayda ID Minimum Age & Child Eligibility**\n\nNo, a 1-year-old child cannot register for a Fayda ID, as the minimum age for child enrollment is generally 5 years old.\n\n**Key Age Guidelines for Fayda ID:**\n1. **Minimum Age:** Children are typically eligible for enrollment starting at 5 years of age (often integrated with school registration requirements).\n2. **Infants and Toddlers:** Infants and 1-year-olds do not meet the standard age eligibility for individual biometric enrollment.\n3. **Child Enrollment (Ages 5–17):** Minors can register in-person at Hawassa MESOB Center accompanied by a parent or legal guardian with the child's official Birth Certificate and the parent's valid Kebele ID or Passport.\n4. **Fee:** 100% Free of charge (0 ETB)\n5. **Processing Time:** 8–10 minutes.",
+            am: "**የፋይዳ ዲጂታል መታወቂያ ዝቅተኛ የእድሜ ገደብ እና የህፃናት ምዝገባ**\n\nአይ፣ የ1 ዓመት ህፃን ለፋይዳ መታወቂያ መመዝገብ አይችልም፤ ለህፃናት ምዝገባ ዝቅተኛው የእድሜ ገደብ በአጠቃላይ 5 ዓመት ነው።\n\n**ዋና ዋና የእድሜ መመሪያዎች፦**\n1. **ዝቅተኛ ዕድሜ፦** ህፃናት ከ5 ዓመት እድሜ ጀምሮ ለመመዝገብ ብቁ ናቸው (ብዙውን ጊዜ ከትምህርት ቤት ምዝገባ መስፈርቶች ጋር የተሳሰረ ነው)።\n2. **ጨቅላ ህፃናት እና ታዳጊዎች፦** ጨቅላ ህፃናት እና የ1 ዓመት ልጆች ለግል ባዮሜትሪክስ ምዝገባ መደበኛውን የእድሜ መስፈርት አያሟሉም።\n3. **የህፃናት (5+ ዓመት) ምዝገባ፦** እድሜያቸው 5 ዓመት እና ከዚያ በላይ የሆኑ ህፃናት በሀዋሳ መሶብ ማዕከል ከወላጅ ወይም ህጋዊ አሳዳጊ ጋር በመቅረብ፣ የልደት ሰርተፍኬት እና የወላጅ መታወቂያ ይዘው መመዝገብ ይችላሉ።\n4. **ክፍያ፦** ሙሉ በሙሉ ነፃ (0 ብር)\n5. **የሚፈጅበት ጊዜ፦** ከ 8–10 ደቂቃ።",
+            sid: "**Fayda Wolooma Xaphihu Diro fi Qaaqqulle Borreessiro**\n\nDiiro, mitte diru qaaqqi Fayda woloomara borreessama didandaanno; qaaqqullu borreessirora xaphihu diro roore woyte 5 dirooti.\n\n**Qara Diri Biddishsha Fayda Woloomara:**\n1. **Xaphihu Diro:** Qaaqqulle 5 diru kaiminni borreessamate ikkadooti (roore woyte rosu minira borreessamate hasiisanno ledo xaadooshshe afi'rino).\n2. **Muli Ilantinori fi Xoncho Qaaqqulle:** Muli ilantinori fi mitte diru qaaqqulle biometrikete borreessirora hasiisanno diri kaima di-wonshitanno.\n3. **5 Dirinna Sayinori:** 5 dirinna sayino qaaqqulle annu woy amate ledo dagganno woyte, ilote borro fi amatu/annu wolooma ledo Hawaasa MESOOBE Bayicho borreessisi'ra dandiitanno.\n4. **Waaga:** Baatooshshu nookkiha (100% Free)\n5. **Yanna:** 8–10 daqiiqa.",
+          },
+          quickButtonLabel: {
+            en: "Fayda Minimum Age",
+            am: "የፋይዳ ዝቅተኛ እድሜ",
+            sid: "Fayda Diri Kaima",
+          },
+          isActive: true,
+        },
       ],
     });
     console.log("✅ Seeded default Chatbot FAQs.");

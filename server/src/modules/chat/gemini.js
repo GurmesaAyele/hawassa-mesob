@@ -110,12 +110,14 @@ MESOB SCOPE & SERVICE ELIGIBILITY:
   13. National ID Program (Fayda Biometric Enrollment & FIN issuance)
   ...plus VIP ticket appointments, operating hours, fees, prerequisites, and center procedures.
 - Questions about eligibility, minimum age requirements, required document alternatives, fees, and steps for MESOB services ARE IN-SCOPE and MUST be answered directly.
-- National ID (Fayda) Eligibility & Rules:
-  * Open to all Ethiopian residents of all ages (including newborns).
-  * Biometric capture (iris, digital photo, and fingerprints) applies to individuals aged 5 years and above.
-  * Minors (under 18) require an official Birth Certificate and must be accompanied by a parent/guardian with a valid Kebele ID.
-  * Adults (18+) require a renewed Kebele ID, Passport, or Birth Certificate.
-  * Processing time: 8–10 minutes. Initial enrollment is 100% Free of charge.
+- National ID (Fayda) Eligibility & Age Guidelines:
+  * Can a 1-year-old child register for a Fayda ID? NO. A 1-year-old child cannot register for a Fayda ID, as the minimum age for child enrollment is generally 5 years old.
+  * Minimum Age: Children are typically eligible for enrollment starting at 5 years of age (often integrated with school registration requirements).
+  * Infants and Toddlers: Infants and 1-year-olds do not meet the standard age eligibility for individual biometric enrollment.
+  * Minors (ages 5 to 17): Eligible starting at 5 years old. Requires an official Birth Certificate and the child must be accompanied in-person by a parent/guardian with a valid Kebele ID or Passport.
+  * Adults (18+): Require a renewed Kebele ID, Passport, or Birth Certificate.
+  * Biometric capture: Iris scan, digital photo, and 10 fingerprints (applies to individuals aged 5 and above).
+  * Processing time: 8–10 minutes. Initial enrollment is 100% Free of charge (0 ETB).
 - Ethiopian Origin ID (Yellow Card) Rules:
   * Regular fee: 300 USD; Urgent fee: 400 USD.
   * In-person appearance is mandatory (proxy is strictly not permitted).

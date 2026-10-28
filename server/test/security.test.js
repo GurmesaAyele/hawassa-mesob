@@ -65,6 +65,29 @@ describe("2. Input Validation & Body Sanitization (POST /api/chat)", () => {
     assert.ok(data.reply);
   });
 
+  test("Fayda age inquiry clarifies 1-year-old cannot register and minimum age is 5", async () => {
+    const res = await fetch(`${baseUrl}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Can a 1-year-old child register for a Fayda ID? What is the minimum age?",
+        locale: "en",
+      }),
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.ok(data.reply);
+    const lowerReply = data.reply.toLowerCase();
+    assert.ok(
+      lowerReply.includes("5") || lowerReply.includes("five"),
+      "Must state minimum age is 5 years"
+    );
+    assert.ok(
+      lowerReply.includes("cannot") || lowerReply.includes("can't") || lowerReply.includes("not") || lowerReply.includes("no"),
+      "Must clarify that a 1-year-old cannot register"
+    );
+  });
+
   test("Empty message string returns 400 Bad Request", async () => {
     const res = await fetch(`${baseUrl}/api/chat`, {
       method: "POST",
