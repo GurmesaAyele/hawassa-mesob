@@ -185,6 +185,201 @@ The server fully supports `multipart/form-data` through Cloudinary:
 
 ---
 
+### Step 4: Secret Login Implementation (Discreet Admin Access)
+
+Hawassa MESOB Center is a public portal for citizens. To keep public navigation clean and avoid attracting unauthorized attention, the administrator login portal should **not** have a prominent button on the public navigation bar.
+
+The frontend developer should implement a **stealth / secret trigger** that brings up an `AdminLoginModal` dialog.
+
+#### 1. Recommended Secret Triggers
+
+Choose one or combine all three:
+1. **Secret Keyboard Shortcut (Fastest & Most Secure)**:
+   - Pressing **`Ctrl + Shift + A`** (or `Alt + Shift + L`) anywhere on the website opens the Login Dialog.
+2. **Hidden Footer Trigger (Easter Egg)**:
+   - Clicking the footer copyright text `© 2026 Hawassa City MESOB Center` **3 times quickly** opens the Login Dialog.
+   - Or an inconspicuous dot/icon at the bottom of the footer.
+3. **Fallback in the Error Callout**:
+   - If an unauthenticated user navigates directly to `http://localhost:5173/admin`, display a discreet **"Sign in as Administrator"** button inside the error callout.
+
+---
+
+#### 2. Ready-to-Use Component: `frontend/src/components/admin/AdminLoginModal.jsx`
+
+Create `frontend/src/components/admin/AdminLoginModal.jsx`:
+
+```jsx
+import { useState } from "react";
+import { adminApi } from "../../services/adminApi";
+
+export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  if (!isOpen) return null;
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await adminApi.login({ email, password });
+      if (response?.token) {
+        localStorage.setItem("mesob_admin_token", response.token);
+      }
+      if (onLoginSuccess) {
+        onLoginSuccess(response.user);
+      }
+      onClose();
+    } catch (err) {
+      setError(err.message || "Invalid credentials. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <div className="w-full max-w-md rounded-xl border border-stone-200 bg-white p-6 shadow-2xl">
+        <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Staff Portal</span>
+            <h2 className="text-xl font-bold text-stone-900">Administrator Sign In</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-stone-400 hover:text-stone-700 text-lg font-bold"
+          >
+            ✕
+          </button>
+        </div>
+
+        {error && (
+          <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 border-l-4 border-red-600">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1">
+              Email Address
+            </label>
+            <input
+              type="email"
+              required
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. manager@mesob.hawassa.gov.et"
+              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:border-emerald-700 focus:outline-hidden"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••••"
+              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:border-emerald-700 focus:outline-hidden"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-4 py-2 text-sm font-semibold text-stone-600 hover:text-stone-900"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded bg-emerald-800 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-900 disabled:opacity-50"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+#### 3. How to Connect the Secret Shortcut in `AdminDashboard.jsx`
+
+In `frontend/src/pages/AdminDashboard.jsx`:
+
+```jsx
+import { useState, useEffect } from "react";
+import AdminLoginModal from "../components/admin/AdminLoginModal";
+
+export default function AdminDashboard() {
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // 1. Secret Hotkey: Ctrl + Shift + A opens the login modal anywhere
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.ctrlKey && event.shiftKey && (event.key === "A" || event.key === "a")) {
+        event.preventDefault();
+        setLoginModalOpen((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // 2. Add secret button inside the red error box:
+  return (
+    <div>
+      {/* Existing Header */}
+      
+      {/* If unauthorized error appears, offer the Sign In button */}
+      {error && (
+        <div role="alert" className="admin-callout admin-callout--error flex items-center justify-between gap-3 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-900">
+          <p>{error}</p>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => setLoginModalOpen(true)} className="font-bold underline text-emerald-900">
+              Sign In
+            </button>
+            <button type="button" onClick={retryLoading} className="font-semibold underline">
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Secret Login Modal */}
+      <AdminLoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          retryLoading();
+        }}
+      />
+    </div>
+  );
+}
+```
+
+---
+
 ## 3. API Endpoints Reference Matrix
 
 ### Authentication Endpoints
@@ -257,6 +452,23 @@ node scripts/create-admin.js it.operator@hawassa.gov.et YourStrongPassword123! "
 | :--- | :--- | :--- |
 | `SUPER_ADMIN` | `superadmin@mesob.hawassa.gov.et` | `AdminSuperSecret2026!` |
 | `OPERATOR` | `operator@mesob.hawassa.gov.et` | `OperatorPass2026!` |
+
+### Quick CLI Login Tests (PowerShell & Bash)
+
+**In Windows PowerShell:**
+```powershell
+# 1. Sign in as Super Admin
+$res = Invoke-RestMethod -Uri "http://localhost:5000/api/auth/login" -Method Post -ContentType "application/json" -Body '{"email":"superadmin@mesob.hawassa.gov.et","password":"AdminSuperSecret2026!"}'
+$token = $res.token
+
+# 2. View protected messages
+Invoke-RestMethod -Uri "http://localhost:5000/api/contact/messages" -Method Get -Headers @{ Authorization = "Bearer $token" }
+```
+
+**Using curl.exe:**
+```bash
+curl.exe -X POST http://localhost:5000/api/auth/login -H "Content-Type: application/json" -d "{\"email\":\"superadmin@mesob.hawassa.gov.et\",\"password\":\"AdminSuperSecret2026!\"}"
+```
 
 ---
 
