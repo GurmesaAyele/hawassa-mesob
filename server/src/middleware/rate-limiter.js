@@ -46,7 +46,22 @@ export const generalRateLimiter = rateLimit({
   },
 });
 
+export const authRateLimiter = rateLimit({
+  windowMs: process.env.NODE_ENV === "test" ? 1000 : 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === "test" ? 1000 : 20, // 20 attempts
+  standardHeaders: true,
+  legacyHeaders: false,
+  statusCode: 429,
+  message: {
+    error: "Too many sign-in attempts. Please try again after 15 minutes.",
+  },
+  handler: (req, res, _next, options) => {
+    res.status(options.statusCode).json(options.message);
+  },
+});
+
 export default {
   chatRateLimiter,
   generalRateLimiter,
+  authRateLimiter,
 };

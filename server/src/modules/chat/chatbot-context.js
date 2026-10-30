@@ -1,5 +1,4 @@
 import { prisma } from "../../config/db.js";
-import { HAWASSA_INSTITUTIONS } from "../../data/hawassa-data.js";
 
 export const FALLBACK_FAQS = [
   {
@@ -19,11 +18,41 @@ export const FALLBACK_FAQS = [
     },
   },
   {
+    keywords: [
+      "fayda age",
+      "fayda minimum age",
+      "minimum age for fayda",
+      "1 year old",
+      "1-year-old",
+      "one year old",
+      "can a 1-year-old",
+      "can a 1 year old",
+      "child fayda",
+      "infant fayda",
+      "baby fayda",
+      "toddler fayda",
+      "ፋይዳ እድሜ",
+      "የፋይዳ ዝቅተኛ እድሜ",
+      "የ 1 ዓመት ህፃን",
+      "የአንድ አመት ህፃን",
+      "የአንድ ዓመት ህፃን",
+      "ህፃናት ፋይዳ",
+      "fayda diro",
+      "qaaqqa fayda",
+      "mitte diru qaaqqa",
+    ],
+    answer: {
+      en: "No, a 1-year-old child cannot register for a Fayda ID, as the minimum age for child enrollment is generally 5 years old. Infants and toddlers do not meet the standard age eligibility for individual biometric enrollment. Children can typically be enrolled starting at 5 years of age (accompanied by a parent or legal guardian with the child's birth certificate and parent's ID).\n\nIs there anything else you would like to know?",
+      am: "አይ፣ የ1 ዓመት ህፃን ለፋይዳ መታወቂያ መመዝገብ አይችልም፤ ለህፃናት ምዝገባ ዝቅተኛው የእድሜ ገደብ በአጠቃላይ 5 ዓመት ነው። ጨቅላ ህፃናት እና የ1 ዓመት ልጆች ለግል ባዮሜትሪክስ ምዝገባ መስፈርቱን አያሟሉም። ህፃናት ከ5 ዓመት እድሜያቸው ጀምሮ በወላጅ ወይም በአሳዳጊ ታጅበው መመዝገብ ይችላሉ።\n\nሌላ ማወቅ የሚፈልጉት ነገር አለ?",
+      sid: "Diiro, mitte diru qaaqqi Fayda woloomara borreessama didandaanno; qaaqqullu borreessirora xaphihu diro roore woyte 5 dirooti. Muli ilantinori fi xoncho qaaqqulle biometrikete borreessirora hasiisanno diri kaima di-wonshitanno. Qaaqqulle 5 diru kaiminni annu woy amate ledo dagganno woyte borreessisi'ra dandiitanno.\n\nWole afa hasidhinanniri no?",
+    },
+  },
+  {
     keywords: ["fayda", "fayida", "national id", "id card", "national identity", "ፋይዳ", "ብሔራዊ መታወቂያ", "መታወቂያ", "wolooma", "dagate wolooma", "fayda wolooma"],
     answer: {
-      en: "**National ID (Fayda) Enrollment**\nLocation: Hawassa MESOB Center (Biometric Enrollment Desk)\n\nRequirements:\n1. Valid Kebele Resident ID or Passport / Birth Certificate / Student ID / Driving License\n2. In-person biometric capture (digital photo, 10 fingerprints, and iris scan)\n3. Active mobile phone number for OTP verification\n\nFee: 100% Free of charge (0 ETB)\nProcessing time: 8–10 minutes (Digital ID FIN delivered immediately via SMS)",
-      am: "**የብሔራዊ ዲጂታል መታወቂያ (ፋይዳ) ምዝገባ**\nአድራሻ: የሀዋሳ መሶብ ማዕከል (የባዮሜትሪክስ ምዝገባ)\n\nየሚያስፈልጉት:\n1. የታደሰ የቀበሌ መታወቂያ / ፓስፖርት / የልደት ምስክር ወረቀት / የተማሪ መታወቂያ / መንጃ ፈቃድ\n2. በአካል በመገኘት የጣት አሻራ፣ የፊት ፎቶ እና የአይን ባዮሜትሪክስ መስጠት\n3. ንቁ የስልክ ቁጥር ለኤስኤምኤስ ማረጋገጫ\n\nክፍያ: ሙሉ በሙሉ ነፃ (0 ብር)\nየሚፈጅበት ጊዜ: ከ 8–10 ደቂቃ",
-      sid: "**Daganna Fayda Wolooma Borreessiro**\nBayicho: Hawaasa MESOOBE Bayicho\n\nHasiissannori:\n1. Qabaleete wolooma woy Paaspoorte / Ilote wolooma / Rosu wolooma\n2. Umikki daate aanoho agadha\n3. Hasiissanno bilbila\n\nWaaga: Baatooshshu nookkiha (100% Free)\nYanna: 8–10 daqiiqa",
+      en: "**National ID (Fayda) Enrollment**\nLocation: Hawassa MESOB Center (Biometric Enrollment Desk)\n\nRequirements:\n1. Valid Kebele Resident ID or Passport / Birth Certificate / Student ID / Driving License\n2. In-person biometric capture (digital photo, 10 fingerprints, and iris scan for applicants aged 5 and older; infants/1-year-olds not eligible)\n3. Active mobile phone number for OTP verification\n\nFee: 100% Free of charge (0 ETB)\nProcessing time: 8–10 minutes (Digital ID FIN delivered immediately via SMS)",
+      am: "**የብሔራዊ ዲጂታል መታወቂያ (ፋይዳ) ምዝገባ**\nአድራሻ: የሀዋሳ መሶብ ማዕከል (የባዮሜትሪክስ ምዝገባ)\n\nየሚያስፈልጉት:\n1. የታደሰ የቀበሌ መታወቂያ / ፓስፖርት / የልደት ምስክር ወረቀት / የተማሪ መታወቂያ / መንጃ ፈቃድ\n2. በአካል በመገኘት የጣት አሻራ፣ የፊት ፎቶ እና የአይን ባዮሜትሪክስ መስጠት (እድሜያቸው 5 ዓመትና ከዚያ በላይ ለሆኑ፤ ጨቅላ ህፃናት አይመዘገቡም)\n3. ንቁ የስልክ ቁጥር ለኤስኤምኤስ ማረጋገጫ\n\nክፍያ: ሙሉ በሙሉ ነፃ (0 ብር)\nየሚፈጅበት ጊዜ: ከ 8–10 ደቂቃ",
+      sid: "**Daganna Fayda Wolooma Borreessiro**\nBayicho: Hawaasa MESOOBE Bayicho\n\nHasiissannori:\n1. Qabaleete wolooma woy Paaspoorte / Ilote wolooma / Rosu wolooma\n2. Umikki daate aanoho agadha (5 dirinna sayinorira; muli ilantinori di-borreessantanno)\n3. Hasiissanno bilbila\n\nWaaga: Baatooshshu nookkiha (100% Free)\nYanna: 8–10 daqiiqa",
     },
   },
   {
@@ -623,28 +652,11 @@ export async function searchServicesForContext(query, locale = "en") {
       },
     });
   } catch (err) {
-    console.warn("DB service lookup failed, using static fallback:", err.message);
+    console.warn("DB service lookup failed:", err.message);
   }
 
-  if (services.length === 0) {
-    services = HAWASSA_INSTITUTIONS.flatMap((inst) =>
-      inst.services.map((s) => ({
-        id: s.id,
-        title: s.title,
-        description: s.description || {
-          en: `Official government service provided at Hawassa MESOB Center for ${inst.name.en}.`,
-          am: `በሀዋሳ መሶብ ማዕከል በ${inst.name.am} የሚሰጥ ይፋዊ የመንግስት አገልግሎት።`,
-          sid: `Hawaasa MESOOBE Bayicho ${inst.name.sid} uyitanno seeramu agurrote.`,
-        },
-        requirements: s.requirements.map((r) => r.requirement || r),
-        estimatedFee: s.estimatedFee,
-        processingDays: s.processingDays,
-        provider: {
-          name: inst.name,
-          floorRoomNumber: inst.floorRoomNumber || null,
-        },
-      }))
-    );
+  if (!services || services.length === 0) {
+    return "";
   }
 
   const scored = services

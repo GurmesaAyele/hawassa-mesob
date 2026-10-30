@@ -1,7 +1,61 @@
-import { INITIAL_VIDEOS } from "./videos.data.js";
+import { prisma } from "../../config/db.js";
 
-// In-memory persistent video store initialized with authentic Hawassa MESOB videos
-let videos = [...INITIAL_VIDEOS];
+// In-memory fallback / cache store
+let videos = [];
+
+const ALLOWED_LOCALES = ["en", "am", "sid"];
+
+/**
+ * Extract localized string from JSONB / localized object.
+ */
+function localize(field, locale = "en") {
+  if (!field || typeof field !== "object") return field ?? "";
+  return field[locale] ?? field["en"] ?? Object.values(field)[0] ?? "";
+}
+
+/**
+ * Normalizes field into { en, am, sid }.
+ * If string provided, replicates across all 3 locales.
+ */
+function normalizeLocalizedField(val) {
+  if (!val) return { en: "", am: "", sid: "" };
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    return { en: trimmed, am: trimmed, sid: trimmed };
+  }
+  if (typeof val === "object" && !Array.isArray(val)) {
+    const en = (val.en || val.am || val.sid || "").trim();
+    const am = (val.am || val.en || val.sid || "").trim();
+    const sid = (val.sid || val.en || val.am || "").trim();
+    return { en, am, sid };
+  }
+  return { en: "", am: "", sid: "" };
+}
+
+/**
+ * Transform video item into client-friendly format.
+ */
+function transformVideoItem(item, locale = "en", isRaw = false) {
+  return {
+    id: item.id,
+    title: isRaw ? item.title : localize(item.title, locale),
+    description: isRaw ? item.description : localize(item.description, locale),
+    category: isRaw ? item.category : localize(item.category, locale),
+    author: isRaw ? item.author : localize(item.author, locale),
+    youtubeUrl: item.youtubeUrl,
+    embedUrl: item.embedUrl,
+    thumbnail: item.thumbnail,
+    duration: item.duration,
+    views: item.views,
+    date: item.date instanceof Date ? item.date.toISOString() : item.date,
+    translations: {
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      author: item.author,
+    },
+  };
+}
 
 /**
  * Extract YouTube video ID from various YouTube URL formats.
@@ -25,28 +79,86 @@ export function extractYouTubeId(url) {
 }
 
 /**
+ * Fetch video list from Neon database with fallback to in-memory store.
+ */
+async function getStoredVideos() {
+  try {
+    if (prisma && prisma.video) {
+      const dbVideos = await prisma.video.findMany({
+        orderBy: { date: "asc" },
+      });
+      if (dbVideos && dbVideos.length > 0) {
+        return dbVideos;
+      }
+    }
+  } catch (error) {
+    console.warn("Neon DB query fallback to in-memory videos:", error.message);
+  }
+  return videos;
+}
+
+/**
  * GET /api/videos
  * Returns list of videos formatted for the frontend VideosSection and API guide.
+ * Supports:
+ *   ?locale=en|am|sid  (default: "en")
+ *   ?raw=true          (returns full { en, am, sid } objects)
+ *   ?category=...      (filters by category in any language)
+ *   ?search=...        (searches across all language variations)
+ *   ?limit=...         (limits returned count)
  */
 export async function listVideos(req, res) {
   try {
-    let result = [...videos];
+    const isRaw = req.query.raw === "true";
+    let locale = "en";
+
+    if (!isRaw && req.query.locale) {
+      if (!ALLOWED_LOCALES.includes(req.query.locale)) {
+        return res.status(400).json({
+          error: `Invalid locale '${req.query.locale}'. Supported: en, am, sid.`,
+        });
+      }
+      locale = req.query.locale;
+    }
+
+    let result = await getStoredVideos();
 
     const { category, search, limit } = req.query;
 
     if (category && typeof category === "string") {
-      result = result.filter(
-        (v) => v.category?.toLowerCase() === category.toLowerCase()
-      );
+      const cat = category.toLowerCase().trim();
+      result = result.filter((v) => {
+        if (typeof v.category === "string") {
+          return v.category.toLowerCase() === cat;
+        }
+        if (typeof v.category === "object" && v.category !== null) {
+          return Object.values(v.category).some(
+            (val) => typeof val === "string" && val.toLowerCase() === cat
+          );
+        }
+        return false;
+      });
     }
 
     if (search && typeof search === "string") {
-      const q = search.toLowerCase();
+      const q = search.toLowerCase().trim();
+      const matchField = (f) => {
+        if (!f) return false;
+        if (typeof f === "string") return f.toLowerCase().includes(q);
+        if (typeof f === "object" && f !== null) {
+          return Object.values(f).some(
+            (val) => typeof val === "string" && val.toLowerCase().includes(q)
+          );
+        }
+        return false;
+      };
+
       result = result.filter(
         (v) =>
-          v.title?.toLowerCase().includes(q) ||
-          v.description?.toLowerCase().includes(q) ||
-          v.author?.toLowerCase().includes(q)
+          matchField(v.title) ||
+          matchField(v.description) ||
+          matchField(v.category) ||
+          matchField(v.author)
       );
     }
 
@@ -57,7 +169,18 @@ export async function listVideos(req, res) {
       }
     }
 
-    return res.json(result);
+    const payload = result.map((item) =>
+      transformVideoItem(item, locale, isRaw)
+    );
+
+    if (isRaw || req.query.includeInactive === "true") {
+      return res.json({
+        data: payload,
+        meta: { total: result.length },
+      });
+    }
+
+    return res.json(payload);
   } catch (error) {
     console.error("Error in listVideos:", error);
     return res.status(500).json({ error: "Failed to retrieve videos" });
@@ -67,17 +190,44 @@ export async function listVideos(req, res) {
 /**
  * GET /api/videos/:id
  * Returns a single video by ID.
+ * Supports:
+ *   ?locale=en|am|sid (default: "en")
+ *   ?raw=true
  */
 export async function getVideo(req, res) {
   try {
     const { id } = req.params;
-    const video = videos.find((v) => v.id === id);
+    let video = null;
+
+    try {
+      if (prisma && prisma.video) {
+        video = await prisma.video.findUnique({ where: { id } });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (!video) {
+      video = videos.find((v) => v.id === id);
+    }
 
     if (!video) {
       return res.status(404).json({ error: `Video with ID '${id}' not found` });
     }
 
-    return res.json(video);
+    const isRaw = req.query.raw === "true";
+    let locale = "en";
+
+    if (!isRaw && req.query.locale) {
+      if (!ALLOWED_LOCALES.includes(req.query.locale)) {
+        return res.status(400).json({
+          error: `Invalid locale '${req.query.locale}'. Supported: en, am, sid.`,
+        });
+      }
+      locale = req.query.locale;
+    }
+
+    return res.json(transformVideoItem(video, locale, isRaw));
   } catch (error) {
     console.error("Error in getVideo:", error);
     return res.status(500).json({ error: "Failed to retrieve video" });
@@ -86,13 +236,13 @@ export async function getVideo(req, res) {
 
 /**
  * POST /api/videos
- * Adds a new YouTube video link to the catalog.
+ * Adds a new YouTube video link to the catalog in Neon DB.
  */
 export async function createVideo(req, res) {
   try {
     const { title, youtubeUrl, description, duration, author, category, views } = req.body;
 
-    if (!title || typeof title !== "string" || !title.trim()) {
+    if (!title || (typeof title === "string" && !title.trim())) {
       return res.status(400).json({ error: "Validation failed: 'title' is required" });
     }
 
@@ -107,25 +257,40 @@ export async function createVideo(req, res) {
       });
     }
 
+    const normalizedTitle = normalizeLocalizedField(title);
+    const normalizedDesc = normalizeLocalizedField(description || "");
+    const normalizedAuthor = normalizeLocalizedField(author || "MESOB");
+    const normalizedCat = normalizeLocalizedField(category || "General");
+
     const newVideo = {
       id: `vid-${Date.now()}`,
-      title: title.trim(),
+      title: normalizedTitle,
       youtubeUrl: youtubeUrl.trim(),
       embedUrl: `https://www.youtube.com/embed/${videoId}`,
       thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-      description: description ? description.trim() : "",
+      description: normalizedDesc,
       duration: duration || "N/A",
       views: views || "0 views",
-      author: author ? author.trim() : "MESOB",
-      category: category ? category.trim() : "General",
-      date: new Date().toISOString(),
+      author: normalizedAuthor,
+      category: normalizedCat,
+      date: new Date(),
     };
+
+    try {
+      if (prisma && prisma.video) {
+        await prisma.video.create({
+          data: newVideo,
+        });
+      }
+    } catch (e) {
+      console.warn("Could not insert video into Neon DB, kept in memory:", e.message);
+    }
 
     videos.unshift(newVideo);
 
     return res.status(201).json({
       message: "Video added successfully",
-      video: newVideo,
+      video: transformVideoItem(newVideo, "en", false),
     });
   } catch (error) {
     console.error("Error in createVideo:", error);
@@ -135,15 +300,27 @@ export async function createVideo(req, res) {
 
 /**
  * DELETE /api/videos/:id
- * Removes a video by ID.
+ * Removes a video by ID from Neon DB.
  */
 export async function deleteVideo(req, res) {
   try {
     const { id } = req.params;
+    let found = false;
+
+    try {
+      if (prisma && prisma.video) {
+        const deleted = await prisma.video.delete({ where: { id } }).catch(() => null);
+        if (deleted) found = true;
+      }
+    } catch {
+      // Fallback
+    }
+
     const initialLen = videos.length;
     videos = videos.filter((v) => v.id !== id);
+    if (videos.length < initialLen) found = true;
 
-    if (videos.length === initialLen) {
+    if (!found) {
       return res.status(404).json({ error: `Video with ID '${id}' not found` });
     }
 
@@ -153,3 +330,90 @@ export async function deleteVideo(req, res) {
     return res.status(500).json({ error: "Failed to delete video" });
   }
 }
+
+/**
+ * PUT /api/videos/:id
+ * Updates an existing video in Neon DB.
+ */
+export async function updateVideo(req, res) {
+  try {
+    const { id } = req.params;
+    const { title, youtubeUrl, description, duration, author, category, views, thumbnail, date } = req.body || {};
+
+    let existing = null;
+    try {
+      if (prisma && prisma.video) {
+        existing = await prisma.video.findUnique({ where: { id } });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (!existing) {
+      existing = videos.find((v) => v.id === id);
+    }
+
+    if (!existing) {
+      return res.status(404).json({ error: `Video with ID '${id}' not found` });
+    }
+
+    let embedUrl = undefined;
+    let newThumbnail = undefined;
+
+    if (youtubeUrl !== undefined) {
+      if (!youtubeUrl || typeof youtubeUrl !== "string" || !youtubeUrl.trim()) {
+        return res.status(400).json({ error: "Validation failed: 'youtubeUrl' cannot be empty" });
+      }
+      const videoId = extractYouTubeId(youtubeUrl.trim());
+      if (!videoId) {
+        return res.status(400).json({
+          error: "Invalid YouTube URL. Please provide a valid YouTube watch, share, or embed link.",
+        });
+      }
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      newThumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    }
+
+    const updatedData = {
+      ...(title !== undefined && { title: normalizeLocalizedField(title) }),
+      ...(description !== undefined && { description: normalizeLocalizedField(description) }),
+      ...(author !== undefined && { author: normalizeLocalizedField(author) }),
+      ...(category !== undefined && { category: normalizeLocalizedField(category) }),
+      ...(duration !== undefined && { duration: String(duration).trim() }),
+      ...(views !== undefined && { views: String(views).trim() }),
+      ...(youtubeUrl !== undefined && { youtubeUrl: youtubeUrl.trim(), embedUrl }),
+      ...((thumbnail !== undefined ? { thumbnail: thumbnail ? String(thumbnail).trim() : newThumbnail } : (newThumbnail ? { thumbnail: newThumbnail } : {}))),
+      ...(date !== undefined && { date: new Date(date) }),
+    };
+
+    let updated = null;
+    try {
+      if (prisma && prisma.video) {
+        updated = await prisma.video.update({
+          where: { id },
+          data: updatedData,
+        });
+      }
+    } catch (dbErr) {
+      console.warn("DB update video failed, using in-memory:", dbErr.message);
+    }
+
+    const memoryIndex = videos.findIndex((v) => v.id === id);
+    if (memoryIndex !== -1) {
+      videos[memoryIndex] = { ...videos[memoryIndex], ...updatedData };
+      if (!updated) updated = videos[memoryIndex];
+    } else if (!updated) {
+      updated = { ...existing, ...updatedData };
+      videos.unshift(updated);
+    }
+
+    return res.json({
+      message: "Video updated successfully",
+      video: transformVideoItem(updated || { ...existing, ...updatedData }, "en", true),
+    });
+  } catch (error) {
+    console.error("Error in updateVideo:", error);
+    return res.status(500).json({ error: "Failed to update video" });
+  }
+}
+

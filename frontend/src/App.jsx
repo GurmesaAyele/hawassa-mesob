@@ -6,6 +6,7 @@ import Contact from './pages/Contact';
 import ServiceCatalogue from './pages/ServiceCatalogue';
 import AboutUs from './pages/AboutUs';
 import WhatsNew from './pages/WhatsNew';
+import AdminDashboard from './pages/AdminDashboard';
 
 
 
@@ -23,8 +24,9 @@ function App() {
         <Route path="/service-catalogue" element={<ServiceCatalogue />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/whats-new" element={<WhatsNew />} />
-
-
+        <Route path="/admin" element={<AdminDashboard />} />
+        
+        
       </Routes>
     </Router>
   );

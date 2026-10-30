@@ -91,6 +91,16 @@ export function normalizeLocalizedField(val) {
   if (!val) return { en: "", am: "", sid: "" };
   if (typeof val === "string") {
     const trimmed = val.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          return normalizeLocalizedField(parsed);
+        }
+      } catch {
+        // Fall back to literal string
+      }
+    }
     return { en: trimmed, am: trimmed, sid: trimmed };
   }
   if (typeof val === "object" && !Array.isArray(val)) {
@@ -117,6 +127,51 @@ export function normalizeRequirements(reqs) {
     if (typeof item === "object" && item !== null) return normalizeLocalizedField(item);
     return { en: String(item), am: String(item), sid: String(item) };
   });
+}
+
+/**
+ * Resolves an institution by its ID, code, or common short slug.
+ * Supported lookup formats:
+ *  - Full UUID: "c2590f1a-eeae-46a0-a31b-ee13d315e818"
+ *  - Official Code: "ETHIO_POST", "ICS", "EEU", "CBE"
+ *  - Slugs / Lowercase: "ethio-post", "ethio_post", "cbe", "ics"
+ *  - Short Pro Aliases: "post", "trade", "electric", "land", "labor", "revenue", "justice", "telecom", "fayda", "sidama"
+ */
+export function buildProviderLookup(idOrCode, includeInactive = false) {
+  const raw = (idOrCode || "").trim();
+  const normalized = raw.toUpperCase().replace(/-/g, "_");
+
+  const SHORT_ALIASES = {
+    POST: "ETHIO_POST",
+    ETHIOPOST: "ETHIO_POST",
+    TRADE: "HAWASSA_TRADE",
+    ELECTRIC: "EEU",
+    LAND: "HAWASSA_LAND",
+    URBAN: "URBAN_DEV_CONSTRUCTION",
+    LABOR: "LABOR_AND_SKILLS",
+    SKILLS: "LABOR_AND_SKILLS",
+    REVENUE: "HAWASSA_REVENUE",
+    JUSTICE: "JUSTICE_DEPT",
+    TELECOM: "ETHIO_TELECOM",
+    TELE: "ETHIO_TELECOM",
+    SIDAMA: "SIDAMA_BANK",
+    FAYDA: "NATIONAL_ID_PROGRAM",
+    NID: "NATIONAL_ID_PROGRAM",
+  };
+
+  const aliasTarget = SHORT_ALIASES[normalized];
+
+  return {
+    OR: [
+      { id: raw },
+      { code: raw },
+      { code: normalized },
+      ...(aliasTarget ? [{ code: aliasTarget }] : []),
+      { code: { equals: raw, mode: "insensitive" } },
+      { code: { equals: normalized, mode: "insensitive" } },
+    ],
+    ...(!includeInactive && { isActive: true }),
+  };
 }
 
 // ─── Public & Admin Institution Queries ──────────────────────────────────────
@@ -211,6 +266,7 @@ export async function listInstitutions(req, res) {
       name:            isRaw ? p.name : localize(p.name, locale),
       icon:            p.icon,
       logo:            p.icon,
+      logoUrl:         p.icon,
       floorRoomNumber: p.floorRoomNumber,
       contactPhone:    p.contactPhone,
       isActive:        p.isActive,
@@ -257,10 +313,7 @@ export async function getInstitution(req, res) {
     const includeInactive = req.query.includeInactive === "true";
 
     const provider = await prisma.serviceProvider.findFirst({
-      where: {
-        id: req.params.id,
-        ...(!includeInactive && { isActive: true }),
-      },
+      where: buildProviderLookup(req.params.id, includeInactive),
       select: {
         id:              true,
         name:            true,
@@ -333,10 +386,7 @@ export async function listInstitutionServices(req, res) {
     const skip  = (page - 1) * limit;
 
     const providerExists = await prisma.serviceProvider.findFirst({
-      where: {
-        id: req.params.id,
-        ...(!includeInactive && { isActive: true }),
-      },
+      where: buildProviderLookup(req.params.id, includeInactive),
       select: { id: true, name: true, code: true, icon: true, isActive: true },
     });
 
@@ -345,7 +395,7 @@ export async function listInstitutionServices(req, res) {
     }
 
     const whereClause = {
-      providerId: req.params.id,
+      providerId: providerExists.id,
       ...(!includeInactive && { isActive: true }),
     };
 
@@ -448,14 +498,17 @@ export async function createInstitution(req, res) {
         }))
       : [];
 
+    const resolvedIcon = req.cloudinaryUrl || req.body?.icon || req.body?.logoUrl || (icon ? String(icon).trim() : null);
+    const resolvedIsActive = isActive !== undefined ? (isActive === true || isActive === "true") : true;
+
     const newProvider = await prisma.serviceProvider.create({
       data: {
         name: normalizedName,
         code: normalizedCode,
-        icon: icon?.trim() || null,
+        icon: resolvedIcon || null,
         floorRoomNumber: floorRoomNumber?.trim() || null,
         contactPhone: contactPhone?.trim() || null,
-        isActive: isActive !== undefined ? Boolean(isActive) : true,
+        isActive: resolvedIsActive,
         ...(servicesCreateData.length > 0 && {
           services: {
             create: servicesCreateData,
@@ -487,7 +540,9 @@ export async function updateInstitution(req, res) {
     const { id } = req.params;
     const { name, code, icon, floorRoomNumber, contactPhone, isActive } = req.body || {};
 
-    const existing = await prisma.serviceProvider.findUnique({ where: { id } });
+    const existing = await prisma.serviceProvider.findFirst({
+      where: buildProviderLookup(id, true),
+    });
     if (!existing) {
       return res.status(404).json({ error: "Institution not found." });
     }
@@ -513,13 +568,14 @@ export async function updateInstitution(req, res) {
       }
     }
 
-    if (icon !== undefined) updateData.icon = icon ? icon.trim() : null;
+    const resolvedIcon = req.cloudinaryUrl || req.body?.icon || req.body?.logoUrl;
+    if (resolvedIcon !== undefined) updateData.icon = resolvedIcon ? String(resolvedIcon).trim() : null;
     if (floorRoomNumber !== undefined) updateData.floorRoomNumber = floorRoomNumber ? floorRoomNumber.trim() : null;
     if (contactPhone !== undefined) updateData.contactPhone = contactPhone ? contactPhone.trim() : null;
-    if (isActive !== undefined) updateData.isActive = Boolean(isActive);
+    if (isActive !== undefined) updateData.isActive = (isActive === true || isActive === "true");
 
     const updated = await prisma.serviceProvider.update({
-      where: { id },
+      where: { id: existing.id },
       data: updateData,
       include: {
         _count: { select: { services: true } },
@@ -550,27 +606,29 @@ export async function deleteInstitution(req, res) {
     const { id } = req.params;
     const isPermanent = req.query.permanent === "true";
 
-    const existing = await prisma.serviceProvider.findUnique({ where: { id } });
+    const existing = await prisma.serviceProvider.findFirst({
+      where: buildProviderLookup(id, true),
+    });
     if (!existing) {
       return res.status(404).json({ error: "Institution not found." });
     }
 
     if (isPermanent) {
-      await prisma.serviceProvider.delete({ where: { id } });
+      await prisma.serviceProvider.delete({ where: { id: existing.id } });
       return res.json({
         message: "Institution permanently deleted.",
-        id,
+        id: existing.id,
       });
     }
 
     // Soft delete: deactivate institution and all its child services
     const [updatedProvider] = await prisma.$transaction([
       prisma.serviceProvider.update({
-        where: { id },
+        where: { id: existing.id },
         data: { isActive: false },
       }),
       prisma.service.updateMany({
-        where: { providerId: id },
+        where: { providerId: existing.id },
         data: { isActive: false },
       }),
     ]);
@@ -768,20 +826,22 @@ export async function getService(req, res) {
  */
 export async function createService(req, res) {
   try {
-    const providerId = req.params.id || req.body.providerId || req.body.institutionId;
+    const rawTarget = req.params.id || req.body.providerId || req.body.institutionId;
 
-    if (!providerId) {
+    if (!rawTarget) {
       return res.status(400).json({
         error: "Missing target institution ID. Specify it in the URL (:id/services) or in request body ('providerId').",
       });
     }
 
-    const provider = await prisma.serviceProvider.findUnique({
-      where: { id: providerId },
+    const provider = await prisma.serviceProvider.findFirst({
+      where: buildProviderLookup(rawTarget, true),
     });
     if (!provider) {
       return res.status(404).json({ error: "Target institution not found." });
     }
+
+    const providerId = provider.id;
 
     // Determine if single service or batch array
     const rawItems = Array.isArray(req.body)
