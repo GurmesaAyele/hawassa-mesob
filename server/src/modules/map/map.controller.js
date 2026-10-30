@@ -151,6 +151,8 @@ export async function updateMapLocation(req, res) {
 
     return res.json({
       message: "Map and location details updated successfully",
+      contact: updated.contact,
+      map: updated.map,
       location: updated,
     });
   } catch (error) {
@@ -184,9 +186,35 @@ export async function getContactInfo(req, res) {
   }
 }
 
+function mapCommentToMessage(c) {
+  let email = "";
+  let phone = null;
+  if (c.phoneOrEmail) {
+    if (c.phoneOrEmail.includes("/")) {
+      const parts = c.phoneOrEmail.split("/").map((s) => s.trim());
+      email = parts[0] || "";
+      phone = parts[1] || null;
+    } else if (c.phoneOrEmail.includes("@")) {
+      email = c.phoneOrEmail;
+    } else {
+      phone = c.phoneOrEmail;
+    }
+  }
+
+  return {
+    id: c.id,
+    name: c.name,
+    email: email || c.email || "",
+    phone: phone || c.phone || null,
+    message: c.message,
+    isReviewed: Boolean(c.isReviewed),
+    createdAt: c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt,
+  };
+}
+
 /**
  * POST /api/contact
- * Handles citizen contact message submission.
+ * Handles citizen contact message submission (public).
  */
 export async function submitContactMessage(req, res) {
   try {
@@ -210,6 +238,7 @@ export async function submitContactMessage(req, res) {
       email: email.trim(),
       phone: phone ? phone.trim() : null,
       message: message.trim(),
+      isReviewed: false,
       createdAt: new Date().toISOString(),
     };
 
@@ -221,7 +250,7 @@ export async function submitContactMessage(req, res) {
           data: {
             id: newMessage.id,
             name: newMessage.name,
-            phoneOrEmail: newMessage.email,
+            phoneOrEmail: phone ? `${newMessage.email} / ${newMessage.phone}` : newMessage.email,
             message: newMessage.message,
             category: "contact_form",
             isReviewed: false,
@@ -244,14 +273,109 @@ export async function submitContactMessage(req, res) {
 }
 
 /**
- * GET /api/contact/messages
- * Retrieves submitted citizen messages.
+ * GET /api/contact/messages (and alias /api/messages)
+ * Retrieves citizen messages for admin inbox with unread count meta.
+ * Restricted to SUPER_ADMIN.
  */
 export async function listContactMessages(req, res) {
   try {
-    return res.json(contactMessages);
+    const { filter } = req.query; // 'unread' | 'read' | 'all'
+
+    let dbMessages = [];
+    let unreadCount = 0;
+    let total = 0;
+
+    try {
+      if (prisma && prisma.comments) {
+        const whereClause = {};
+        if (filter === "unread") whereClause.isReviewed = false;
+        if (filter === "read") whereClause.isReviewed = true;
+
+        const [items, unreadTotal, allTotal] = await Promise.all([
+          prisma.comments.findMany({
+            where: whereClause,
+            orderBy: { createdAt: "desc" },
+            take: 100,
+          }),
+          prisma.comments.count({ where: { isReviewed: false } }),
+          prisma.comments.count(),
+        ]);
+
+        dbMessages = items;
+        unreadCount = unreadTotal;
+        total = allTotal;
+      }
+    } catch (dbErr) {
+      console.warn("DB comments lookup failed, using fallback:", dbErr.message);
+    }
+
+    if (dbMessages.length === 0 && contactMessages.length > 0) {
+      let filtered = contactMessages;
+      if (filter === "unread") filtered = contactMessages.filter((m) => !m.isReviewed);
+      if (filter === "read") filtered = contactMessages.filter((m) => m.isReviewed);
+      unreadCount = contactMessages.filter((m) => !m.isReviewed).length;
+      total = contactMessages.length;
+      return res.json({
+        data: filtered,
+        meta: { total, unreadCount },
+      });
+    }
+
+    const data = dbMessages.map(mapCommentToMessage);
+    return res.json({
+      data,
+      meta: {
+        total,
+        unreadCount,
+      },
+    });
   } catch (error) {
     console.error("Error in listContactMessages:", error);
     return res.status(500).json({ error: "Failed to retrieve contact messages" });
+  }
+}
+
+/**
+ * PATCH /api/contact/messages/:id (and alias /api/messages/:id)
+ * Updates the review / read status of a citizen contact message.
+ * Restricted to SUPER_ADMIN.
+ */
+export async function updateContactMessageReviewStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const { isReviewed } = req.body || {};
+
+    const reviewedBool = Boolean(isReviewed);
+    let updated = null;
+
+    try {
+      if (prisma && prisma.comments) {
+        updated = await prisma.comments.update({
+          where: { id },
+          data: { isReviewed: reviewedBool },
+        }).catch(() => null);
+      }
+    } catch (dbErr) {
+      console.warn("DB update comment failed:", dbErr.message);
+    }
+
+    const memoryItem = contactMessages.find((m) => m.id === id);
+    if (memoryItem) {
+      memoryItem.isReviewed = reviewedBool;
+      if (!updated) updated = memoryItem;
+    }
+
+    if (!updated && !memoryItem) {
+      return res.status(404).json({ error: `Message with ID '${id}' not found.` });
+    }
+
+    return res.json({
+      success: true,
+      message: reviewedBool ? "Message marked as read." : "Message marked as unread.",
+      data: updated ? mapCommentToMessage(updated) : memoryItem,
+    });
+  } catch (error) {
+    console.error("Error in updateContactMessageReviewStatus:", error);
+    return res.status(500).json({ error: "Failed to update message review status" });
   }
 }
