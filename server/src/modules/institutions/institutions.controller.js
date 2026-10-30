@@ -86,6 +86,16 @@ export function normalizeLocalizedField(val) {
   if (!val) return { en: "", am: "", sid: "" };
   if (typeof val === "string") {
     const trimmed = val.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          return normalizeLocalizedField(parsed);
+        }
+      } catch {
+        // Fall back to literal string
+      }
+    }
     return { en: trimmed, am: trimmed, sid: trimmed };
   }
   if (typeof val === "object" && !Array.isArray(val)) {
@@ -251,6 +261,7 @@ export async function listInstitutions(req, res) {
       name:            isRaw ? p.name : localize(p.name, locale),
       icon:            p.icon,
       logo:            p.icon,
+      logoUrl:         p.icon,
       floorRoomNumber: p.floorRoomNumber,
       contactPhone:    p.contactPhone,
       isActive:        p.isActive,
@@ -481,14 +492,17 @@ export async function createInstitution(req, res) {
         }))
       : [];
 
+    const resolvedIcon = req.cloudinaryUrl || req.body?.icon || req.body?.logoUrl || (icon ? String(icon).trim() : null);
+    const resolvedIsActive = isActive !== undefined ? (isActive === true || isActive === "true") : true;
+
     const newProvider = await prisma.serviceProvider.create({
       data: {
         name: normalizedName,
         code: normalizedCode,
-        icon: icon?.trim() || null,
+        icon: resolvedIcon || null,
         floorRoomNumber: floorRoomNumber?.trim() || null,
         contactPhone: contactPhone?.trim() || null,
-        isActive: isActive !== undefined ? Boolean(isActive) : true,
+        isActive: resolvedIsActive,
         ...(servicesCreateData.length > 0 && {
           services: {
             create: servicesCreateData,
@@ -548,10 +562,11 @@ export async function updateInstitution(req, res) {
       }
     }
 
-    if (icon !== undefined) updateData.icon = icon ? icon.trim() : null;
+    const resolvedIcon = req.cloudinaryUrl || req.body?.icon || req.body?.logoUrl;
+    if (resolvedIcon !== undefined) updateData.icon = resolvedIcon ? String(resolvedIcon).trim() : null;
     if (floorRoomNumber !== undefined) updateData.floorRoomNumber = floorRoomNumber ? floorRoomNumber.trim() : null;
     if (contactPhone !== undefined) updateData.contactPhone = contactPhone ? contactPhone.trim() : null;
-    if (isActive !== undefined) updateData.isActive = Boolean(isActive);
+    if (isActive !== undefined) updateData.isActive = (isActive === true || isActive === "true");
 
     const updated = await prisma.serviceProvider.update({
       where: { id: existing.id },

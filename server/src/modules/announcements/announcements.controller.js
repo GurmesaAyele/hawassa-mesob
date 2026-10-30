@@ -131,7 +131,15 @@ export async function listAnnouncements(req, res) {
       }
     }
 
-    return res.json(result.map((item) => transformAnnouncement(item, locale, isRaw)));
+    const transformed = result.map((item) => transformAnnouncement(item, locale, isRaw));
+    if (isRaw || req.query.includeInactive === "true") {
+      return res.json({
+        data: transformed,
+        meta: { total: result.length },
+      });
+    }
+
+    return res.json(transformed);
   } catch (error) {
     console.error("Error in listAnnouncements:", error);
     return res.status(500).json({ error: "Failed to retrieve announcements" });
@@ -274,3 +282,76 @@ export async function deleteAnnouncement(req, res) {
     return res.status(500).json({ error: "Failed to delete announcement" });
   }
 }
+
+/**
+ * PUT /api/announcements/:id
+ * Updates an existing announcement.
+ */
+export async function updateAnnouncement(req, res) {
+  try {
+    const { id } = req.params;
+    const { title, content, priority, type, date } = req.body || {};
+
+    let existing = null;
+    try {
+      if (prisma && prisma.announcement) {
+        existing = await prisma.announcement.findUnique({ where: { id } });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (!existing) {
+      existing = inMemoryAnnouncements.find((item) => item.id === id);
+    }
+
+    if (!existing) {
+      return res.status(404).json({ error: `Announcement with ID '${id}' not found` });
+    }
+
+    const validPriorities = ["high", "medium", "low"];
+    const validTypes = ["update", "alert", "event", "general"];
+
+    const updatedData = {
+      ...(title !== undefined && { title: normalizeLocalizedField(title) }),
+      ...(content !== undefined && { content: normalizeLocalizedField(content) }),
+      ...(priority !== undefined && {
+        priority: validPriorities.includes(priority.toLowerCase()) ? priority.toLowerCase() : "medium",
+      }),
+      ...(type !== undefined && {
+        type: validTypes.includes(type.toLowerCase()) ? type.toLowerCase() : "update",
+      }),
+      ...(date !== undefined && { date: new Date(date) }),
+    };
+
+    let updated = null;
+    try {
+      if (prisma && prisma.announcement) {
+        updated = await prisma.announcement.update({
+          where: { id },
+          data: updatedData,
+        });
+      }
+    } catch (dbErr) {
+      console.warn("DB update announcement failed, using in-memory:", dbErr.message);
+    }
+
+    const memoryIndex = inMemoryAnnouncements.findIndex((item) => item.id === id);
+    if (memoryIndex !== -1) {
+      inMemoryAnnouncements[memoryIndex] = { ...inMemoryAnnouncements[memoryIndex], ...updatedData };
+      if (!updated) updated = inMemoryAnnouncements[memoryIndex];
+    } else if (!updated) {
+      updated = { ...existing, ...updatedData };
+      inMemoryAnnouncements.unshift(updated);
+    }
+
+    return res.json({
+      message: "Announcement updated successfully",
+      announcement: transformAnnouncement(updated || { ...existing, ...updatedData }, "en", true),
+    });
+  } catch (error) {
+    console.error("Error in updateAnnouncement:", error);
+    return res.status(500).json({ error: "Failed to update announcement" });
+  }
+}
+

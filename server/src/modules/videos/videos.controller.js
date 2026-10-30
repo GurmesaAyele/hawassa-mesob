@@ -145,9 +145,9 @@ export async function listVideos(req, res) {
       const matchField = (f) => {
         if (!f) return false;
         if (typeof f === "string") return f.toLowerCase().includes(q);
-        if (typeof f === "object") {
+        if (typeof f === "object" && f !== null) {
           return Object.values(f).some(
-            (val) => typeof val === "string" && val.toLowerCase() === cat
+            (val) => typeof val === "string" && val.toLowerCase().includes(q)
           );
         }
         return false;
@@ -172,6 +172,14 @@ export async function listVideos(req, res) {
     const payload = result.map((item) =>
       transformVideoItem(item, locale, isRaw)
     );
+
+    if (isRaw || req.query.includeInactive === "true") {
+      return res.json({
+        data: payload,
+        meta: { total: result.length },
+      });
+    }
+
     return res.json(payload);
   } catch (error) {
     console.error("Error in listVideos:", error);
@@ -322,3 +330,90 @@ export async function deleteVideo(req, res) {
     return res.status(500).json({ error: "Failed to delete video" });
   }
 }
+
+/**
+ * PUT /api/videos/:id
+ * Updates an existing video in Neon DB.
+ */
+export async function updateVideo(req, res) {
+  try {
+    const { id } = req.params;
+    const { title, youtubeUrl, description, duration, author, category, views, thumbnail, date } = req.body || {};
+
+    let existing = null;
+    try {
+      if (prisma && prisma.video) {
+        existing = await prisma.video.findUnique({ where: { id } });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (!existing) {
+      existing = videos.find((v) => v.id === id);
+    }
+
+    if (!existing) {
+      return res.status(404).json({ error: `Video with ID '${id}' not found` });
+    }
+
+    let embedUrl = undefined;
+    let newThumbnail = undefined;
+
+    if (youtubeUrl !== undefined) {
+      if (!youtubeUrl || typeof youtubeUrl !== "string" || !youtubeUrl.trim()) {
+        return res.status(400).json({ error: "Validation failed: 'youtubeUrl' cannot be empty" });
+      }
+      const videoId = extractYouTubeId(youtubeUrl.trim());
+      if (!videoId) {
+        return res.status(400).json({
+          error: "Invalid YouTube URL. Please provide a valid YouTube watch, share, or embed link.",
+        });
+      }
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      newThumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    }
+
+    const updatedData = {
+      ...(title !== undefined && { title: normalizeLocalizedField(title) }),
+      ...(description !== undefined && { description: normalizeLocalizedField(description) }),
+      ...(author !== undefined && { author: normalizeLocalizedField(author) }),
+      ...(category !== undefined && { category: normalizeLocalizedField(category) }),
+      ...(duration !== undefined && { duration: String(duration).trim() }),
+      ...(views !== undefined && { views: String(views).trim() }),
+      ...(youtubeUrl !== undefined && { youtubeUrl: youtubeUrl.trim(), embedUrl }),
+      ...((thumbnail !== undefined ? { thumbnail: thumbnail ? String(thumbnail).trim() : newThumbnail } : (newThumbnail ? { thumbnail: newThumbnail } : {}))),
+      ...(date !== undefined && { date: new Date(date) }),
+    };
+
+    let updated = null;
+    try {
+      if (prisma && prisma.video) {
+        updated = await prisma.video.update({
+          where: { id },
+          data: updatedData,
+        });
+      }
+    } catch (dbErr) {
+      console.warn("DB update video failed, using in-memory:", dbErr.message);
+    }
+
+    const memoryIndex = videos.findIndex((v) => v.id === id);
+    if (memoryIndex !== -1) {
+      videos[memoryIndex] = { ...videos[memoryIndex], ...updatedData };
+      if (!updated) updated = videos[memoryIndex];
+    } else if (!updated) {
+      updated = { ...existing, ...updatedData };
+      videos.unshift(updated);
+    }
+
+    return res.json({
+      message: "Video updated successfully",
+      video: transformVideoItem(updated || { ...existing, ...updatedData }, "en", true),
+    });
+  } catch (error) {
+    console.error("Error in updateVideo:", error);
+    return res.status(500).json({ error: "Failed to update video" });
+  }
+}
+

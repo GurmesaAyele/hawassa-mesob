@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import authRoutes from "./modules/auth/auth.routes.js";
 import chatRoutes from "./modules/chat/chat.routes.js";
 import institutionRoutes from "./modules/institutions/institutions.routes.js";
 import serviceRoutes from "./modules/institutions/services.routes.js";
@@ -8,6 +10,8 @@ import videoRoutes from "./modules/videos/videos.routes.js";
 import mapRoutes, { contactRouter } from "./modules/map/map.routes.js";
 import newsRoutes from "./modules/news/news.routes.js";
 import announcementRoutes from "./modules/announcements/announcements.routes.js";
+import { listContactMessages, updateContactMessageReviewStatus } from "./modules/map/map.controller.js";
+import { authenticateAdmin, requireRole } from "./middleware/auth.js";
 import { generalRateLimiter } from "./middleware/rate-limiter.js";
 
 const app = express();
@@ -57,9 +61,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json({ limit: "100kb" }));
-
-
 
 // ─── Global API Rate Limiter ──────────────────────────────────
 app.use("/api", generalRateLimiter);
@@ -73,6 +76,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/institutions", institutionRoutes);
 app.use("/api/services", serviceRoutes);
@@ -80,6 +84,23 @@ app.use("/api/videos", videoRoutes);
 app.use("/api/map", mapRoutes);
 app.use("/api/location", mapRoutes);
 app.use("/api/contact", contactRouter);
+
+// ─── Direct Messages Alias Router (/api/messages) ─────────────
+const messagesAliasRouter = express.Router();
+messagesAliasRouter.get(
+  "/",
+  authenticateAdmin,
+  requireRole("SUPER_ADMIN"),
+  listContactMessages
+);
+messagesAliasRouter.patch(
+  "/:id",
+  authenticateAdmin,
+  requireRole("SUPER_ADMIN"),
+  updateContactMessageReviewStatus
+);
+app.use("/api/messages", messagesAliasRouter);
+
 app.use("/api/news", newsRoutes);
 app.use("/api/announcements", announcementRoutes);
 

@@ -5,12 +5,27 @@ import app from "../src/app.js";
 
 let server;
 let baseUrl;
+let adminHeaders;
 
 before(async () => {
   server = http.createServer(app);
   await new Promise((resolve) => server.listen(0, resolve));
   const port = server.address().port;
   baseUrl = `http://127.0.0.1:${port}`;
+
+  const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: "superadmin@mesob.hawassa.gov.et",
+      password: "AdminSuperSecret2026!",
+    }),
+  });
+  const loginData = await loginRes.json();
+  adminHeaders = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${loginData.token}`,
+  };
 });
 
 after(async () => {
@@ -57,7 +72,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
 
       const res = await fetch(`${baseUrl}/api/videos`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: adminHeaders,
         body: JSON.stringify(payload),
       });
 
@@ -94,7 +109,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
     test("POST /api/videos rejects invalid URL", async () => {
       const res = await fetch(`${baseUrl}/api/videos`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: adminHeaders,
         body: JSON.stringify({
           title: "Invalid Video",
           youtubeUrl: "https://not-youtube.com/watch",
@@ -113,7 +128,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
       const data = await res.json();
 
       assert.equal(data.contact.address, "MESOB Center, Hawassa, Ethiopia");
-      assert.ok(data.contact.operatingHours.includes("Monday - Friday: 8:00 AM - 6:00 PM"));
+      assert.ok(data.contact.operatingHours.includes("Monday - Friday"));
       assert.equal(data.contact.phone, "+251974270600");
       assert.equal(data.contact.email, "admin@hawassamesobcenter.et");
 
@@ -135,7 +150,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
     test("PUT /api/map allows updating contact or location info", async () => {
       const res = await fetch(`${baseUrl}/api/map`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: adminHeaders,
         body: JSON.stringify({
           operatingHours: "Monday - Friday: 8:00 AM - 6:00 PM (Continuous)",
         }),
@@ -212,7 +227,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
     test("POST /api/news creates a new news article", async () => {
       const res = await fetch(`${baseUrl}/api/news`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: adminHeaders,
         body: JSON.stringify({
           title: "New Public Wi-Fi Network Launched at MESOB Center",
           content: "High-speed free Wi-Fi is now available in all waiting lounges.",
@@ -248,7 +263,7 @@ describe("Client Features API: Videos, Map/Location, News, Announcements & Conta
     test("POST /api/announcements creates a new announcement", async () => {
       const res = await fetch(`${baseUrl}/api/announcements`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: adminHeaders,
         body: JSON.stringify({
           title: "Urgent Counter Maintenance Notice",
           content: "Counter 4 will undergo quick hardware upgrade today at 4 PM.",

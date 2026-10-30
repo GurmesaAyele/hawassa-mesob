@@ -141,7 +141,15 @@ export async function listNews(req, res) {
       }
     }
 
-    return res.json(result.map((item) => transformNewsItem(item, locale, isRaw)));
+    const transformed = result.map((item) => transformNewsItem(item, locale, isRaw));
+    if (isRaw || req.query.includeInactive === "true") {
+      return res.json({
+        data: transformed,
+        meta: { total: result.length },
+      });
+    }
+
+    return res.json(transformed);
   } catch (error) {
     console.error("Error in listNews:", error);
     return res.status(500).json({ error: "Failed to retrieve news" });
@@ -272,3 +280,70 @@ export async function deleteNews(req, res) {
     return res.status(500).json({ error: "Failed to delete news article" });
   }
 }
+
+/**
+ * PUT /api/news/:id
+ * Updates an existing news article.
+ */
+export async function updateNews(req, res) {
+  try {
+    const { id } = req.params;
+    const { title, content, image, author, category, date } = req.body || {};
+
+    let existing = null;
+    try {
+      if (prisma && prisma.newsItem) {
+        existing = await prisma.newsItem.findUnique({ where: { id } });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (!existing) {
+      existing = inMemoryNews.find((item) => item.id === id);
+    }
+
+    if (!existing) {
+      return res.status(404).json({ error: `News article with ID '${id}' not found` });
+    }
+
+    const updatedData = {
+      ...(title !== undefined && { title: normalizeLocalizedField(title) }),
+      ...(content !== undefined && { content: normalizeLocalizedField(content) }),
+      ...(image !== undefined && { image: image ? String(image).trim() : null }),
+      ...(author !== undefined && { author: normalizeLocalizedField(author) }),
+      ...(category !== undefined && { category: normalizeLocalizedField(category) }),
+      ...(date !== undefined && { date: new Date(date) }),
+    };
+
+    let updated = null;
+    try {
+      if (prisma && prisma.newsItem) {
+        updated = await prisma.newsItem.update({
+          where: { id },
+          data: updatedData,
+        });
+      }
+    } catch (dbErr) {
+      console.warn("DB update newsItem failed, using in-memory:", dbErr.message);
+    }
+
+    const memoryIndex = inMemoryNews.findIndex((item) => item.id === id);
+    if (memoryIndex !== -1) {
+      inMemoryNews[memoryIndex] = { ...inMemoryNews[memoryIndex], ...updatedData };
+      if (!updated) updated = inMemoryNews[memoryIndex];
+    } else if (!updated) {
+      updated = { ...existing, ...updatedData };
+      inMemoryNews.unshift(updated);
+    }
+
+    return res.json({
+      message: "News article updated successfully",
+      article: transformNewsItem(updated || { ...existing, ...updatedData }, "en", true),
+    });
+  } catch (error) {
+    console.error("Error in updateNews:", error);
+    return res.status(500).json({ error: "Failed to update news article" });
+  }
+}
+
