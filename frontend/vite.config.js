@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://10.20.248.6:5000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })

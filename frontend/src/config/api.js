@@ -3,7 +3,9 @@
 
 export const API_CONFIG = {
   // Base URL for your backend API
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://10.20.248.6:5000',
+  // Empty string for development (uses Vite proxy)
+  // Set to 'http://10.20.248.6:5000' for production
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || '',
   
   // Endpoints
   ENDPOINTS: {
@@ -24,7 +26,7 @@ export const API_CONFIG = {
     ANNOUNCEMENTS: '/api/announcements',
     
     SERVICES: '/api/services',
-    CHATBOT: 'http://10.20.248.6:5000/api/chat', // Your existing chatbot API
+    CHATBOT: '/api/chat', // Chatbot API (now uses proxy)
     CONTACT: '/api/contact',
     MAP: '/api/map', // Map data endpoint
     
