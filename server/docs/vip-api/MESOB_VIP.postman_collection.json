@@ -1,0 +1,796 @@
+{
+	"info": {
+		"_postman_id": "b3c9f2e1-4567-4890-a123-mesobvip0001",
+		"name": "Hawassa MESOB Center — VIP Priority Walk-In API",
+		"description": "Complete Postman API Collection for manual verification and integration of the Hawassa MESOB Center VIP priority walk-in backend.\n\n### Variable Conventions:\n- `{{baseUrl}}`: Server base URL (Default: `http://localhost:5000`)\n- `{{serviceId}}`: First catalog service UUID (auto-populated by Request 1.1)\n- `{{secondServiceId}}`: Second catalog service UUID (auto-populated by Request 1.1)\n- `{{vipReference}}`: Submitted VIP application reference code (auto-populated by Request 2.1)\n- `{{citizenPhone}}`: Citizen phone used in application tracking (`0911223344`)\n- `{{reservationToken}}`: Active capacity reservation token (auto-populated by Request 5.1)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "serviceId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "secondServiceId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "vipTicketId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "vipReference",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "citizenPhone",
+			"value": "0911223344",
+			"type": "string"
+		},
+		{
+			"key": "reservationToken",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Service Catalog",
+			"item": [
+				{
+					"name": "1.1 List All Services (Flat Catalog with VIP Flags)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && Array.isArray(jsonData.data) && jsonData.data.length > 0) {",
+									"    pm.collectionVariables.set(\"serviceId\", jsonData.data[0].id);",
+									"    if (jsonData.data.length > 1) {",
+									"        pm.collectionVariables.set(\"secondServiceId\", jsonData.data[1].id);",
+									"    }",
+									"    console.log(\"Saved serviceId: \" + jsonData.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/services?locale=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en"
+								}
+							]
+						},
+						"description": "Fetches the full catalog of authentic services across Hawassa institutions. Automatically stores the first two service IDs to collection variables `serviceId` and `secondServiceId`."
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 List VIP-Eligible Services",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/services/vip?locale=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services",
+								"vip"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en"
+								}
+							]
+						},
+						"description": "Lists only services eligible for VIP expedited handling."
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Get VIP Service Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/services/vip/{{serviceId}}?locale=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services",
+								"vip",
+								"{{serviceId}}"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en"
+								}
+							]
+						},
+						"description": "Retrieves details for a single VIP service. Requires Request 1.1 to have populated `{{serviceId}}`."
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Get VIP Service Schedule Slots",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/services/{{serviceId}}/vip-slots",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services",
+								"{{serviceId}}",
+								"vip-slots"
+							]
+						},
+						"description": "Retrieves appointment schedule slots for a service."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. VIP Application",
+			"item": [
+				{
+					"name": "2.1 Submit Multi-Service VIP Application",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.data && jsonData.data.reference) {",
+									"    pm.collectionVariables.set(\"vipReference\", jsonData.data.reference);",
+									"    console.log(\"Saved vipReference: \" + jsonData.data.reference);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"citizenName\": \"Abebe Kebede\",\n  \"citizenPhone\": \"{{citizenPhone}}\",\n  \"purpose\": \"Urgent document authentication and legal dispatch\",\n  \"serviceIds\": [\"{{serviceId}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets"
+							]
+						},
+						"description": "Submits a VIP application. Total fee is flat 1,000 ETB. Stores `data.reference` to `{{vipReference}}`."
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Get Application by Reference",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/reference/{{vipReference}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"reference",
+								"{{vipReference}}"
+							]
+						},
+						"description": "Retrieves the submitted application by reference code with masked PII."
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 List VIP Applications (Filterable)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets?status=PENDING&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "PENDING"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lists applications with optional status, phone, or service filters."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Customer Tracking",
+			"item": [
+				{
+					"name": "3.1 Track VIP Application (Dual-Factor Reference + Phone)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reference\": \"{{vipReference}}\",\n  \"phone\": \"{{citizenPhone}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/track",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"track"
+							]
+						},
+						"description": "Secure citizen tracking endpoint. Requires matching reference and phone number. Rate-limited to 20 requests/minute."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Queue Availability",
+			"item": [
+				{
+					"name": "4.1 Check General Queue Availability",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/queue/availability",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"queue",
+								"availability"
+							]
+						},
+						"description": "Pre-payment visibility endpoint. Returns acceptingCustomers, placesRemaining, customersWaiting, customersServing, customersCompletedToday, isQueueProgressing, and honest empirical waiting time indicator."
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Check Queue Availability with Specific Ticket Reference",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/queue/availability?reference={{vipReference}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"queue",
+								"availability"
+							],
+							"query": [
+								{
+									"key": "reference",
+									"value": "{{vipReference}}"
+								}
+							]
+						},
+						"description": "Availability check with specific ticket reference. Reports ticketLookup, whether capacity is reserved, and explains that an application reference is not an active queue position."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Capacity Reservation",
+			"item": [
+				{
+					"name": "5.1 Reserve Capacity Before Payment (Body-Based)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.data && jsonData.data.reservationToken) {",
+									"    pm.collectionVariables.set(\"reservationToken\", jsonData.data.reservationToken);",
+									"    console.log(\"Saved reservationToken: \" + jsonData.data.reservationToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reference\": \"{{vipReference}}\",\n  \"phone\": \"{{citizenPhone}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/reserve-capacity",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"reserve-capacity"
+							]
+						},
+						"description": "Reserves daily VIP capacity for 15 minutes before payment. Protected by PostgreSQL advisory locks. Automatically stores `reservationToken`."
+					},
+					"response": []
+				},
+				{
+					"name": "5.2 Reserve Capacity (Dynamic Path Variant)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"{{citizenPhone}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/{{vipReference}}/reserve-capacity",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"{{vipReference}}",
+								"reserve-capacity"
+							]
+						},
+						"description": "Alternative dynamic path variant for reserving capacity."
+					},
+					"response": []
+				},
+				{
+					"name": "5.3 Release Capacity Reservation (Body-Based)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reference\": \"{{vipReference}}\",\n  \"phone\": \"{{citizenPhone}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/release-capacity",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"release-capacity"
+							]
+						},
+						"description": "Explicitly releases a held capacity reservation if checkout is abandoned or cancelled."
+					},
+					"response": []
+				},
+				{
+					"name": "5.4 Release Capacity (Dynamic Path Variant)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"{{citizenPhone}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/{{vipReference}}/release-capacity",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"{{vipReference}}",
+								"release-capacity"
+							]
+						},
+						"description": "Alternative dynamic path variant for releasing capacity."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Queue Position and Status",
+			"item": [
+				{
+					"name": "6.1 Real-Time Queue Monitor Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/queue/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"queue",
+								"status"
+							]
+						},
+						"description": "Public / staff monitor showing active queue state: waiting, serving, completed counts, currently serving ticket, and next in queue (without PII)."
+					},
+					"response": []
+				},
+				{
+					"name": "6.2 Customer Queue Position Lookup",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/{{vipReference}}/queue-position",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"{{vipReference}}",
+								"queue-position"
+							]
+						},
+						"description": "Customer checks real-time queue position. NOTE: For an un-checked-in ticket (PENDING/CONFIRMED), this returns an informative 400 explaining that in-person check-in is required."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Check-In / Enqueue",
+			"item": [
+				{
+					"name": "7.1 Physical Check-In / Enqueue Ticket",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/{{vipReference}}/enqueue",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"{{vipReference}}",
+								"enqueue"
+							]
+						},
+						"description": "In-person check-in endpoint executed when a citizen arrives at the center. PRECONDITION: Ticket must be in CONFIRMED status (payment verified). Calling this on a PENDING ticket returns 400 Bad Request."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "8. Error and Validation Checks",
+			"item": [
+				{
+					"name": "8.1 Reject Application with Missing Phone (400)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"citizenName\": \"Abebe Kebede\",\n  \"purpose\": \"Testing missing phone validation\",\n  \"serviceIds\": [\"{{serviceId}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets"
+							]
+						},
+						"description": "Verifies that submitting without `citizenPhone` fails with 400 Bad Request."
+					},
+					"response": []
+				},
+				{
+					"name": "8.2 Reject Application with Duplicate Service IDs (400)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"citizenName\": \"Abebe Kebede\",\n  \"citizenPhone\": \"0911223344\",\n  \"purpose\": \"Testing duplicate services validation\",\n  \"serviceIds\": [\"{{serviceId}}\", \"{{serviceId}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets"
+							]
+						},
+						"description": "Verifies that submitting duplicate service IDs fails with 400 Bad Request."
+					},
+					"response": []
+				},
+				{
+					"name": "8.3 Reject Application with Non-Existent Service ID (404)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"citizenName\": \"Abebe Kebede\",\n  \"citizenPhone\": \"0911223344\",\n  \"purpose\": \"Testing non-existent service ID\",\n  \"serviceIds\": [\"srv_non_existent_999999\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets"
+							]
+						},
+						"description": "Verifies that submitting invalid service catalog IDs fails with 404 Not Found."
+					},
+					"response": []
+				},
+				{
+					"name": "8.4 Reject Tracking with Mismatched Phone Number (404)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reference\": \"{{vipReference}}\",\n  \"phone\": \"0988776655\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/track",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"track"
+							]
+						},
+						"description": "Verifies consistent 404 response on phone mismatch to prevent enumeration attacks."
+					},
+					"response": []
+				},
+				{
+					"name": "8.5 Reject Physical Check-In on Unconfirmed Ticket (400)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/vip-tickets/{{vipReference}}/enqueue",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"vip-tickets",
+								"{{vipReference}}",
+								"enqueue"
+							]
+						},
+						"description": "Verifies that physical check-in is rejected if payment is not yet verified (status != CONFIRMED)."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

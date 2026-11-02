@@ -5,6 +5,7 @@ import logo from '../assets/images/messob_logo.png';
 const Navbar = () => {
   const [language, setLanguage] = useState('English');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [showAboutDropdown, setShowAboutDropdown] = useState(false);
   const [darkMode, setDarkMode] = useState(true); // Default to true (dark mode on)
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,7 +20,11 @@ const Navbar = () => {
       services: 'Services',
       contact: 'Contact',
       serviceCatalogue: 'Service Catalogue',
-      aboutUs: 'About Us'
+      about: 'About',
+      aboutUs: 'About Us',
+      news: 'News',
+      videos: 'Videos',
+      announcements: 'Announcements'
     },
     Amharic: {
       home: 'ዋና ገጽ',
@@ -27,15 +32,23 @@ const Navbar = () => {
       services: 'አገልግሎቶች',
       contact: 'ያግኙን',
       serviceCatalogue: 'የአገልግሎት ዝርዝር',
-      aboutUs: 'ስለ እኛ'
+      about: 'ስለ',
+      aboutUs: 'ስለ እኛ',
+      news: 'ዜና',
+      videos: 'ቪዲዮዎች',
+      announcements: 'ማስታወቂያዎች'
     },
     Sidama: {
-      home: 'Umi Qoola', // TODO: Add Sidama translation
+      home: 'Umi Qoola',
       institutions: 'Qoqqowu Biiro',
       services: 'Oosuwa',
       contact: 'Nooro Qoolate',
       serviceCatalogue: 'Oosuwa Diramate',
-      aboutUs: 'Nooni Mashala'
+      about: 'Nooni',
+      aboutUs: 'Nooni Mashala',
+      news: 'Odoosu',
+      videos: 'Videyo',
+      announcements: 'Beekisuute'
     }
   };
 
@@ -60,7 +73,24 @@ const Navbar = () => {
     if (savedLanguage) {
       setLanguage(savedLanguage);
     }
-  }, []);
+
+    // Close dropdowns when clicking outside
+    const handleClickOutside = (event) => {
+      // Close About dropdown
+      if (showAboutDropdown && !event.target.closest('.about-dropdown-container')) {
+        setShowAboutDropdown(false);
+      }
+      // Close Language dropdown
+      if (showLanguageDropdown && !event.target.closest('.language-dropdown-container')) {
+        setShowLanguageDropdown(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showAboutDropdown, showLanguageDropdown]);
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -105,10 +135,16 @@ const Navbar = () => {
   };
 
   const handleNavigation = (path) => {
-    navigate(path);
+    // Check if path has hash (e.g., /about-us#news)
+    if (path.includes('#')) {
+      const [pathname, hash] = path.split('#');
+      navigate(pathname, { state: { scrollTo: hash } });
+    } else {
+      navigate(path);
+    }
   };
 
-  // Handle scroll on navigation from other pages
+  // Handle scroll on navigation from other pages or with hash
   useEffect(() => {
     if (location.state?.scrollTo) {
       setTimeout(() => {
@@ -170,13 +206,80 @@ const Navbar = () => {
             {t.serviceCatalogue}
           </button>
           
-          {/* About Us - Navigate to separate page */}
-          <button 
-            onClick={() => handleNavigation('/about-us')}
-            className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
+          {/* About Dropdown */}
+          <div 
+            className="relative about-dropdown-container"
+            onMouseEnter={() => setShowAboutDropdown(true)}
+            onMouseLeave={() => setShowAboutDropdown(false)}
           >
-            {t.aboutUs}
-          </button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                // Toggle dropdown on click (for mobile/touch devices)
+                setShowAboutDropdown(!showAboutDropdown);
+              }}
+              className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap flex items-center gap-1"
+            >
+              {t.about}
+              <svg 
+                className={`w-4 h-4 transition-transform duration-200 ${showAboutDropdown ? 'rotate-180' : ''}`} 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path 
+                  fillRule="evenodd" 
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
+                  clipRule="evenodd" 
+                />
+              </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {showAboutDropdown && (
+              <div 
+                className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 animate-fadeIn"
+                onMouseEnter={() => setShowAboutDropdown(true)}
+                onMouseLeave={() => setShowAboutDropdown(false)}
+              >
+                <button
+                  onClick={() => {
+                    handleNavigation('/about-us');
+                    setShowAboutDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {t.aboutUs}
+                </button>
+                <button
+                  onClick={() => {
+                    handleNavigation('/about-us#news');
+                    setShowAboutDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {t.news}
+                </button>
+                <button
+                  onClick={() => {
+                    handleNavigation('/about-us#videos');
+                    setShowAboutDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {t.videos}
+                </button>
+                <button
+                  onClick={() => {
+                    handleNavigation('/about-us#announcements');
+                    setShowAboutDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {t.announcements}
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Dark Mode Toggle - Light in light mode, dark slate in dark mode, swap icons */}
           <button 
@@ -209,7 +312,7 @@ const Navbar = () => {
           </button>
 
           {/* Language Selector - Pill shape with globe emoji */}
-          <div className="relative ml-2">
+          <div className="relative ml-2 language-dropdown-container">
             <button 
               onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
               className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#374151] text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-500 hover:scale-105 font-medium transition-all duration-200 whitespace-nowrap shadow-sm hover:shadow-md"

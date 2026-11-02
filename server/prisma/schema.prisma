@@ -38,7 +38,8 @@ model Service {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   provider       ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  vip_tickets    vip_tickets[]
+  vip_tickets         vip_tickets[]
+  vip_ticket_services vip_ticket_services[]
 
   @@map("services")
 }
@@ -147,28 +148,90 @@ model users {
 }
 
 model vip_tickets {
-  id           String       @id
-  ticketCode   String       @unique
-  citizenName  String
-  citizenPhone String
-  serviceId    String?
-  purpose      String?
-  slotDate     DateTime
-  slotTime     String
-  status       TicketStatus @default(PENDING)
-  paymentRef   String?
-  qrCodeUrl    String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime
-  services     Service?     @relation(fields: [serviceId], references: [id])
+  id              String                @id
+  ticketCode      String                @unique
+  citizenName     String
+  citizenPhone    String
+  serviceId       String?
+  purpose         String?
+  slotDate        DateTime?
+  slotTime        String?
+  status          TicketStatus          @default(PENDING)
+  paymentRef      String?
+  qrCodeUrl       String?
+  vipFee          Float                 @default(1000)
+  currency        String                @default("ETB")
+  /// Walk-in queue fields
+  queueNumber     Int?                  /// Daily sequential queue number (e.g. VIP-001 for the day)
+  queueDate       DateTime?             /// The date (start of day) this ticket is queued for
+  checkedInAt     DateTime?             /// When the customer joined the active queue
+  servedAt        DateTime?             /// When the customer started being served
+  completedAt     DateTime?             /// When service was completed
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime
+  services        Service?              @relation(fields: [serviceId], references: [id])
+  ticket_services vip_ticket_services[]
+  payments        vip_payments[]
 
   @@index([slotDate, slotTime])
   @@index([ticketCode])
+  @@index([queueDate, status])
+}
+
+model vip_ticket_services {
+  id        String      @id
+  ticketId  String
+  serviceId String
+  createdAt DateTime    @default(now())
+  ticket    vip_tickets @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  service   Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, serviceId])
+  @@index([ticketId])
+  @@index([serviceId])
+  @@map("vip_ticket_services")
+}
+
+model vip_payments {
+  id                String        @id
+  ticketId          String
+  provider          String        @default("CHAPA")
+  merchantReference String        @unique
+  providerReference String?       @unique
+  idempotencyKey    String        @unique
+  amount            Int           /// Integer minor units (e.g. 100,000 cents = 1,000 ETB)
+  currency          String        @default("ETB")
+  status            PaymentStatus @default(PENDING)
+  checkoutUrl       String?
+  paymentMethod     String?
+  errorMessage      String?
+  metadata          Json?
+  verifiedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime
+
+  ticket            vip_tickets   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([merchantReference])
+  @@index([providerReference])
+  @@index([status])
+  @@map("vip_payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+  EXPIRED
 }
 
 enum TicketStatus {
   PENDING
   CONFIRMED
+  QUEUED
+  SERVING
   USED
   CANCELLED
 }
@@ -178,3 +241,4 @@ enum UserRole {
   OPERATOR
   SUPER_ADMIN
 }
+

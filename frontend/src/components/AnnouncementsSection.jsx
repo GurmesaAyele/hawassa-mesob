@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react';
-import { API_CONFIG, apiCall } from '../config/api';
+import { API_CONFIG, apiCall, getLocaleCode } from '../config/api';
 
-const AnnouncementsSection = () => {
+const AnnouncementsSection = ({ language = 'English' }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchAnnouncements();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   const fetchAnnouncements = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await apiCall(API_CONFIG.ENDPOINTS.ANNOUNCEMENTS);
+      const locale = getLocaleCode(language);
+      const data = await apiCall(`${API_CONFIG.ENDPOINTS.ANNOUNCEMENTS}?locale=${locale}`);
       setAnnouncements(data);
       setLoading(false);
     } catch (error) {
@@ -34,6 +35,33 @@ const AnnouncementsSection = () => {
       day: 'numeric' 
     });
   };
+
+  // Translations
+  const translations = {
+    English: {
+      title: 'Announcements',
+      subtitle: 'Important announcements and updates from Hawassa Mesob',
+      error: 'Failed to load announcements.',
+      tryAgain: 'Try Again',
+      noAnnouncements: 'No announcements available at the moment.'
+    },
+    Amharic: {
+      title: 'ማስታወቂያዎች',
+      subtitle: 'ከሐዋሳ መሶብ አስፈላጊ ማስታወቂያዎች እና ዝመናዎች',
+      error: 'ማስታወቂያዎችን መጫን አልተቻለም።',
+      tryAgain: 'እንደገና ሞክር',
+      noAnnouncements: 'በአሁኑ ጊዜ ምንም ማስታወቂያዎች የሉም።'
+    },
+    Sidama: {
+      title: 'Beeksisa',
+      subtitle: 'Hawassa Mesob irraa beeksisaafi fooyya\'inoota barbaachisoo',
+      error: 'Beeksisa fe\'uun hin milkoofne.',
+      tryAgain: 'Irra Deebi\'ii Yaali',
+      noAnnouncements: 'Yeroo ammaa kana beeksisa hin jiru.'
+    }
+  };
+
+  const t = translations[language] || translations.English;
 
   // Get priority badge styling
   const getPriorityBadge = (priority) => {
@@ -84,10 +112,10 @@ const AnnouncementsSection = () => {
     <section id="announcements" className="min-h-screen bg-white dark:bg-[#172231] py-20 px-6 transition-colors">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          Announcements
+          {t.title}
         </h2>
         <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-          Important announcements and updates from Hawassa Mesob
+          {t.subtitle}
         </p>
 
         {/* Loading State */}
@@ -100,12 +128,12 @@ const AnnouncementsSection = () => {
         {/* Error State */}
         {error && (
           <div className="bg-red-500/10 border border-red-500 rounded-lg p-6 text-center">
-            <p className="text-red-600 dark:text-red-400 text-lg">{error}</p>
+            <p className="text-red-600 dark:text-red-400 text-lg">{t.error}</p>
             <button
               onClick={fetchAnnouncements}
               className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
             >
-              Try Again
+              {t.tryAgain}
             </button>
           </div>
         )}
@@ -116,7 +144,7 @@ const AnnouncementsSection = () => {
             <svg className="w-24 h-24 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
             </svg>
-            <p className="text-gray-500 dark:text-gray-400 text-xl">No announcements available at the moment.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xl">{t.noAnnouncements}</p>
           </div>
         )}
 

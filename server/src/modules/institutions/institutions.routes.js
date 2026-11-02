@@ -8,10 +8,16 @@ import {
   deleteInstitution,
   createService,
   listAllServices,
+  listVipServices,
   getService,
+  getVipService,
   updateService,
   deleteService,
 } from "./institutions.controller.js";
+import {
+  getVipServiceSlots,
+  getVipServiceDates,
+} from "./vip-schedule.controller.js";
 import { authenticateAdmin, requireRole } from "../../middleware/auth.js";
 import { handleLogoUpload } from "../../middleware/upload.js";
 
@@ -71,7 +77,11 @@ router.post(
 
 export {
   listAllServices,
+  listVipServices,
   getService,
+  getVipService,
+  getVipServiceSlots,
+  getVipServiceDates,
   createService,
   updateService,
   deleteService,

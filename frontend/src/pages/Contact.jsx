@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { submitMessage } from '../services/messageApi';
 import { getContactDetails } from '../services/siteSettingsApi';
+import Chatbot from '../components/Chatbot';
+import VIPTicket from '../components/VIPTicket';
+import Footer from '../components/Footer';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -64,6 +67,8 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
       <Navbar />
+      <Chatbot />
+      <VIPTicket />
       
       <div className="pt-24 px-4 pb-12">
         <div className="max-w-6xl mx-auto">
@@ -219,6 +224,9 @@ const Contact = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
