@@ -1099,16 +1099,18 @@ const Home = () => {
             </button>
           </div>
 
-          {/* Motion Section */}
-          <div className="mt-16 w-full h-[200px] flex items-center justify-center overflow-hidden">
-            <iframe 
-              src="/src/assets/mesob-motion-loop (1).html"
-              className="w-full h-full border-0"
-              title="Mesob Motion"
-              style={{ pointerEvents: 'none' }}
-            />
-          </div>
+          {/* Motion Section - Full Width Edge to Edge */}
         </div>
+      </section>
+
+      {/* Motion Section - Outside container for full width */}
+      <section className="w-full h-[300px] bg-[#0F172A] flex items-center justify-center overflow-hidden">
+        <iframe 
+          src="/src/assets/mesob-motion-loop (1).html"
+          className="w-full h-full border-0"
+          title="Mesob Motion"
+          style={{ pointerEvents: 'none' }}
+        />
       </section>
 
       {/* Contact Section */}
