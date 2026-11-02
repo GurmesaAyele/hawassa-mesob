@@ -840,6 +840,16 @@ const Home = () => {
               </svg>
             </button>
           </div>
+
+          {/* Motion Section */}
+          <div className="mt-16 w-full h-[200px] flex items-center justify-center overflow-hidden">
+            <iframe 
+              src="/src/assets/mesob-motion-loop (1).html"
+              className="w-full h-full border-0"
+              title="Mesob Motion"
+              style={{ pointerEvents: 'none' }}
+            />
+          </div>
         </div>
       </section>
 
