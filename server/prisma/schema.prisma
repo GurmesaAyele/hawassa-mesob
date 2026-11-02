@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ServiceProvider {
+  id              String    @id @default(cuid())
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  name            Json
+  code            String    @unique
+  icon            String?
+  floorRoomNumber String?
+  contactPhone    String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  services        Service[]
+
+  @@map("service_providers")
+}
+
+model Service {
+  id             String          @id @default(cuid())
+  providerId     String
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  title          Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  description    Json
+  /// JSONB: [{ en: "...", am: "...", sid: "..." }, ...]
+  requirements   Json            @default("[]")
+  estimatedFee   Float?
+  processingDays Int?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  provider       ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  vip_tickets         vip_tickets[]
+  vip_ticket_services vip_ticket_services[]
+
+  @@map("services")
+}
+
+model ChatbotFAQ {
+  id               String   @id @default(cuid())
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  question         Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  answer           Json
+  category         String   @default("general")
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  quickButtonLabel Json?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("chatbot_faqs")
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  title       Json
+  youtubeUrl  String
+  embedUrl    String
+  thumbnail   String
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  description Json
+  duration    String
+  views       String
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  author      Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  category    Json
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("videos")
+}
+
+model comments {
+  id           String   @id
+  name         String
+  phoneOrEmail String?
+  message      String
+  category     String   @default("general")
+  isReviewed   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model NewsItem {
+  id        String   @id @default(cuid())
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  title     Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  content   Json
+  image     String?
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  author    Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  category  Json
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("news_items")
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  title     Json
+  /// JSONB: { en: "...", am: "...", sid: "..." }
+  content   Json
+  priority  String   @default("medium") // high, medium, low
+  type      String   @default("update") // update, alert, event, general
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("announcements")
+}
+
+model MapLocation {
+  id        String   @id @default("default-location")
+  contact   Json
+  map       Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("map_locations")
+}
+
+model users {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?
+  name         String
+  passwordHash String
+  role         UserRole @default(CITIZEN)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model vip_tickets {
+  id              String                @id
+  ticketCode      String                @unique
+  citizenName     String
+  citizenPhone    String
+  serviceId       String?
+  purpose         String?
+  slotDate        DateTime?
+  slotTime        String?
+  status          TicketStatus          @default(PENDING)
+  paymentRef      String?
+  qrCodeUrl       String?
+  vipFee          Float                 @default(1000)
+  currency        String                @default("ETB")
+  /// Walk-in queue fields
+  queueNumber     Int?                  /// Daily sequential queue number (e.g. VIP-001 for the day)
+  queueDate       DateTime?             /// The date (start of day) this ticket is queued for
+  checkedInAt     DateTime?             /// When the customer joined the active queue
+  servedAt        DateTime?             /// When the customer started being served
+  completedAt     DateTime?             /// When service was completed
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime
+  services        Service?              @relation(fields: [serviceId], references: [id])
+  ticket_services vip_ticket_services[]
+  payments        vip_payments[]
+
+  @@index([slotDate, slotTime])
+  @@index([ticketCode])
+  @@index([queueDate, status])
+}
+
+model vip_ticket_services {
+  id        String      @id
+  ticketId  String
+  serviceId String
+  createdAt DateTime    @default(now())
+  ticket    vip_tickets @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  service   Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, serviceId])
+  @@index([ticketId])
+  @@index([serviceId])
+  @@map("vip_ticket_services")
+}
+
+model vip_payments {
+  id                String        @id
+  ticketId          String
+  provider          String        @default("CHAPA")
+  merchantReference String        @unique
+  providerReference String?       @unique
+  idempotencyKey    String        @unique
+  amount            Int           /// Integer minor units (e.g. 100,000 cents = 1,000 ETB)
+  currency          String        @default("ETB")
+  status            PaymentStatus @default(PENDING)
+  checkoutUrl       String?
+  paymentMethod     String?
+  errorMessage      String?
+  metadata          Json?
+  verifiedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime
+
+  ticket            vip_tickets   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([merchantReference])
+  @@index([providerReference])
+  @@index([status])
+  @@map("vip_payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum TicketStatus {
+  PENDING
+  CONFIRMED
+  QUEUED
+  SERVING
+  USED
+  CANCELLED
+}
+
+enum UserRole {
+  CITIZEN
+  OPERATOR
+  SUPER_ADMIN
+}
+
