@@ -4,7 +4,8 @@ import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
 import InstitutionCard from '../components/InstitutionCard';
 import InstitutionModal from '../components/InstitutionModal';
-import { API_CONFIG, apiCall } from '../config/api';
+import Footer from '../components/Footer';
+import { API_CONFIG, apiCall, getLocaleCode } from '../config/api';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
 
@@ -29,6 +30,10 @@ import mesob17 from '../assets/images/mesob17.jfif';
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [allInstitutions, setAllInstitutions] = useState([]);
+  const [allServices, setAllServices] = useState([]);
   const [language, setLanguage] = useState('English');
   const [formData, setFormData] = useState({
     name: '',
@@ -48,6 +53,11 @@ const Home = () => {
   const [selectedInstitution, setSelectedInstitution] = useState(null);
   const itemsPerPage = 8; // 4 cards per row × 2 rows
 
+  // Map state
+  const [mapData, setMapData] = useState(null);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState(null);
+
   // Array of mesob images for slideshow
   const mesobImages = [
     mesob1, mesob2, mesob3, mesob4, mesob5, mesob6, mesob7, mesob8, mesob9,
@@ -66,21 +76,86 @@ const Home = () => {
   // Fetch institutions from API
   useEffect(() => {
     fetchInstitutions();
+  }, [language]); // Re-fetch when language changes
+
+  // Fetch map data from API
+  useEffect(() => {
+    fetchMapData();
   }, []);
+
+  const fetchMapData = async () => {
+    setMapLoading(true);
+    setMapError(null);
+
+    try {
+      const fullUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MAP}`;
+      console.log('=== MAP API CALL ===');
+      console.log('Fetching map data from:', fullUrl);
+      
+      const data = await apiCall(API_CONFIG.ENDPOINTS.MAP);
+      
+      console.log('Map API raw response:', data);
+      console.log('Map data type:', typeof data);
+      console.log('Map data keys:', data ? Object.keys(data) : 'null');
+      
+      // Handle different response structures
+      let processedData = data;
+      
+      // Check if data is wrapped in a "data" property
+      if (data && data.data) {
+        processedData = data.data;
+        console.log('Using data.data:', processedData);
+      }
+      
+      // Check if it's an array (take first item)
+      if (Array.isArray(processedData) && processedData.length > 0) {
+        processedData = processedData[0];
+        console.log('Using first array item:', processedData);
+      }
+      
+      console.log('Final processed map data:', processedData);
+      
+      setMapData(processedData);
+      setMapLoading(false);
+    } catch (error) {
+      console.error('Error fetching map data:', error);
+      console.error('Error details:', error.message, error.stack);
+      setMapError('Failed to load map data. Please try again later.');
+      setMapLoading(false);
+    }
+  };
 
   const fetchInstitutions = async () => {
     setInstitutionsLoading(true);
     setInstitutionsError(null);
 
     try {
+      const locale = getLocaleCode(language);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`;
+      console.log('Fetching institutions from:', url);
+      
       // Fetch institutions from your backend API
-      const data = await apiCall(API_CONFIG.ENDPOINTS.INSTITUTIONS);
-      setInstitutions(data);
+      const data = await apiCall(`${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`);
+      console.log('Institutions API response:', data);
+      
+      // Check if data is wrapped in a property like "data" or "institutions"
+      let institutionsArray = data;
+      if (data.data) {
+        institutionsArray = data.data;
+      } else if (data.institutions) {
+        institutionsArray = data.institutions;
+      }
+      
+      console.log('Institutions array:', institutionsArray);
+      
+      // Ensure data is an array
+      setInstitutions(Array.isArray(institutionsArray) ? institutionsArray : []);
       setInstitutionsLoading(false);
     } catch (error) {
       console.error('Error fetching institutions:', error);
       setInstitutionsError('Failed to load institutions. Please try again later.');
       setInstitutionsLoading(false);
+      setInstitutions([]); // Set empty array on error
     }
   };
 
@@ -102,8 +177,28 @@ const Home = () => {
     }
   };
 
-  const handleInstitutionClick = (institution) => {
-    setSelectedInstitution(institution);
+  const handleInstitutionClick = async (institution) => {
+    try {
+      // Fetch full institution details with services (Option A - Recommended)
+      const locale = getLocaleCode(language);
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}/${institution.id}?locale=${locale}`;
+      console.log('Fetching institution services from:', url);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Institution with services:', data);
+      
+      setSelectedInstitution(data);
+    } catch (err) {
+      console.error('Error fetching institution services:', err);
+      // Fallback to showing institution without services
+      setSelectedInstitution(institution);
+    }
   };
 
   const handleCloseModal = () => {
@@ -241,6 +336,55 @@ const Home = () => {
     }
   };
 
+  // Map section translations
+  const mapTranslations = {
+    English: {
+      title: 'Find Us',
+      subtitle: 'Visit our location in Hawassa City',
+      loading: 'Loading map data...',
+      errorTitle: 'Failed to load map data',
+      emptyMessage: 'Location information will be available soon',
+      addressLabel: 'Address',
+      phoneLabel: 'Phone',
+      emailLabel: 'Email',
+      workingHoursLabel: 'Working Hours',
+      websiteBtn: 'Visit Website',
+      plusCode: 'Plus Code',
+      review: 'review',
+      reviews: 'reviews'
+    },
+    Amharic: {
+      title: 'አድራሻችን',
+      subtitle: 'በሀዋሳ ከተማ ያለንበትን ቦታ ይጎብኙ',
+      loading: 'የካርታ መረጃ በመጫን ላይ...',
+      errorTitle: 'የካርታ መረጃ መጫን አልተቻለም',
+      emptyMessage: 'የአድራሻ መረጃ በቅርቡ ይገኛል',
+      addressLabel: 'አድራሻ',
+      phoneLabel: 'ስልክ',
+      emailLabel: 'ኢሜይል',
+      workingHoursLabel: 'የስራ ሰዓታት',
+      websiteBtn: 'ድህረ ገጽ ይጎብኙ',
+      plusCode: 'ፕላስ ኮድ',
+      review: 'ግምገማ',
+      reviews: 'ግምገማዎች'
+    },
+    Sidama: {
+      title: 'Nooni Qoola',
+      subtitle: 'Hawassa Katama noo borrote hul',
+      loading: 'Kaarta maalla laaqqa gede...',
+      errorTitle: 'Kaarta maalla laaqqa dandaabokki',
+      emptyMessage: 'Borro maalla ammayyo hegerannooti',
+      addressLabel: 'Borro',
+      phoneLabel: 'Bilbila',
+      emailLabel: 'Imeela',
+      workingHoursLabel: 'Oso Saatto',
+      websiteBtn: 'Websaayiti Hul',
+      plusCode: 'Palaasi Koodi',
+      review: 'yaanni',
+      reviews: 'yaannoha'
+    }
+  };
+
   useEffect(() => {
     // Check for saved language preference
     const savedLanguage = localStorage.getItem('language');
@@ -260,9 +404,159 @@ const Home = () => {
     };
   }, []);
 
-  const handleSearch = (e) => {
+  // Fetch all institutions and services for search
+  useEffect(() => {
+    const fetchSearchData = async () => {
+      try {
+        const locale = getLocaleCode(language);
+        
+        console.log('=== FETCHING SEARCH DATA ===');
+        console.log('Locale:', locale);
+        console.log('Institutions URL:', `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`);
+        console.log('Services URL:', `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SERVICES}?locale=${locale}`);
+        
+        const [institutionsRes, servicesRes] = await Promise.all([
+          fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`),
+          fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SERVICES}?locale=${locale}`)
+        ]);
+
+        console.log('Institutions response status:', institutionsRes.status);
+        console.log('Services response status:', servicesRes.status);
+
+        if (institutionsRes.ok) {
+          const institutionsData = await institutionsRes.json();
+          console.log('✅ Fetched institutions RAW:', institutionsData);
+          
+          // Handle different response structures
+          let institutionsArray = [];
+          if (Array.isArray(institutionsData)) {
+            institutionsArray = institutionsData;
+          } else if (institutionsData.data && Array.isArray(institutionsData.data)) {
+            institutionsArray = institutionsData.data;
+          } else if (institutionsData.institutions && Array.isArray(institutionsData.institutions)) {
+            institutionsArray = institutionsData.institutions;
+          }
+          
+          console.log('Institutions array extracted:', institutionsArray);
+          console.log('Institutions count:', institutionsArray.length);
+          if (institutionsArray.length > 0) {
+            console.log('First institution sample:', institutionsArray[0]);
+          }
+          setAllInstitutions(institutionsArray);
+        } else {
+          console.error('❌ Institutions fetch failed:', institutionsRes.statusText);
+          setAllInstitutions([]);
+        }
+
+        if (servicesRes.ok) {
+          const servicesData = await servicesRes.json();
+          console.log('✅ Fetched services RAW:', servicesData);
+          
+          // Handle different response structures
+          let servicesArray = [];
+          if (Array.isArray(servicesData)) {
+            servicesArray = servicesData;
+          } else if (servicesData.data && Array.isArray(servicesData.data)) {
+            servicesArray = servicesData.data;
+          } else if (servicesData.services && Array.isArray(servicesData.services)) {
+            servicesArray = servicesData.services;
+          }
+          
+          console.log('Services array extracted:', servicesArray);
+          console.log('Services count:', servicesArray.length);
+          if (servicesArray.length > 0) {
+            console.log('First service sample:', servicesArray[0]);
+          }
+          setAllServices(servicesArray);
+        } else {
+          console.error('❌ Services fetch failed:', servicesRes.statusText);
+          setAllServices([]);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching search data:', error);
+        setAllInstitutions([]);
+        setAllServices([]);
+      }
+    };
+
+    fetchSearchData();
+  }, [language]);
+
+  // Real-time search as user types
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    console.log('=== SEARCHING ===');
+    console.log('Query:', query);
+    console.log('Total institutions available:', allInstitutions.length);
+    console.log('Total services available:', allServices.length);
+    
+    // Filter institutions
+    const filteredInstitutions = allInstitutions.filter(inst => {
+      const nameMatch = inst.name?.toLowerCase().includes(query);
+      const descMatch = inst.description?.toLowerCase().includes(query);
+      const codeMatch = inst.code?.toLowerCase().includes(query);
+      const match = nameMatch || descMatch || codeMatch;
+      if (match) {
+        console.log('✅ Institution match:', inst.name);
+      }
+      return match;
+    });
+
+    // Filter services - check multiple possible structures
+    let filteredServices = [];
+    
+    // First, try filtering from allServices array
+    if (allServices.length > 0) {
+      filteredServices = allServices.filter(service => {
+        const nameMatch = service.name?.toLowerCase().includes(query);
+        const titleMatch = service.title?.toLowerCase().includes(query);
+        const descMatch = service.description?.toLowerCase().includes(query);
+        const match = nameMatch || titleMatch || descMatch;
+        if (match) {
+          console.log('✅ Service match:', service.name || service.title);
+        }
+        return match;
+      });
+    }
+    
+    // Also search services nested inside institutions
+    allInstitutions.forEach(inst => {
+      if (inst.services && Array.isArray(inst.services)) {
+        inst.services.forEach(service => {
+          const nameMatch = service.name?.toLowerCase().includes(query);
+          const titleMatch = service.title?.toLowerCase().includes(query);
+          const descMatch = service.description?.toLowerCase().includes(query);
+          if (nameMatch || titleMatch || descMatch) {
+            // Add institution info to service
+            const serviceWithInst = {
+              ...service,
+              institutionName: inst.name
+            };
+            filteredServices.push(serviceWithInst);
+            console.log('✅ Nested service match:', service.name || service.title, 'from', inst.name);
+          }
+        });
+      }
+    });
+
+    console.log('Filtered institutions count:', filteredInstitutions.length);
+    console.log('Filtered services count:', filteredServices.length);
+
+    setSearchResults({
+      institutions: filteredInstitutions,
+      services: filteredServices,
+      query: searchQuery
+    });
+  }, [searchQuery, allInstitutions, allServices]);
+
+  const handleSearch = async (e) => {
     e.preventDefault();
-    console.log('Searching for:', searchQuery);
+    // Search is now handled by useEffect above
   };
 
   const handleFormSubmit = (e) => {
@@ -297,6 +591,7 @@ const Home = () => {
   const t = heroTranslations[language] || heroTranslations.English;
   const st = servicesTranslations[language] || servicesTranslations.English;
   const ct = contactTranslations[language] || contactTranslations.English;
+  const mt = mapTranslations[language] || mapTranslations.English;
 
   return (
     <div className="min-h-screen">
@@ -381,6 +676,110 @@ const Home = () => {
                   </svg>
                 </button>
               </div>
+
+              {/* Search Results Dropdown */}
+              {searchResults && (
+                <div className="mt-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-h-[500px] overflow-y-auto">
+                  {/* Close Button */}
+                  <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between z-10">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Search Results for "{searchResults.query}"
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setSearchResults(null);
+                        setSearchQuery('');
+                      }}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="p-4">
+                    {searchResults.error ? (
+                      <p className="text-red-500 dark:text-red-400 text-center py-4">{searchResults.error}</p>
+                    ) : (
+                      <>
+                        {/* Institutions Results */}
+                        {searchResults.institutions.length > 0 && (
+                          <div className="mb-6">
+                            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                              </svg>
+                              Organizations ({searchResults.institutions.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {searchResults.institutions.map((institution) => (
+                                <button
+                                  key={institution.id}
+                                  onClick={() => {
+                                    handleInstitutionClick(institution);
+                                    setSearchResults(null);
+                                    setSearchQuery('');
+                                  }}
+                                  className="w-full text-left p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                                >
+                                  <h5 className="font-semibold text-gray-900 dark:text-white mb-1">{institution.name}</h5>
+                                  {institution.description && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{institution.description}</p>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Services Results */}
+                        {searchResults.services.length > 0 && (
+                          <div>
+                            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              Services ({searchResults.services.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {searchResults.services.map((service, idx) => (
+                                <div
+                                  key={service.id || idx}
+                                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                                >
+                                  <h5 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                    {service.title || service.name}
+                                  </h5>
+                                  {service.institutionName && (
+                                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">
+                                      📍 {service.institutionName}
+                                    </p>
+                                  )}
+                                  {service.description && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{service.description}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* No Results */}
+                        {searchResults.institutions.length === 0 && searchResults.services.length === 0 && (
+                          <div className="text-center py-8">
+                            <svg className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-gray-500 dark:text-gray-400 text-lg">No results found for "{searchResults.query}"</p>
+                            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Try different keywords or check your spelling</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         </div>
@@ -479,27 +878,27 @@ const Home = () => {
       </section>
 
       {/* Institutions Section */}
-      <section id="institutions" className="min-h-screen bg-[#1a1f2e] py-20 px-6 transition-colors">
+      <section id="institutions" className="min-h-screen bg-gray-50 dark:bg-[#1a1f2e] py-20 px-6 transition-colors">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-white mb-6">Service Provider Institutions</h2>
-          <p className="text-center text-gray-300 mb-12 text-lg">
+          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Service Provider Institutions</h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
             Access services from these government institutions all in one place
           </p>
 
           {/* Loading State */}
           {institutionsLoading && (
             <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 dark:border-blue-400"></div>
             </div>
           )}
 
           {/* Error State */}
           {institutionsError && (
-            <div className="bg-red-500/10 border border-red-500 rounded-lg p-6 text-center">
-              <p className="text-red-400 text-lg">{institutionsError}</p>
+            <div className="bg-red-500/10 dark:bg-red-900/20 border border-red-500 dark:border-red-800 rounded-lg p-6 text-center">
+              <p className="text-red-600 dark:text-red-400 text-lg">{institutionsError}</p>
               <button
                 onClick={fetchInstitutions}
-                className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="mt-4 px-6 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
               >
                 Try Again
               </button>
@@ -509,7 +908,7 @@ const Home = () => {
           {/* Empty State */}
           {!institutionsLoading && !institutionsError && institutions.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-gray-400 text-xl">No institutions available at the moment.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xl">No institutions available at the moment.</p>
             </div>
           )}
 
@@ -521,23 +920,23 @@ const Home = () => {
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 0}
-                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all mr-4"
+                  className="p-3 rounded-full bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all mr-4"
                 >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
 
-                <span className="text-white text-sm">
+                <span className="text-gray-800 dark:text-white text-sm">
                   Page {currentPage + 1} of {totalPages}
                 </span>
 
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages - 1}
-                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all ml-4"
+                  className="p-3 rounded-full bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all ml-4"
                 >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -545,11 +944,12 @@ const Home = () => {
 
               {/* 4 Cards per Row Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {currentInstitutions.map((institution) => (
+                {currentInstitutions.map((institution, idx) => (
                   <InstitutionCard
                     key={institution.id}
                     institution={institution}
                     onClick={handleInstitutionClick}
+                    index={startIndex + idx}
                   />
                 ))}
               </div>
@@ -563,28 +963,154 @@ const Home = () => {
         <InstitutionModal
           institution={selectedInstitution}
           onClose={handleCloseModal}
+          language={language}
         />
       )}
 
       {/* Services Section */}
-      <section id="services" className="min-h-screen bg-white dark:bg-gray-800 py-20 px-6 transition-colors">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Government Services</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Access essential government services quickly and efficiently through our digital platform
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Service Cards */}
-            {['Birth Certificate', 'ID Card', 'Business License', 'Building Permit', 'Health Services', 'Education', 'Utilities', 'Transportation'].map((service, index) => (
-              <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 hover:bg-[#3d5a99] hover:text-white transition-all group cursor-pointer">
-                <div className="text-4xl mb-4">📋</div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white group-hover:text-white">{service}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-white/90">Quick access to {service.toLowerCase()} services</p>
-              </div>
-            ))}
+      <section id="services" className="min-h-screen py-20 px-6 transition-colors bg-[#0F172A] dark:bg-[#0F172A]">
+        <div className="max-w-[1800px] mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-white mb-4">Our Services</h2>
+            <p className="text-gray-400 text-lg">Access essential government services quickly and efficiently</p>
           </div>
+
+          {/* Services Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {/* Service Card 1: Local Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-teal-500/10 border-[3px] border-[#14B8A6] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#14B8A6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Local Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Access local government services and permits</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 2: International Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-cyan-500/10 border-[3px] border-[#06B6D4] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#06B6D4] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">International Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">International permits and documentation services</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 3: Document Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-blue-500/10 border-[3px] border-[#3B82F6] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#3B82F6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Document Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Official document processing and certification</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 4: Tax Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-amber-500/10 border-[3px] border-[#F59E0B] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#F59E0B] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Tax Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Tax filing, payment, and consultation services</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 5: Housing Permits */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-purple-500/10 border-[3px] border-[#A78BFA] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#A78BFA] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Housing Permits</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Building permits and housing documentation</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 6: Vehicle Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-sky-500/10 border-[3px] border-[#38BDF8] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#38BDF8] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 4h8m-4 4h4m4-12V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-5-5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354v2.292m0 0a4 4 0 11-1.172 7.828M12 6.646V10m0 0v8m0-8h5" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Vehicle Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Vehicle registration, licensing, and permits</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 7: Education Services - Row 3 Left (Centered) */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-1 lg:col-end-2 lg:mx-auto lg:w-full lg:max-w-[400px]">
+              <div className="w-16 h-16 rounded-xl bg-indigo-500/10 border-[3px] border-[#6366F1] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#6366F1] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                  <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Education Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Educational certificates and academic services</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 8: Health Services - Row 3 Right (Centered) */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-2 lg:col-end-3 lg:mx-auto lg:w-full lg:max-w-[400px]">
+              <div className="w-16 h-16 rounded-xl bg-red-500/10 border-[3px] border-[#EF4444] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#EF4444] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Health Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Health permits, medical certificates, and services</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+          </div>
+
+          {/* View All Services Button */}
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={() => {
+                const servicesCatalogue = document.getElementById('service-catalogue');
+                if (servicesCatalogue) {
+                  servicesCatalogue.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  // Navigate to Services page if section doesn't exist
+                  window.location.href = '/services';
+                }
+              }}
+              className="bg-[#24469A] hover:bg-[#1e3a7f] text-white px-8 py-4 rounded-xl text-[18px] font-semibold transition-all duration-300 hover:shadow-xl flex items-center gap-2 min-w-[260px] min-h-[60px] justify-center"
+            >
+              View All Services
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Motion Section - Full Width Edge to Edge */}
         </div>
+      </section>
+
+      {/* Motion Section - Outside container for full width */}
+      <section className="w-full h-[300px] bg-[#0F172A] flex items-center justify-center overflow-hidden">
+        <iframe 
+          src="/src/assets/mesob-motion-loop (1).html"
+          className="w-full h-full border-0"
+          title="Mesob Motion"
+          style={{ pointerEvents: 'none' }}
+        />
       </section>
 
       {/* Contact Section */}
@@ -720,61 +1246,193 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Service Catalogue Section */}
-      <section id="service-catalogue" className="min-h-screen bg-white dark:bg-gray-800 py-20 px-6 transition-colors">
+      {/* Map Section - Always show section, but conditionally show content */}
+      <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Service Catalogue</h2>
+          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
+            {mt.title}
+          </h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Browse our comprehensive service catalogue
+            {mt.subtitle}
           </p>
-          <div className="text-center">
-            <p className="text-gray-600 dark:text-gray-300 text-lg">Service catalogue content coming soon...</p>
-          </div>
+
+          {/* Loading State */}
+          {mapLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#2563EB]"></div>
+              <p className="ml-4 text-gray-600 dark:text-gray-400 text-lg">{mt.loading}</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {!mapLoading && mapError && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-6 py-4 rounded-lg mb-4">
+                <p className="font-semibold">{mt.errorTitle}</p>
+                <p className="text-sm mt-1">{mapError}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Empty/No Data State */}
+          {!mapLoading && !mapError && !mapData && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <svg className="w-24 h-24 text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">{mt.emptyMessage}</p>
+            </div>
+          )}
+
+          {/* Map Content - Only show if data exists */}
+          {!mapLoading && !mapError && mapData && (
+            <div className="bg-gray-50 dark:bg-[#1F2A39] rounded-2xl p-8 border border-gray-200 dark:border-[#2D3748] shadow-lg">
+              {/* Map Embed - Only show if embedUrl exists */}
+              {mapData?.map?.embedUrl && (
+                <div className="w-full h-[500px] rounded-xl overflow-hidden mb-6 bg-gray-200 dark:bg-gray-700">
+                  <iframe
+                    src={mapData.map.embedUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Hawassa Mesob Location"
+                  ></iframe>
+                </div>
+              )}
+
+              {/* Location Details - Only show if contact data exists */}
+              {mapData?.contact && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  {/* Address - Only show if exists */}
+                  {mapData.contact.address && (
+                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                      <div className="flex-shrink-0 w-12 h-12 bg-[#2563EB] rounded-full flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.addressLabel}</h3>
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {mapData.contact.address}
+                        </p>
+                        {mapData.contact.plusCode && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {mt.plusCode}: {mapData.contact.plusCode}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Phone - Only show if exists */}
+                  {(mapData.contact.phoneDisplay || mapData.contact.phone) && (
+                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                      <div className="flex-shrink-0 w-12 h-12 bg-[#10B981] rounded-full flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.phoneLabel}</h3>
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {mapData.contact.phoneDisplay || mapData.contact.phone}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Email - Only show if exists */}
+                  {mapData.contact.email && (
+                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                      <div className="flex-shrink-0 w-12 h-12 bg-[#F59E0B] rounded-full flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.emailLabel}</h3>
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {mapData.contact.email}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Website Link - Only show if exists */}
+              {mapData?.contact?.website && (
+                <div className="mb-6">
+                  <a
+                    href={mapData.contact.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#2563EB] hover:bg-[#1e3470] text-white rounded-xl transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    {mt.websiteBtn}
+                  </a>
+                </div>
+              )}
+
+              {/* Working Hours - Only show if exists */}
+              {(mapData?.contact?.officeHoursDetailed || mapData?.contact?.operatingHours) && (
+                <div className="p-6 bg-white dark:bg-[#0F1419] rounded-xl mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {mt.workingHoursLabel}
+                  </h3>
+                  
+                  {mapData.contact.officeHoursDetailed ? (
+                    <div className="space-y-2">
+                      {mapData.contact.officeHoursDetailed.map((schedule, index) => (
+                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                          <span className="text-gray-700 dark:text-gray-300 font-medium">{schedule.days}</span>
+                          <span className="text-gray-600 dark:text-gray-400">{schedule.hours}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {mapData.contact.operatingHours}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Map Rating - Only show if exists */}
+              {mapData?.map?.rating && (
+                <div className="p-4 bg-white dark:bg-[#0F1419] rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-gray-900 dark:text-white">{mapData.map.rating.score}</span>
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <svg key={i} className={`w-5 h-5 ${i < mapData.map.rating.score ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <span className="text-gray-600 dark:text-gray-400 text-sm">({mapData.map.rating.reviewsCount} {mapData.map.rating.reviewsCount === 1 ? mt.review : mt.reviews})</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#1a1d2e] text-white py-12 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          {/* Logo and Tagline */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="mb-4">
-              <img 
-                src={footerLogo} 
-                alt="Hawassa Mesob Logo" 
-                className="h-24 w-auto mx-auto"
-              />
-            </div>
-            
-            <h4 className="text-2xl font-semibold mb-2 text-white">All Services, One Place</h4>
-            <p className="text-gray-300 mb-6">Serving Hawassa City Residents</p>
-            
-            {/* Social Media Icons */}
-            <div className="flex gap-4 mb-8">
-              <a href="#" className="bg-[#2d3142] hover:bg-[#3d4152] p-3 rounded transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-              </a>
-              <a href="#" className="bg-[#2d3142] hover:bg-[#3d4152] p-3 rounded transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-              </a>
-              <a href="#" className="bg-[#2d3142] hover:bg-[#3d4152] p-3 rounded transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
-                </svg>
-              </a>
-            </div>
-          </div>
-          
-          {/* Copyright */}
-          <div className="border-t border-gray-700 pt-6">
-            <p className="text-gray-400 text-sm">Copyright © 2026 H-MESOB Center. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

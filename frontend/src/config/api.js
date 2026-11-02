@@ -3,8 +3,7 @@
 
 export const API_CONFIG = {
   // Base URL for your backend API
-  // TODO: Update this with your actual backend URL
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://10.20.248.6:5000',
   
   // Endpoints
   ENDPOINTS: {
@@ -25,10 +24,28 @@ export const API_CONFIG = {
     ANNOUNCEMENTS: '/api/announcements',
     
     SERVICES: '/api/services',
-    CHATBOT: 'http://10.20.254.64:5000/api/chat', // Your existing chatbot API
-    VIP_TICKET: '/api/vip-ticket',
-    CONTACT: '/api/contact'
+    CHATBOT: 'http://10.20.248.6:5000/api/chat', // Your existing chatbot API
+    CONTACT: '/api/contact',
+    MAP: '/api/map', // Map data endpoint
+    
+    // VIP Ticket Endpoints (per API integration guide)
+    VIP_TICKETS: '/api/vip-tickets',
+    VIP_PAYMENTS_INITIALIZE: '/api/vip-payments/initialize',
+    VIP_PAYMENTS_STATUS: '/api/vip-payments/status',
+    VIP_PAYMENTS_VERIFY: '/api/vip-payments/verify',
+    VIP_TICKETS_REFERENCE: '/api/vip-tickets/reference',
+    VIP_TICKETS_ENQUEUE: '/api/vip-tickets'
   }
+};
+
+// Language to locale code mapping
+export const getLocaleCode = (language) => {
+  const localeMap = {
+    'English': 'en',
+    'Amharic': 'am',
+    'Sidama': 'sid'
+  };
+  return localeMap[language] || 'en';
 };
 
 // Helper function to build full URL
@@ -40,7 +57,7 @@ export const buildUrl = (endpoint) => {
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 
-// Helper function for API calls with error handling
+// Helper function for API calls with error handling and locale support
 export const apiCall = async (endpoint, options = {}) => {
   try {
     const url = buildUrl(endpoint);
