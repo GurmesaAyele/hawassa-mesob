@@ -1,0 +1,48 @@
+.institution-logo-frame {
+  display: grid;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.institution-logo-frame--table {
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+  border: 1px solid #e1e8e3;
+  border-radius: 8px;
+}
+
+.institution-logo-frame--preview {
+  width: 64px;
+  height: 64px;
+  padding: 6px;
+  border: 1px solid #e1e8e3;
+}
+
+.institution-logo-frame--card {
+  width: 76px;
+  height: 76px;
+  margin-bottom: 14px;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.institution-logo-frame--modal {
+  width: 96px;
+  height: 96px;
+  padding: 9px;
+}
+
+.institution-logo-frame .institution-logo-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+}

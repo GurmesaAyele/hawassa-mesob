@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, FIELD_CLASS, Field, LocalizedFields, Status } from "./AdminFields";
 import { assetUrl } from "../../services/adminApi";
+import "../InstitutionLogo.css";
 
 const emptyInstitution = () => ({
   name: { en: "", am: "", sid: "" },
@@ -137,8 +138,8 @@ function InstitutionForm({ initial, saving, onCancel, onSave }) {
 
       <Field label="Logo" error={errors.logo}>
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border border-stone-200 bg-stone-50">
-            {logoPreview ? <img src={logoPreview} alt="Institution logo preview" className="h-full w-full object-contain" /> : <span className="text-xs text-stone-400">No logo</span>}
+          <div className="institution-logo-frame institution-logo-frame--preview flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border border-stone-200 bg-stone-50">
+            {logoPreview ? <img src={logoPreview} alt="Institution logo preview" className="institution-logo-image h-full w-full object-contain" /> : <span className="text-xs text-stone-400">No logo</span>}
           </div>
           <input type="file" accept="image/png,image/jpeg,image/webp" onChange={selectLogo} className="block min-w-0 flex-1 text-sm text-stone-600 file:mr-3 file:border-0 file:bg-emerald-800 file:px-3 file:py-2 file:font-semibold file:text-white hover:file:bg-emerald-900" />
           <span className="w-full text-xs text-stone-500">PNG, JPG, or WebP; maximum 2 MB.</span>
@@ -159,7 +160,7 @@ function InstitutionForm({ initial, saving, onCancel, onSave }) {
   );
 }
 
-export default function InstitutionManager({ items, loading, saving, onSave, onDeactivate, onDelete }) {
+export default function InstitutionManager({ items, loading, saving, readOnly = false, onSave, onDeactivate, onDelete }) {
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
   const formRef = useRef(null);
@@ -178,8 +179,9 @@ export default function InstitutionManager({ items, loading, saving, onSave, onD
           <p className="text-sm text-stone-500">Organization directory</p>
           <h2 id="institutions-heading" className="text-2xl font-bold text-stone-900">Institutions <span className="ml-1 text-base font-medium text-stone-500">{items.length}</span></h2>
         </div>
-        {!editing && <Button onClick={() => setEditing({})}>Add institution</Button>}
+        {!readOnly && !editing && <Button onClick={() => setEditing({})}>Add institution</Button>}
       </div>
+      {readOnly && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">You have read-only access. A super admin can manage institutions.</p>}
 
       {editing && (
         <div ref={formRef} className="scroll-mt-4">
@@ -187,59 +189,83 @@ export default function InstitutionManager({ items, loading, saving, onSave, onD
         </div>
       )}
 
-      <label className="mb-3 block max-w-sm">
+      <label className="admin-table-search">
         <span className="sr-only">Search institutions</span>
         <input className={FIELD_CLASS} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name, code, location, phone" />
       </label>
 
-      <div className="admin-table-wrap overflow-x-auto border border-stone-200 bg-white">
-        <table className="w-full min-w-[1050px] text-left text-sm">
-          <thead className="border-b border-stone-200 bg-stone-100 text-xs uppercase tracking-wide text-stone-600">
+      <div className="admin-table-wrap admin-institution-table-wrap">
+        <table className="admin-institution-table">
+          <colgroup>
+            <col className="admin-institution-table__name" />
+            <col className="admin-institution-table__email" />
+            <col className="admin-institution-table__location" />
+            <col className="admin-institution-table__contact" />
+            <col className="admin-institution-table__services" />
+            <col className="admin-institution-table__status" />
+            <col className="admin-institution-table__actions" />
+          </colgroup>
+          <thead>
             <tr>
-              <th className="px-4 py-3">Institution</th>
-              <th className="px-4 py-3">Email / website</th>
-              <th className="px-4 py-3">Location</th>
-              <th className="px-4 py-3">Contact</th>
-              <th className="px-4 py-3">Services</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th scope="col">Institution</th>
+              <th scope="col">Email / website</th>
+              <th scope="col">Location</th>
+              <th scope="col">Contact</th>
+              <th scope="col" className="admin-institution-table__center">Services</th>
+              <th scope="col">Status</th>
+              <th scope="col" className="admin-institution-table__actions-heading">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
+          <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-stone-500">Loading institutions...</td></tr>
+              <tr><td colSpan={7} className="admin-table-state">Loading institutions...</td></tr>
             ) : rows.map((item) => (
               <tr key={item.id}>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-stone-200 bg-stone-50 text-sm font-bold text-emerald-800">
-                      {item.logoUrl ? <img src={assetUrl(item.logoUrl)} alt="" className="h-full w-full object-contain" /> : item.name?.en?.[0] || "?"}
+                <td>
+                  <div className="admin-institution-identity">
+                    <div className="institution-logo-frame institution-logo-frame--table flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-stone-200 bg-stone-50 text-sm font-bold text-emerald-800">
+                      {item.logoUrl ? <img src={assetUrl(item.logoUrl)} alt="" className="institution-logo-image h-full w-full object-contain" /> : item.name?.en?.[0] || "?"}
                     </div>
-                    <div>
-                      <p className="font-semibold text-stone-900">{item.name?.en || "Unnamed institution"}</p>
-                      <p className="mt-0.5 text-xs text-stone-500">{item.code}</p>
+                    <div className="admin-institution-identity__text">
+                      <p className="admin-institution-identity__name">{item.name?.en || "Unnamed institution"}</p>
+                      <p className="admin-institution-identity__code">{item.code || "No institution code"}</p>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-stone-600">
-                  <p>{item.email || "-"}</p>
-                  {item.website && <a className="text-emerald-800 underline" href={item.website} target="_blank" rel="noreferrer">Website</a>}
+                <td>
+                  <div className="admin-institution-contact">
+                    {item.email
+                      ? <a href={`mailto:${item.email}`}>{item.email}</a>
+                      : <span className="admin-table-muted">No email</span>}
+                    {item.website
+                      ? <a href={item.website} target="_blank" rel="noreferrer">Visit website <span aria-hidden="true">↗</span></a>
+                      : <span className="admin-table-muted">No website</span>}
+                  </div>
                 </td>
-                <td className="px-4 py-3 text-stone-600">{item.floorRoomNumber || "-"}</td>
-                <td className="px-4 py-3 text-stone-600">{item.contactPhone || "-"}</td>
-                <td className="px-4 py-3 text-stone-600">{item.serviceCount ?? 0}</td>
-                <td className="px-4 py-3"><Status active={item.isActive} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
-                    {item.isActive && <Button variant="danger" disabled={saving} onClick={() => onDeactivate(item)}>Deactivate</Button>}
-                    <Button variant="danger" disabled={saving} onClick={() => onDelete(item)}>Delete</Button>
+                <td>{item.floorRoomNumber || <span className="admin-table-muted">Not set</span>}</td>
+                <td>{item.contactPhone || <span className="admin-table-muted">Not set</span>}</td>
+                <td className="admin-institution-table__center">
+                  <span className="admin-service-count">{item.serviceCount ?? 0}</span>
+                </td>
+                <td><Status active={item.isActive} /></td>
+                <td className="admin-institution-table__actions-cell">
+                  <div className="admin-institution-actions">
+                    {!readOnly && (
+                      <>
+                        <Button className="admin-table-action" variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
+                        {item.isActive && <Button className="admin-table-action admin-table-action--warning" variant="danger" disabled={saving} onClick={() => onDeactivate(item)}>Deactivate</Button>}
+                        <Button className="admin-table-action admin-table-action--danger" variant="danger" disabled={saving} onClick={() => onDelete(item)}>Delete</Button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
             ))}
             {!loading && rows.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-stone-500">{items.length ? "No institutions match this search." : "No institutions found."}</td></tr>
+              <tr><td colSpan={7} className="admin-table-state">
+                <strong>{items.length ? "No matching institutions" : "No institutions yet"}</strong>
+                <span>{items.length ? "Try another name, code, location, or phone number." : "Create an institution to start building the directory."}</span>
+              </td></tr>
             )}
           </tbody>
         </table>

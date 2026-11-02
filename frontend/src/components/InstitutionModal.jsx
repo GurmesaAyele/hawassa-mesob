@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import "./InstitutionLogo.css";
 
 const InstitutionModal = ({ institution, onClose }) => {
   const [expandedService, setExpandedService] = useState(null);
@@ -32,11 +33,11 @@ const InstitutionModal = ({ institution, onClose }) => {
           {/* Institution Logo */}
           {institution.logo && (
             <div className="flex justify-center mb-6">
-              <div className="w-32 h-32 bg-white rounded-xl flex items-center justify-center p-4">
+              <div className="institution-logo-frame institution-logo-frame--modal w-32 h-32 bg-white rounded-xl flex items-center justify-center p-4">
                 <img
                   src={institution.logo}
                   alt={institution.name}
-                  className="w-full h-full object-contain"
+                  className="institution-logo-image w-full h-full object-contain"
                 />
               </div>
             </div>

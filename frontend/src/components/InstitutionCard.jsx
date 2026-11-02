@@ -1,3 +1,5 @@
+import "./InstitutionLogo.css";
+
 const InstitutionCard = ({ institution, onClick }) => {
   // Fallback colors if institution doesn't have one
   const cardColors = [
@@ -21,12 +23,12 @@ const InstitutionCard = ({ institution, onClick }) => {
       className={`${getCardColor(institution.id)} rounded-2xl p-6 shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center text-center h-64 w-full`}
     >
       {/* Institution Logo */}
-      <div className="w-24 h-24 mb-4 bg-white rounded-xl flex items-center justify-center p-3">
+      <div className="institution-logo-frame institution-logo-frame--card w-24 h-24 mb-4 bg-white rounded-xl flex items-center justify-center p-3">
         {institution.logo ? (
           <img
             src={institution.logo}
             alt={institution.name}
-            className="w-full h-full object-contain"
+            className="institution-logo-image w-full h-full object-contain"
             onError={(e) => {
               // Fallback if image fails to load
               e.target.style.display = 'none';
