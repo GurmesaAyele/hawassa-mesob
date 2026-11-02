@@ -117,7 +117,7 @@ function ServiceForm({ initial, institutions, saving, onCancel, onSave }) {
   );
 }
 
-export default function ServiceManager({ items, institutions, loading, saving, onSave, onDeactivate }) {
+export default function ServiceManager({ items, institutions, loading, saving, readOnly = false, onSave, onDeactivate }) {
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
   const rows = useMemo(() => items.filter((item) => [
@@ -131,52 +131,67 @@ export default function ServiceManager({ items, institutions, loading, saving, o
           <p className="text-sm text-stone-500">Catalog management</p>
           <h2 id="services-heading" className="text-2xl font-bold text-stone-900">Services <span className="ml-1 text-base font-medium text-stone-500">{items.length}</span></h2>
         </div>
-        {!editing && <Button disabled={!institutions.length} onClick={() => setEditing({})}>Add service</Button>}
+        {!readOnly && !editing && <Button disabled={!institutions.length} onClick={() => setEditing({})}>Add service</Button>}
       </div>
+      {readOnly && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">You have read-only access. A super admin can manage services.</p>}
 
       {editing && <ServiceForm key={editing.id || "new"} initial={editing.id ? editing : null} institutions={institutions} saving={saving} onCancel={() => setEditing(null)} onSave={onSave} />}
       {!institutions.length && !loading && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">Create an institution before adding services.</p>}
 
-      <label className="mb-3 block max-w-sm">
+      <label className="admin-table-search">
         <span className="sr-only">Search services</span>
         <input className={FIELD_CLASS} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by service or institution" />
       </label>
 
-      <div className="admin-table-wrap overflow-x-auto border border-stone-200 bg-white">
-        <table className="w-full min-w-[850px] text-left text-sm">
-          <thead className="border-b border-stone-200 bg-stone-100 text-xs uppercase tracking-wide text-stone-600">
+      <div className="admin-table-wrap admin-service-table-wrap">
+        <table className="admin-service-table">
+          <colgroup>
+            <col className="admin-service-table__service" />
+            <col className="admin-service-table__institution" />
+            <col className="admin-service-table__fee" />
+            <col className="admin-service-table__processing" />
+            <col className="admin-service-table__status" />
+            <col className="admin-service-table__actions" />
+          </colgroup>
+          <thead>
             <tr>
-              <th className="px-4 py-3">Service</th>
-              <th className="px-4 py-3">Institution</th>
-              <th className="px-4 py-3">Fee</th>
-              <th className="px-4 py-3">Processing</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th scope="col">Service</th>
+              <th scope="col">Institution</th>
+              <th scope="col">Fee</th>
+              <th scope="col">Processing</th>
+              <th scope="col">Status</th>
+              <th scope="col" className="admin-service-table__actions-heading">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
+          <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-stone-500">Loading services...</td></tr>
+              <tr><td colSpan={6} className="admin-table-state">Loading services...</td></tr>
             ) : rows.map((item) => (
               <tr key={item.id}>
-                <td className="px-4 py-3">
-                  <p className="font-semibold text-stone-900">{item.title?.en || "Untitled service"}</p>
-                  <p className="mt-0.5 max-w-sm truncate text-xs text-stone-500">{item.description?.en}</p>
+                <td>
+                  <div className="admin-service-identity">
+                    <p className="admin-service-identity__name">{item.title?.en || "Untitled service"}</p>
+                    {item.description?.en && <p className="admin-service-identity__description">{item.description.en}</p>}
+                  </div>
                 </td>
-                <td className="px-4 py-3 text-stone-600">{item.institution?.name?.en || item.institution?.code || "-"}</td>
-                <td className="px-4 py-3 text-stone-600">{item.estimatedFee == null ? "-" : `${item.estimatedFee} ETB`}</td>
-                <td className="px-4 py-3 text-stone-600">{item.processingDays == null ? "-" : `${item.processingDays} days`}</td>
-                <td className="px-4 py-3"><Status active={item.isActive} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
-                    {item.isActive && <Button variant="danger" disabled={saving} onClick={() => onDeactivate(item)}>Deactivate</Button>}
+                <td>{item.institution?.name?.en || item.institution?.code || <span className="admin-table-muted">Not set</span>}</td>
+                <td className="admin-service-table__number">{item.estimatedFee == null ? <span className="admin-table-muted">Not set</span> : `${item.estimatedFee} ETB`}</td>
+                <td className="admin-service-table__number">{item.processingDays == null ? <span className="admin-table-muted">Not set</span> : `${item.processingDays} days`}</td>
+                <td><Status active={item.isActive} /></td>
+                <td className="admin-service-table__actions-cell">
+                  <div className="admin-service-actions">
+                    {!readOnly && (
+                      <>
+                        <Button className="admin-table-action" variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
+                        {item.isActive && <Button className="admin-table-action admin-table-action--warning" variant="danger" disabled={saving} onClick={() => onDeactivate(item)}>Deactivate</Button>}
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
             ))}
             {!loading && rows.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-stone-500">{items.length ? "No services match this search." : "No services found."}</td></tr>
+              <tr><td colSpan={6} className="admin-table-state">{items.length ? "No services match this search." : "No services found."}</td></tr>
             )}
           </tbody>
         </table>
