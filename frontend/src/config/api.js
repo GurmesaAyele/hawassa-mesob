@@ -25,9 +25,16 @@ export const API_CONFIG = {
     
     SERVICES: '/api/services',
     CHATBOT: 'http://10.20.248.6:5000/api/chat', // Your existing chatbot API
-    VIP_TICKET: '/api/vip-ticket',
     CONTACT: '/api/contact',
-    MAP: '/api/map' // Map data endpoint
+    MAP: '/api/map', // Map data endpoint
+    
+    // VIP Ticket Endpoints (per API integration guide)
+    VIP_TICKETS: '/api/vip-tickets',
+    VIP_PAYMENTS_INITIALIZE: '/api/vip-payments/initialize',
+    VIP_PAYMENTS_STATUS: '/api/vip-payments/status',
+    VIP_PAYMENTS_VERIFY: '/api/vip-payments/verify',
+    VIP_TICKETS_REFERENCE: '/api/vip-tickets/reference',
+    VIP_TICKETS_ENQUEUE: '/api/vip-tickets'
   }
 };
 
