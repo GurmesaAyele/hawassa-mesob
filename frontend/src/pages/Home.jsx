@@ -30,6 +30,8 @@ import mesob17 from '../assets/images/mesob17.jfif';
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [language, setLanguage] = useState('English');
   const [formData, setFormData] = useState({
     name: '',
@@ -400,9 +402,63 @@ const Home = () => {
     };
   }, []);
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
+    
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      return;
+    }
+
+    setIsSearching(true);
     console.log('Searching for:', searchQuery);
+
+    try {
+      const locale = getLocaleCode(language);
+      
+      // Search both institutions and services
+      const [institutionsResponse, servicesResponse] = await Promise.all([
+        fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`),
+        fetch(`${API_CONFIG.BASE_URL}/api/services?locale=${locale}`)
+      ]);
+
+      const institutions = institutionsResponse.ok ? await institutionsResponse.json() : [];
+      const services = servicesResponse.ok ? await servicesResponse.json() : [];
+
+      // Filter results based on search query
+      const query = searchQuery.toLowerCase();
+      
+      const filteredInstitutions = Array.isArray(institutions) 
+        ? institutions.filter(inst => 
+            inst.name?.toLowerCase().includes(query) || 
+            inst.description?.toLowerCase().includes(query)
+          )
+        : [];
+
+      const filteredServices = Array.isArray(services)
+        ? services.filter(service => 
+            service.name?.toLowerCase().includes(query) || 
+            service.title?.toLowerCase().includes(query) ||
+            service.description?.toLowerCase().includes(query)
+          )
+        : [];
+
+      setSearchResults({
+        institutions: filteredInstitutions,
+        services: filteredServices,
+        query: searchQuery
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults({
+        institutions: [],
+        services: [],
+        query: searchQuery,
+        error: 'Failed to search. Please try again.'
+      });
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleFormSubmit = (e) => {
@@ -505,23 +561,127 @@ const Home = () => {
                 />
                 <button
                   type="submit"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full hover:bg-white/10 transition-colors"
+                  disabled={isSearching}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50"
                 >
-                  <svg 
-                    className="w-6 h-6 text-white" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2.5} 
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-                    />
-                  </svg>
+                  {isSearching ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                  ) : (
+                    <svg 
+                      className="w-6 h-6 text-white" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2.5} 
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                      />
+                    </svg>
+                  )}
                 </button>
               </div>
+
+              {/* Search Results Dropdown */}
+              {searchResults && (
+                <div className="mt-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-h-[500px] overflow-y-auto">
+                  {/* Close Button */}
+                  <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between z-10">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Search Results for "{searchResults.query}"
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setSearchResults(null);
+                        setSearchQuery('');
+                      }}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="p-4">
+                    {searchResults.error ? (
+                      <p className="text-red-500 dark:text-red-400 text-center py-4">{searchResults.error}</p>
+                    ) : (
+                      <>
+                        {/* Institutions Results */}
+                        {searchResults.institutions.length > 0 && (
+                          <div className="mb-6">
+                            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                              </svg>
+                              Organizations ({searchResults.institutions.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {searchResults.institutions.map((institution) => (
+                                <button
+                                  key={institution.id}
+                                  onClick={() => {
+                                    handleInstitutionClick(institution);
+                                    setSearchResults(null);
+                                    setSearchQuery('');
+                                  }}
+                                  className="w-full text-left p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                                >
+                                  <h5 className="font-semibold text-gray-900 dark:text-white mb-1">{institution.name}</h5>
+                                  {institution.description && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{institution.description}</p>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Services Results */}
+                        {searchResults.services.length > 0 && (
+                          <div>
+                            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              Services ({searchResults.services.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {searchResults.services.map((service) => (
+                                <div
+                                  key={service.id}
+                                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                                >
+                                  <h5 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                    {service.title || service.name}
+                                  </h5>
+                                  {service.description && (
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{service.description}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* No Results */}
+                        {searchResults.institutions.length === 0 && searchResults.services.length === 0 && (
+                          <div className="text-center py-8">
+                            <svg className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-gray-500 dark:text-gray-400 text-lg">No results found for "{searchResults.query}"</p>
+                            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Try different keywords or check your spelling</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         </div>
