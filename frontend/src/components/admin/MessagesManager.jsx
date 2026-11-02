@@ -14,7 +14,7 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-export default function MessagesManager({ items, loading, unreadCount, onToggleRead }) {
+export default function MessagesManager({ items, loading, unreadCount, error = "", onToggleRead }) {
   const [filter, setFilter] = useState("all");
   const visibleItems = useMemo(
     () => items.filter((item) => filter === "all" || item.isReviewed === (filter === "read")),
@@ -50,7 +50,9 @@ export default function MessagesManager({ items, loading, unreadCount, onToggleR
         ))}
       </div>
 
-      {loading ? (
+      {error ? (
+        <p role="alert" className="border-l-4 border-red-600 bg-red-50 px-4 py-4 text-sm text-red-900">{error}</p>
+      ) : loading ? (
         <p className="border border-stone-200 bg-white px-4 py-8 text-center text-stone-500">Loading messages...</p>
       ) : visibleItems.length === 0 ? (
         <p className="border border-stone-200 bg-white px-4 py-8 text-center text-stone-500">
