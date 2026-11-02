@@ -410,24 +410,72 @@ const Home = () => {
       try {
         const locale = getLocaleCode(language);
         
+        console.log('=== FETCHING SEARCH DATA ===');
+        console.log('Locale:', locale);
+        console.log('Institutions URL:', `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`);
+        console.log('Services URL:', `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SERVICES}?locale=${locale}`);
+        
         const [institutionsRes, servicesRes] = await Promise.all([
           fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`),
-          fetch(`${API_CONFIG.BASE_URL}/api/services?locale=${locale}`)
+          fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SERVICES}?locale=${locale}`)
         ]);
+
+        console.log('Institutions response status:', institutionsRes.status);
+        console.log('Services response status:', servicesRes.status);
 
         if (institutionsRes.ok) {
           const institutionsData = await institutionsRes.json();
-          console.log('Fetched institutions for search:', institutionsData);
-          setAllInstitutions(Array.isArray(institutionsData) ? institutionsData : []);
+          console.log('✅ Fetched institutions RAW:', institutionsData);
+          
+          // Handle different response structures
+          let institutionsArray = [];
+          if (Array.isArray(institutionsData)) {
+            institutionsArray = institutionsData;
+          } else if (institutionsData.data && Array.isArray(institutionsData.data)) {
+            institutionsArray = institutionsData.data;
+          } else if (institutionsData.institutions && Array.isArray(institutionsData.institutions)) {
+            institutionsArray = institutionsData.institutions;
+          }
+          
+          console.log('Institutions array extracted:', institutionsArray);
+          console.log('Institutions count:', institutionsArray.length);
+          if (institutionsArray.length > 0) {
+            console.log('First institution sample:', institutionsArray[0]);
+          }
+          setAllInstitutions(institutionsArray);
+        } else {
+          console.error('❌ Institutions fetch failed:', institutionsRes.statusText);
+          setAllInstitutions([]);
         }
 
         if (servicesRes.ok) {
           const servicesData = await servicesRes.json();
-          console.log('Fetched services for search:', servicesData);
-          setAllServices(Array.isArray(servicesData) ? servicesData : []);
+          console.log('✅ Fetched services RAW:', servicesData);
+          
+          // Handle different response structures
+          let servicesArray = [];
+          if (Array.isArray(servicesData)) {
+            servicesArray = servicesData;
+          } else if (servicesData.data && Array.isArray(servicesData.data)) {
+            servicesArray = servicesData.data;
+          } else if (servicesData.services && Array.isArray(servicesData.services)) {
+            servicesArray = servicesData.services;
+          }
+          
+          console.log('Services array extracted:', servicesArray);
+          console.log('Services count:', servicesArray.length);
+          if (servicesArray.length > 0) {
+            console.log('First service sample:', servicesArray[0]);
+          }
+          setAllServices(servicesArray);
+        } else {
+          console.error('❌ Services fetch failed:', servicesRes.statusText);
+          setAllServices([]);
         }
       } catch (error) {
-        console.error('Error fetching search data:', error);
+        console.error('❌ Error fetching search data:', error);
+        setAllInstitutions([]);
+        setAllServices([]);
       }
     };
 
@@ -442,28 +490,62 @@ const Home = () => {
     }
 
     const query = searchQuery.toLowerCase().trim();
-    console.log('Searching for:', query);
-    console.log('Available institutions:', allInstitutions);
-    console.log('Available services:', allServices);
+    console.log('=== SEARCHING ===');
+    console.log('Query:', query);
+    console.log('Total institutions available:', allInstitutions.length);
+    console.log('Total services available:', allServices.length);
     
     // Filter institutions
     const filteredInstitutions = allInstitutions.filter(inst => {
       const nameMatch = inst.name?.toLowerCase().includes(query);
       const descMatch = inst.description?.toLowerCase().includes(query);
       const codeMatch = inst.code?.toLowerCase().includes(query);
-      return nameMatch || descMatch || codeMatch;
+      const match = nameMatch || descMatch || codeMatch;
+      if (match) {
+        console.log('✅ Institution match:', inst.name);
+      }
+      return match;
     });
 
-    // Filter services
-    const filteredServices = allServices.filter(service => {
-      const nameMatch = service.name?.toLowerCase().includes(query);
-      const titleMatch = service.title?.toLowerCase().includes(query);
-      const descMatch = service.description?.toLowerCase().includes(query);
-      return nameMatch || titleMatch || descMatch;
+    // Filter services - check multiple possible structures
+    let filteredServices = [];
+    
+    // First, try filtering from allServices array
+    if (allServices.length > 0) {
+      filteredServices = allServices.filter(service => {
+        const nameMatch = service.name?.toLowerCase().includes(query);
+        const titleMatch = service.title?.toLowerCase().includes(query);
+        const descMatch = service.description?.toLowerCase().includes(query);
+        const match = nameMatch || titleMatch || descMatch;
+        if (match) {
+          console.log('✅ Service match:', service.name || service.title);
+        }
+        return match;
+      });
+    }
+    
+    // Also search services nested inside institutions
+    allInstitutions.forEach(inst => {
+      if (inst.services && Array.isArray(inst.services)) {
+        inst.services.forEach(service => {
+          const nameMatch = service.name?.toLowerCase().includes(query);
+          const titleMatch = service.title?.toLowerCase().includes(query);
+          const descMatch = service.description?.toLowerCase().includes(query);
+          if (nameMatch || titleMatch || descMatch) {
+            // Add institution info to service
+            const serviceWithInst = {
+              ...service,
+              institutionName: inst.name
+            };
+            filteredServices.push(serviceWithInst);
+            console.log('✅ Nested service match:', service.name || service.title, 'from', inst.name);
+          }
+        });
+      }
     });
 
-    console.log('Filtered institutions:', filteredInstitutions);
-    console.log('Filtered services:', filteredServices);
+    console.log('Filtered institutions count:', filteredInstitutions.length);
+    console.log('Filtered services count:', filteredServices.length);
 
     setSearchResults({
       institutions: filteredInstitutions,
@@ -661,14 +743,19 @@ const Home = () => {
                               Services ({searchResults.services.length})
                             </h4>
                             <div className="space-y-2">
-                              {searchResults.services.map((service) => (
+                              {searchResults.services.map((service, idx) => (
                                 <div
-                                  key={service.id}
+                                  key={service.id || idx}
                                   className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                                 >
                                   <h5 className="font-semibold text-gray-900 dark:text-white mb-1">
                                     {service.title || service.name}
                                   </h5>
+                                  {service.institutionName && (
+                                    <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">
+                                      📍 {service.institutionName}
+                                    </p>
+                                  )}
                                   {service.description && (
                                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{service.description}</p>
                                   )}
