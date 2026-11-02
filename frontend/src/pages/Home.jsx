@@ -710,22 +710,135 @@ const Home = () => {
       )}
 
       {/* Services Section */}
-      <section id="services" className="min-h-screen bg-white dark:bg-gray-800 py-20 px-6 transition-colors">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Government Services</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            Access essential government services quickly and efficiently through our digital platform
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Service Cards */}
-            {['Birth Certificate', 'ID Card', 'Business License', 'Building Permit', 'Health Services', 'Education', 'Utilities', 'Transportation'].map((service, index) => (
-              <div key={index} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 hover:bg-[#3d5a99] hover:text-white transition-all group cursor-pointer">
-                <div className="text-4xl mb-4">📋</div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white group-hover:text-white">{service}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-white/90">Quick access to {service.toLowerCase()} services</p>
+      <section id="services" className="min-h-screen py-20 px-6 transition-colors bg-[#0F172A] dark:bg-[#0F172A]">
+        <div className="max-w-[1800px] mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-white mb-4">Our Services</h2>
+            <p className="text-gray-400 text-lg">Access essential government services quickly and efficiently</p>
+          </div>
+
+          {/* Services Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {/* Service Card 1: Local Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-teal-500/10 border-[3px] border-[#14B8A6] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#14B8A6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
               </div>
-            ))}
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Local Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Access local government services and permits</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 2: International Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-cyan-500/10 border-[3px] border-[#06B6D4] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#06B6D4] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">International Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">International permits and documentation services</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 3: Document Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-blue-500/10 border-[3px] border-[#3B82F6] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#3B82F6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Document Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Official document processing and certification</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 4: Tax Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-amber-500/10 border-[3px] border-[#F59E0B] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#F59E0B] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Tax Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Tax filing, payment, and consultation services</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 5: Housing Permits */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-purple-500/10 border-[3px] border-[#A78BFA] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#A78BFA] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Housing Permits</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Building permits and housing documentation</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 6: Vehicle Services */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+              <div className="w-16 h-16 rounded-xl bg-sky-500/10 border-[3px] border-[#38BDF8] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#38BDF8] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 4h8m-4 4h4m4-12V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-5-5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354v2.292m0 0a4 4 0 11-1.172 7.828M12 6.646V10m0 0v8m0-8h5" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Vehicle Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Vehicle registration, licensing, and permits</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 7: Education Services - Row 3 Left (Centered) */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-1 lg:col-end-2 lg:mx-auto lg:w-full lg:max-w-[400px]">
+              <div className="w-16 h-16 rounded-xl bg-indigo-500/10 border-[3px] border-[#6366F1] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#6366F1] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                  <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Education Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Educational certificates and academic services</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+
+            {/* Service Card 8: Health Services - Row 3 Right (Centered) */}
+            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-2 lg:col-end-3 lg:mx-auto lg:w-full lg:max-w-[400px]">
+              <div className="w-16 h-16 rounded-xl bg-red-500/10 border-[3px] border-[#EF4444] flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-[#EF4444] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Health Services</h3>
+              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Health permits, medical certificates, and services</p>
+              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+            </div>
+          </div>
+
+          {/* View All Services Button */}
+          <div className="flex justify-center mt-12">
+            <button
+              onClick={() => {
+                const servicesCatalogue = document.getElementById('service-catalogue');
+                if (servicesCatalogue) {
+                  servicesCatalogue.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  // Navigate to Services page if section doesn't exist
+                  window.location.href = '/services';
+                }
+              }}
+              className="bg-[#24469A] hover:bg-[#1e3a7f] text-white px-8 py-4 rounded-xl text-[18px] font-semibold transition-all duration-300 hover:shadow-xl flex items-center gap-2 min-w-[260px] min-h-[60px] justify-center"
+            >
+              View All Services
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
         </div>
       </section>
