@@ -1,5 +1,19 @@
+import "./InstitutionLogo.css";
 import { API_CONFIG } from '../config/api';
 import { useState, useEffect } from 'react';
+
+const InstitutionCard = ({ institution, onClick }) => {
+  // Fallback colors if institution doesn't have one
+  const cardColors = [
+    'bg-gradient-to-br from-green-800 to-green-900',
+    'bg-gradient-to-br from-amber-800 to-amber-900',
+    'bg-gradient-to-br from-purple-800 to-purple-900',
+    'bg-gradient-to-br from-red-800 to-red-900',
+    'bg-gradient-to-br from-blue-800 to-blue-900',
+    'bg-gradient-to-br from-emerald-800 to-emerald-900',
+    'bg-gradient-to-br from-orange-800 to-orange-900',
+    'bg-gradient-to-br from-indigo-800 to-indigo-900',
+
 
 const InstitutionCard = ({ institution, onClick, index }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -85,12 +99,12 @@ const InstitutionCard = ({ institution, onClick, index }) => {
       className="rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-600 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center text-center h-64 w-full"
     >
       {/* Institution Logo */}
-      <div className="w-24 h-24 mb-4 bg-white rounded-xl flex items-center justify-center p-3 shadow-sm">
-        {logoUrl ? (
+      <div className="institution-logo-frame institution-logo-frame--card w-24 h-24 mb-4 bg-white rounded-xl flex items-center justify-center p-3">
+        {institution.logo ? (
           <img
             src={logoUrl}
             alt={institution.name}
-            className="w-full h-full object-contain"
+            className="institution-logo-image w-full h-full object-contain"
             onError={(e) => {
               console.error('Logo failed to load:', logoUrl);
               // Fallback if image fails to load

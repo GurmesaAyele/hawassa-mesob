@@ -4,6 +4,7 @@ import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
 import InstitutionCard from '../components/InstitutionCard';
 import InstitutionModal from '../components/InstitutionModal';
+import { submitMessage } from '../services/messageApi';
 import Footer from '../components/Footer';
 import { API_CONFIG, apiCall, getLocaleCode } from '../config/api';
 import footerLogo from '../assets/images/hawasssa_mesob.png';
@@ -43,6 +44,8 @@ const Home = () => {
     verification: ''
   });
   const [verificationWord, setVerificationWord] = useState('');
+  const [messageSending, setMessageSending] = useState(false);
+  const [messageStatus, setMessageStatus] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Institutions state
@@ -137,6 +140,11 @@ const Home = () => {
       // Fetch institutions from your backend API
       const data = await apiCall(`${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`);
       console.log('Institutions API response:', data);
+      
+      const rows = Array.isArray(data) ? data : data?.data;
+      if (!Array.isArray(rows)) throw new Error('The API returned an unexpected institutions response.');
+      setInstitutions(rows);
+
       
       // Check if data is wrapped in a property like "data" or "institutions"
       let institutionsArray = data;
@@ -559,19 +567,30 @@ const Home = () => {
     // Search is now handled by useEffect above
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (formData.verification.toUpperCase() !== verificationWord) {
-      alert('Verification failed. Please enter the correct word.');
+      setMessageStatus({ type: 'error', text: 'Verification failed. Please enter the correct word.' });
       return;
     }
-    console.log('Form submitted:', formData);
-    alert('Message sent successfully!');
-    // Reset form
-    setFormData({ name: '', email: '', phone: '', message: '', verification: '' });
-    // Generate new verification word
-    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
-    setVerificationWord(words[Math.floor(Math.random() * words.length)]);
+    setMessageSending(true);
+    setMessageStatus(null);
+    try {
+      await submitMessage({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        message: formData.message,
+      });
+      setMessageStatus({ type: 'success', text: 'Message sent successfully.' });
+      setFormData({ name: '', email: '', phone: '', message: '', verification: '' });
+      const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
+      setVerificationWord(words[Math.floor(Math.random() * words.length)]);
+    } catch (error) {
+      setMessageStatus({ type: 'error', text: error.message });
+    } finally {
+      setMessageSending(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -1235,11 +1254,20 @@ const Home = () => {
               </div>
 
               {/* Submit Button */}
+              {messageStatus && (
+                <p
+                  role={messageStatus.type === 'error' ? 'alert' : 'status'}
+                  className={`rounded-lg px-4 py-3 text-sm ${messageStatus.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`}
+                >
+                  {messageStatus.text}
+                </p>
+              )}
               <button
                 type="submit"
+                disabled={messageSending}
                 className="w-full py-3.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#2563EB]"
               >
-                {ct.submitBtn}
+                {messageSending ? 'Sending...' : ct.submitBtn}
               </button>
             </form>
           </div>

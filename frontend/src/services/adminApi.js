@@ -6,13 +6,14 @@ export function assetUrl(path) {
   return /^https?:\/\//i.test(path) ? path : `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-async function request(path, options = {}) {
+async function request(path, options = {}, { dispatchUnauthorized = true } = {}) {
   let response;
 
   try {
     const isFormData = options.body instanceof FormData;
     response = await fetch(`${API_ROOT}${path}`, {
       ...options,
+      credentials: "include",
       headers: options.body && !isFormData
         ? { "Content-Type": "application/json", ...options.headers }
         : options.headers,
@@ -23,14 +24,19 @@ async function request(path, options = {}) {
 
   const payload = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(payload?.error || payload?.message || `Request failed (${response.status}).`);
+    const error = new Error(payload?.error || payload?.message || `Request failed (${response.status}).`);
+    error.status = response.status;
+    if (dispatchUnauthorized && response.status === 401 && !["/auth/login", "/auth/me", "/auth/logout"].includes(path)) {
+      window.dispatchEvent(new Event("admin:unauthorized"));
+    }
+    throw error;
   }
 
   return payload;
 }
 
-async function list(path) {
-  const result = await request(`${path}?raw=true&includeInactive=true&limit=50`);
+async function list(path, requestPolicy) {
+  const result = await request(`${path}?raw=true&includeInactive=true&limit=50`, {}, requestPolicy);
   if (!Array.isArray(result?.data)) {
     throw new Error("The API returned an unexpected list response.");
   }
@@ -38,6 +44,12 @@ async function list(path) {
 }
 
 export const adminApi = {
+  login: (credentials) => request("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  }),
+  me: () => request("/auth/me"),
+  logout: () => request("/auth/logout", { method: "POST" }),
   institutions: () => list("/institutions"),
   services: () => list("/services"),
   messages: () => request("/contact/messages"),
@@ -50,9 +62,9 @@ export const adminApi = {
     method: "PUT",
     body: JSON.stringify(settings),
   }),
-  news: () => list("/news"),
-  announcements: () => list("/announcements"),
-  videos: () => list("/videos"),
+  news: () => list("/news", { dispatchUnauthorized: false }),
+  announcements: () => list("/announcements", { dispatchUnauthorized: false }),
+  videos: () => list("/videos", { dispatchUnauthorized: false }),
   createInstitution: (data) => request("/institutions", {
     method: "POST",
     body: data instanceof FormData ? data : JSON.stringify(data),

@@ -1,9 +1,6 @@
-// API Configuration
-// Update these endpoints when your backend is ready
-
 export const API_CONFIG = {
-  // Base URL for your backend API
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://10.20.248.6:5000',
+  // Override with VITE_API_BASE_URL when the backend is hosted elsewhere.
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
   
   // Endpoints
   ENDPOINTS: {

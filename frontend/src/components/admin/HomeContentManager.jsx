@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { adminApi } from "../../services/adminApi";
 import { Button, FIELD_CLASS, Field, LocalizedFields } from "./AdminFields";
 
@@ -169,15 +169,23 @@ function ContentForm({ category, initial, saving, onCancel, onSave }) {
   );
 }
 
-function displayTitle(item) {
-  if (typeof item.title === "string") return item.title;
-  return item.title?.en || item.title?.am || item.title?.sid || "Untitled";
+function displayText(value, fallback = "—") {
+  if (typeof value === "string") return value || fallback;
+  if (value && typeof value === "object") {
+    return value.en || value.am || value.sid || fallback;
+  }
+  return fallback;
 }
 
-export default function HomeContentManager() {
+function displayTitle(item) {
+  return displayText(item.title, "Untitled");
+}
+
+export default function HomeContentManager({ readOnly = false }) {
   const [category, setCategory] = useState("news");
   const [records, setRecords] = useState({ news: [], announcements: [], videos: [] });
   const [editing, setEditing] = useState(null);
+  const formRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -213,6 +221,10 @@ export default function HomeContentManager() {
       });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (editing) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [editing]);
 
   async function save(payload, id) {
     setSaving(true);
@@ -263,8 +275,9 @@ export default function HomeContentManager() {
           <p className="text-sm text-stone-500">Homepage publishing</p>
           <h2 id="home-content-heading" className="text-2xl font-bold text-stone-900">Home content</h2>
         </div>
-        {!editing && <Button onClick={() => setEditing({})}>Add {category === "videos" ? "video" : category === "news" ? "news" : "announcement"}</Button>}
+        {!readOnly && !editing && <Button onClick={() => setEditing({})}>Add {category === "videos" ? "video" : category === "news" ? "news" : "announcement"}</Button>}
       </div>
+      {readOnly && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">You have read-only access. A super admin can manage homepage content.</p>}
 
       {error && (
         <div role="alert" className="admin-callout admin-callout--error mb-4 px-4 py-3 text-sm text-red-900">
@@ -290,14 +303,16 @@ export default function HomeContentManager() {
       </div>
 
       {editing && (
-        <ContentForm
-          key={`${category}-${editing.id || "new"}`}
-          category={category}
-          initial={editing.id ? editing : null}
-          saving={saving}
-          onCancel={() => setEditing(null)}
-          onSave={save}
-        />
+        <div ref={formRef} className="scroll-mt-4">
+          <ContentForm
+            key={`${category}-${editing.id || "new"}`}
+            category={category}
+            initial={editing.id ? editing : null}
+            saving={saving}
+            onCancel={() => setEditing(null)}
+            onSave={save}
+          />
+        </div>
       )}
 
       {loading ? (
@@ -318,13 +333,21 @@ export default function HomeContentManager() {
                 <tr key={item.id} className="border-b border-stone-100">
                   <td className="max-w-sm px-4 py-3 font-semibold text-stone-900">{displayTitle(item)}</td>
                   <td className="px-4 py-3 text-stone-600">
-                    {category === "videos" ? `${item.category?.en || "Video"} / ${item.youtubeUrl}` : category === "announcements" ? `${item.type || "general"} / ${item.priority || "medium"}` : item.author || "—"}
+                    {category === "videos"
+                      ? `${displayText(item.category, "Video")} / ${displayText(item.youtubeUrl)}`
+                      : category === "announcements"
+                        ? `${displayText(item.type, "general")} / ${displayText(item.priority, "medium")}`
+                        : displayText(item.author)}
                   </td>
                   <td className="px-4 py-3 text-stone-600">{new Date(item.publishedAt || item.date).toLocaleDateString()}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      <Button variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
-                      <Button variant="danger" onClick={() => remove(item)}>Delete</Button>
+                      {!readOnly && (
+                        <>
+                          <Button variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
+                          <Button variant="danger" onClick={() => remove(item)}>Delete</Button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -25,7 +25,7 @@ function settingsForm(settings) {
   };
 }
 
-export default function SiteSettingsManager() {
+export default function SiteSettingsManager({ readOnly = false }) {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -65,6 +65,7 @@ export default function SiteSettingsManager() {
 
   async function submit(event) {
     event.preventDefault();
+    if (readOnly) return;
     setSaving(true);
     setError("");
     setNotice("");
@@ -113,11 +114,13 @@ export default function SiteSettingsManager() {
         </div>
       )}
       {notice && <p role="status" className="mb-4 border-l-4 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
+      {readOnly && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">You have read-only access. A super admin can update these settings.</p>}
 
       {loading || !form ? (
         <p role="status" className="border border-stone-200 bg-white px-4 py-8 text-center text-stone-500">Loading site settings...</p>
       ) : (
         <form onSubmit={submit} className="admin-form space-y-6 border border-stone-200 bg-white p-5 md:p-6">
+          <fieldset disabled={readOnly} className="space-y-6">
           <fieldset className="space-y-4">
             <legend className="mb-3 text-lg font-bold text-stone-900">Contact details</legend>
             <div className="grid gap-4 md:grid-cols-2">
@@ -145,7 +148,8 @@ export default function SiteSettingsManager() {
             <Field label="Google Maps embed URL"><input className={FIELD_CLASS} type="url" value={form.embedUrl} onChange={(event) => update("embedUrl", event.target.value)} required /></Field>
           </fieldset>
 
-          <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save contact and map settings"}</Button>
+          </fieldset>
+          {!readOnly && <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save contact and map settings"}</Button>}
         </form>
       )}
     </section>
