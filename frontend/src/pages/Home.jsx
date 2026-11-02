@@ -32,6 +32,8 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [allInstitutions, setAllInstitutions] = useState([]);
+  const [allServices, setAllServices] = useState([]);
   const [language, setLanguage] = useState('English');
   const [formData, setFormData] = useState({
     name: '',
@@ -402,63 +404,77 @@ const Home = () => {
     };
   }, []);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    
+  // Fetch all institutions and services for search
+  useEffect(() => {
+    const fetchSearchData = async () => {
+      try {
+        const locale = getLocaleCode(language);
+        
+        const [institutionsRes, servicesRes] = await Promise.all([
+          fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`),
+          fetch(`${API_CONFIG.BASE_URL}/api/services?locale=${locale}`)
+        ]);
+
+        if (institutionsRes.ok) {
+          const institutionsData = await institutionsRes.json();
+          console.log('Fetched institutions for search:', institutionsData);
+          setAllInstitutions(Array.isArray(institutionsData) ? institutionsData : []);
+        }
+
+        if (servicesRes.ok) {
+          const servicesData = await servicesRes.json();
+          console.log('Fetched services for search:', servicesData);
+          setAllServices(Array.isArray(servicesData) ? servicesData : []);
+        }
+      } catch (error) {
+        console.error('Error fetching search data:', error);
+      }
+    };
+
+    fetchSearchData();
+  }, [language]);
+
+  // Real-time search as user types
+  useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults(null);
       return;
     }
 
-    setIsSearching(true);
-    console.log('Searching for:', searchQuery);
+    const query = searchQuery.toLowerCase().trim();
+    console.log('Searching for:', query);
+    console.log('Available institutions:', allInstitutions);
+    console.log('Available services:', allServices);
+    
+    // Filter institutions
+    const filteredInstitutions = allInstitutions.filter(inst => {
+      const nameMatch = inst.name?.toLowerCase().includes(query);
+      const descMatch = inst.description?.toLowerCase().includes(query);
+      const codeMatch = inst.code?.toLowerCase().includes(query);
+      return nameMatch || descMatch || codeMatch;
+    });
 
-    try {
-      const locale = getLocaleCode(language);
-      
-      // Search both institutions and services
-      const [institutionsResponse, servicesResponse] = await Promise.all([
-        fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}`),
-        fetch(`${API_CONFIG.BASE_URL}/api/services?locale=${locale}`)
-      ]);
+    // Filter services
+    const filteredServices = allServices.filter(service => {
+      const nameMatch = service.name?.toLowerCase().includes(query);
+      const titleMatch = service.title?.toLowerCase().includes(query);
+      const descMatch = service.description?.toLowerCase().includes(query);
+      return nameMatch || titleMatch || descMatch;
+    });
 
-      const institutions = institutionsResponse.ok ? await institutionsResponse.json() : [];
-      const services = servicesResponse.ok ? await servicesResponse.json() : [];
+    console.log('Filtered institutions:', filteredInstitutions);
+    console.log('Filtered services:', filteredServices);
 
-      // Filter results based on search query
-      const query = searchQuery.toLowerCase();
-      
-      const filteredInstitutions = Array.isArray(institutions) 
-        ? institutions.filter(inst => 
-            inst.name?.toLowerCase().includes(query) || 
-            inst.description?.toLowerCase().includes(query)
-          )
-        : [];
+    setSearchResults({
+      institutions: filteredInstitutions,
+      services: filteredServices,
+      query: searchQuery
+    });
+  }, [searchQuery, allInstitutions, allServices]);
 
-      const filteredServices = Array.isArray(services)
-        ? services.filter(service => 
-            service.name?.toLowerCase().includes(query) || 
-            service.title?.toLowerCase().includes(query) ||
-            service.description?.toLowerCase().includes(query)
-          )
-        : [];
-
-      setSearchResults({
-        institutions: filteredInstitutions,
-        services: filteredServices,
-        query: searchQuery
-      });
-    } catch (error) {
-      console.error('Search error:', error);
-      setSearchResults({
-        institutions: [],
-        services: [],
-        query: searchQuery,
-        error: 'Failed to search. Please try again.'
-      });
-    } finally {
-      setIsSearching(false);
-    }
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    // Search is now handled by useEffect above
   };
 
   const handleFormSubmit = (e) => {
@@ -561,26 +577,21 @@ const Home = () => {
                 />
                 <button
                   type="submit"
-                  disabled={isSearching}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full hover:bg-white/10 transition-colors disabled:opacity-50"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full hover:bg-white/10 transition-colors"
                 >
-                  {isSearching ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
-                  ) : (
-                    <svg 
-                      className="w-6 h-6 text-white" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2.5} 
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-                      />
-                    </svg>
-                  )}
+                  <svg 
+                    className="w-6 h-6 text-white" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2.5} 
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                    />
+                  </svg>
                 </button>
               </div>
 
