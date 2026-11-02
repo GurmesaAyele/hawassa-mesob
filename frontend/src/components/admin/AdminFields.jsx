@@ -77,8 +77,8 @@ export function Button({ variant = "primary", className = "", ...props }) {
 
 export function Status({ active }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${active ? "text-emerald-800" : "text-stone-500"}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-emerald-600" : "bg-stone-400"}`} />
+    <span className={`admin-status ${active ? "admin-status--active" : "admin-status--inactive"}`}>
+      <span className="admin-status__dot" aria-hidden="true" />
       {active ? "Active" : "Inactive"}
     </span>
   );
