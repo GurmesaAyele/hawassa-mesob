@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { adminApi } from "../../services/adminApi";
 import { Button, FIELD_CLASS, Field, LocalizedFields } from "./AdminFields";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 const CONTENT_TYPES = [
   ["news", "News"],
@@ -190,6 +191,7 @@ export default function HomeContentManager({ readOnly = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const refresh = useCallback(async () => {
     setError("");
@@ -250,18 +252,22 @@ export default function HomeContentManager({ readOnly = false }) {
     }
   }
 
-  async function remove(item) {
-    if (!window.confirm(`Delete "${displayTitle(item)}"? This cannot be undone.`)) return;
+  async function remove() {
+    if (!pendingDelete) return;
     setError("");
     setNotice("");
+    setSaving(true);
     try {
-      if (category === "news") await adminApi.deleteNews(item.id);
-      else if (category === "announcements") await adminApi.deleteAnnouncement(item.id);
-      else await adminApi.deleteVideo(item.id);
+      if (category === "news") await adminApi.deleteNews(pendingDelete.id);
+      else if (category === "announcements") await adminApi.deleteAnnouncement(pendingDelete.id);
+      else await adminApi.deleteVideo(pendingDelete.id);
       setNotice("Homepage content deleted.");
       await refresh();
     } catch (requestError) {
       setError(requestError.message);
+    } finally {
+      setSaving(false);
+      setPendingDelete(null);
     }
   }
 
@@ -345,7 +351,7 @@ export default function HomeContentManager({ readOnly = false }) {
                       {!readOnly && (
                         <>
                           <Button variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
-                          <Button variant="danger" onClick={() => remove(item)}>Delete</Button>
+                          <Button variant="danger" disabled={saving} onClick={() => setPendingDelete(item)}>Delete</Button>
                         </>
                       )}
                     </div>
@@ -361,6 +367,15 @@ export default function HomeContentManager({ readOnly = false }) {
           <p className="mt-1 text-sm text-stone-600">Add content here to show it on the public site.</p>
         </div>
       )}
+      <ConfirmationDialog
+        open={Boolean(pendingDelete)}
+        title={`Delete ${category === "videos" ? "video" : category === "news" ? "news item" : "announcement"}?`}
+        message={`“${pendingDelete ? displayTitle(pendingDelete) : ""}” will be permanently deleted. This action cannot be undone.`}
+        confirmLabel="Delete permanently"
+        busy={saving}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={remove}
+      />
     </section>
   );
 }
