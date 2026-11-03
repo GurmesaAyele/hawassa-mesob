@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import { submitMessage } from '../services/messageApi';
+import { getContactDetails } from '../services/siteSettingsApi';
 import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
 import Footer from '../components/Footer';
@@ -13,11 +15,9 @@ const Contact = () => {
   });
   const [verificationWord, setVerificationWord] = useState('');
   const [generatedWord, setGeneratedWord] = useState('');
-  const [contactInfo, setContactInfo] = useState({
-    email: '',
-    phone: '',
-    address: ''
-  });
+  const [sending, setSending] = useState(false);
+  const [messageStatus, setMessageStatus] = useState(null);
+  const [contactInfo, setContactInfo] = useState(null);
 
   useEffect(() => {
     // Generate random verification word
@@ -34,9 +34,7 @@ const Contact = () => {
 
   const fetchContactInfo = async () => {
     try {
-      const response = await fetch('/api/settings/contacts');
-      const data = await response.json();
-      setContactInfo(data);
+      setContactInfo(await getContactDetails());
     } catch (error) {
       console.error('Error fetching contact info:', error);
     }
@@ -51,24 +49,18 @@ const Contact = () => {
       return;
     }
 
+    setSending(true);
+    setMessageStatus(null);
     try {
-      const response = await fetch('/api/contact/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        alert('Message sent successfully!');
-        setFormData({ name: '', email: '', phone: '', message: '' });
-        setVerificationWord('');
-        generateVerificationWord();
-      }
+      await submitMessage(formData);
+      setMessageStatus({ type: 'success', text: 'Message sent successfully.' });
+      setFormData({ name: '', email: '', phone: '', message: '' });
+      setVerificationWord('');
+      generateVerificationWord();
     } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Failed to send message. Please try again.');
+      setMessageStatus({ type: 'error', text: error.message });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -97,7 +89,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-white">Email</h3>
-                    <p className="text-gray-600 dark:text-gray-300">{contactInfo.email || 'info@hawassamob.gov.et'}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{contactInfo?.email || 'info@hawassamob.gov.et'}</p>
                   </div>
                 </div>
 
@@ -109,7 +101,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-white">Phone</h3>
-                    <p className="text-gray-600 dark:text-gray-300">{contactInfo.phone || '+251 46 XXX XXXX'}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{contactInfo?.phoneDisplay || contactInfo?.phone || '+251 46 XXX XXXX'}</p>
                   </div>
                 </div>
 
@@ -122,7 +114,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-white">Address</h3>
-                    <p className="text-gray-600 dark:text-gray-300">{contactInfo.address || 'Hawassa, Ethiopia'}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{contactInfo?.address || 'Hawassa, Ethiopia'}</p>
                   </div>
                 </div>
               </div>
@@ -130,9 +122,11 @@ const Contact = () => {
               <div className="mt-8">
                 <h3 className="font-semibold text-gray-800 dark:text-white mb-4">Office Hours</h3>
                 <div className="space-y-2 text-gray-600 dark:text-gray-300">
-                  <p>Monday - Friday: 8:00 AM - 5:00 PM</p>
-                  <p>Saturday: 9:00 AM - 1:00 PM</p>
-                  <p>Sunday: Closed</p>
+                  {(contactInfo?.officeHoursDetailed || [
+                    { days: 'Monday - Friday', hours: '8:00 AM - 5:00 PM' },
+                    { days: 'Saturday', hours: '9:00 AM - 1:00 PM' },
+                    { days: 'Sunday', hours: 'Closed' },
+                  ]).map((hours) => <p key={hours.days}>{hours.days}: {hours.hours}</p>)}
                 </div>
               </div>
             </div>
@@ -210,11 +204,20 @@ const Contact = () => {
                   />
                 </div>
 
+                {messageStatus && (
+                  <p
+                    role={messageStatus.type === 'error' ? 'alert' : 'status'}
+                    className={`rounded-lg px-4 py-3 text-sm ${messageStatus.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`}
+                  >
+                    {messageStatus.text}
+                  </p>
+                )}
                 <button
                   type="submit"
-                  className="w-full bg-[#3d5a99] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#2d4a7f] transition-colors shadow-lg"
+                  disabled={sending}
+                  className="w-full bg-[#3d5a99] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#2d4a7f] transition-colors shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Send Message
+                  {sending ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </div>

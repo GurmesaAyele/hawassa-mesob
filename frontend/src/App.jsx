@@ -7,6 +7,9 @@ import ServiceCatalogue from './pages/ServiceCatalogue';
 import AboutUs from './pages/AboutUs';
 import WhatsNew from './pages/WhatsNew';
 import VIPPaymentCallback from './pages/VIPPaymentCallback';
+import AdminDashboard from './pages/AdminDashboard';
+
+
 
 import './App.css';
 
@@ -23,6 +26,9 @@ function App() {
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/whats-new" element={<WhatsNew />} />
         <Route path="/vip/payment/callback" element={<VIPPaymentCallback />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        
+        
       </Routes>
     </Router>
   );

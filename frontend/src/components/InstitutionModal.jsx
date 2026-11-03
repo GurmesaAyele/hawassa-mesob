@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import "./InstitutionLogo.css";
 import { API_CONFIG } from '../config/api';
 
 const InstitutionModal = ({ institution, onClose, language }) => {
@@ -75,6 +76,19 @@ const InstitutionModal = ({ institution, onClose, language }) => {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          {/* Institution Logo */}
+          {institution.logo && (
+            <div className="flex justify-center mb-6">
+              <div className="institution-logo-frame institution-logo-frame--modal w-32 h-32 bg-white rounded-xl flex items-center justify-center p-4">
+                <img
+                  src={institution.logo}
+                  alt={institution.name}
+                  className="institution-logo-image w-full h-full object-contain"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Institution Description */}
           {institution.description && (
             <p className="text-gray-600 dark:text-gray-300 text-center mb-8">

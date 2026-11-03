@@ -1,7 +1,8 @@
+import "./InstitutionLogo.css";
 import { API_CONFIG } from '../config/api';
 import { useState, useEffect } from 'react';
 
-const InstitutionCard = ({ institution, onClick, index }) => {
+const InstitutionCard = ({ institution, onClick, index = 0 }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Detect dark mode
@@ -9,14 +10,14 @@ const InstitutionCard = ({ institution, onClick, index }) => {
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
-    
+
     // Initial check
     checkDarkMode();
-    
+
     // Watch for changes
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -85,12 +86,12 @@ const InstitutionCard = ({ institution, onClick, index }) => {
       className="rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-600 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center text-center h-64 w-full"
     >
       {/* Institution Logo */}
-      <div className="w-24 h-24 mb-4 bg-white rounded-xl flex items-center justify-center p-3 shadow-sm">
-        {logoUrl ? (
+      <div className="institution-logo-frame institution-logo-frame--card w-24 h-24 mb-4 bg-white rounded-xl flex items-center justify-center p-3">
+        {institution.logo ? (
           <img
             src={logoUrl}
             alt={institution.name}
-            className="w-full h-full object-contain"
+            className="institution-logo-image w-full h-full object-contain"
             onError={(e) => {
               console.error('Logo failed to load:', logoUrl);
               // Fallback if image fails to load

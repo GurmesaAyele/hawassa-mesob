@@ -6,7 +6,8 @@ This document provides complete API integration details for all sections that fe
 ## API Configuration Location
 **File:** `src/config/api.js`
 
-Update the `BASE_URL` with your backend API URL:
+The default development backend URL is `http://localhost:5000`, matching the server setup. Set
+`VITE_API_BASE_URL` when the backend is hosted elsewhere.
 ```javascript
 export const API_CONFIG = {
   BASE_URL: 'https://your-backend-api.com', // Update this!
@@ -215,6 +216,36 @@ GET /api/announcements
 
 ---
 
+## Admin Content Management
+
+The content dashboard uses the same resources for editing. Public `GET` requests return
+the arrays described above. Admin list requests can add `?raw=true` to receive a
+`{ "data": [...] }` response with the stored multilingual news/announcement fields.
+
+| Resource | Create | Update | Delete |
+|----------|--------|--------|--------|
+| News | `POST /api/news` | `PUT /api/news/:id` | `DELETE /api/news/:id` |
+| Videos | `POST /api/videos` | `PUT /api/videos/:id` | `DELETE /api/videos/:id` |
+| Announcements | `POST /api/announcements` | `PUT /api/announcements/:id` | `DELETE /api/announcements/:id` |
+
+News and announcement requests accept `title` and `content` as strings or as
+`{ "en": "...", "am": "...", "sid": "..." }` objects. News also accepts `image`,
+`author`, and `date`. Announcements accept `image`, `priority` (`high`, `medium`, or
+`low`), `type` (`event`, `update`, `alert`, or `general`), and `date`. Video requests
+accept `title`, `youtubeUrl`, and optional localized `description`, `category`,
+`author`, plus `thumbnail`, `duration`, `views`, and `date`. Video title,
+description, category, and author fields support `{ "en": "...", "am": "...",
+"sid": "..." }` objects. Dates use the ISO 8601 format above.
+
+Apply the Prisma schema changes before running these routes: from `server/`, run
+`npm run db:push`.
+
+Homepage-link settings do not have an endpoint in this guide and are not editable
+from the dashboard. Location and contact information are editable in the
+dashboard's Location & contact section.
+
+---
+
 ## Common Features Across All Sections
 
 ### Loading State
@@ -262,6 +293,44 @@ app.use(cors({
   credentials: true
 }));
 ```
+
+---
+
+## Contact Messages
+
+Public contact forms submit messages to `POST /api/contact` (also available as
+`POST /api/contact/submit`) with `name`, a valid `email`, `message`, and optional
+`phone`. New messages are stored as unread.
+
+The admin dashboard uses:
+
+- `GET /api/contact/messages?status=all|unread|read` to load the inbox and unread count.
+- `PATCH /api/contact/messages/:id` with `{ "isReviewed": true|false }` to update read status.
+
+The list response contains `data` and `meta.unreadCount`; the unread count appears
+on the dashboard Messages tab. The `comments` table schema must be applied with
+`npm run db:push` from the `server` directory before using these endpoints. Legacy
+`/api/messages` routes remain available for compatibility.
+
+---
+
+## Location and Contact Settings
+
+The dashboard's **Location & contact** section reads `GET /api/map` and saves
+updates with `PUT /api/map` (also supports `POST`). `GET /api/location` is an
+alias. Public contact details are served from `GET /api/contact`, and public map
+data uses the `{ contact, map }` response documented in the backend README.
+Settings are persisted in the `site_settings` table; apply the Prisma schema with
+`npm run db:push` from `server`.
+
+---
+
+## Single Content Items
+
+The backend also supports `GET /api/news/:id`, `GET /api/announcements/:id`,
+and `GET /api/videos/:id`. Video title, description, category, and author support
+the English, Amharic, and Sidaamu Afoo locales. Use `?locale=en|am|sid` for
+localized responses or `?raw=true` for admin editing data.
 
 ---
 
