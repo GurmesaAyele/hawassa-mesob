@@ -2,20 +2,7 @@ import "./InstitutionLogo.css";
 import { API_CONFIG } from '../config/api';
 import { useState, useEffect } from 'react';
 
-const InstitutionCard = ({ institution, onClick }) => {
-  // Fallback colors if institution doesn't have one
-  const cardColors = [
-    'bg-gradient-to-br from-green-800 to-green-900',
-    'bg-gradient-to-br from-amber-800 to-amber-900',
-    'bg-gradient-to-br from-purple-800 to-purple-900',
-    'bg-gradient-to-br from-red-800 to-red-900',
-    'bg-gradient-to-br from-blue-800 to-blue-900',
-    'bg-gradient-to-br from-emerald-800 to-emerald-900',
-    'bg-gradient-to-br from-orange-800 to-orange-900',
-    'bg-gradient-to-br from-indigo-800 to-indigo-900',
-
-
-const InstitutionCard = ({ institution, onClick, index }) => {
+const InstitutionCard = ({ institution, onClick, index = 0 }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Detect dark mode
@@ -23,14 +10,14 @@ const InstitutionCard = ({ institution, onClick, index }) => {
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
-    
+
     // Initial check
     checkDarkMode();
-    
+
     // Watch for changes
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -84,10 +71,10 @@ const InstitutionCard = ({ institution, onClick, index }) => {
     // If already a full URL, return as is
     if (logoPath.startsWith('http')) return logoPath;
     // Otherwise, prepend the base URL
-    return `${API_CONFIG.BASE_URL}${logoPath}`;
+    return ${API_CONFIG.BASE_URL}${logoPath};
   };
 
-  const logoUrl = getLogoUrl(institution.logo || institution.icon);
+  const logoUrl = getLogoUrl(institution.logo  institution.icon);
   const backgroundColor = getCardColor();
   // Text color: #172033 in light mode, #FFFFFF in dark mode
   const textColor = isDarkMode ? '#FFFFFF' : '#172033';
@@ -117,7 +104,7 @@ const InstitutionCard = ({ institution, onClick, index }) => {
           className="w-full h-full items-center justify-center text-gray-400 text-2xl font-bold"
           style={{ display: logoUrl ? 'none' : 'flex' }}
         >
-          {institution.name?.charAt(0) || '?'}
+          {institution.name?.charAt(0)  '?'}
         </div>
       </div>
 
