@@ -2,20 +2,7 @@ import "./InstitutionLogo.css";
 import { API_CONFIG } from '../config/api';
 import { useState, useEffect } from 'react';
 
-const InstitutionCard = ({ institution, onClick }) => {
-  // Fallback colors if institution doesn't have one
-  const cardColors = [
-    'bg-gradient-to-br from-green-800 to-green-900',
-    'bg-gradient-to-br from-amber-800 to-amber-900',
-    'bg-gradient-to-br from-purple-800 to-purple-900',
-    'bg-gradient-to-br from-red-800 to-red-900',
-    'bg-gradient-to-br from-blue-800 to-blue-900',
-    'bg-gradient-to-br from-emerald-800 to-emerald-900',
-    'bg-gradient-to-br from-orange-800 to-orange-900',
-    'bg-gradient-to-br from-indigo-800 to-indigo-900',
-
-
-const InstitutionCard = ({ institution, onClick, index }) => {
+const InstitutionCard = ({ institution, onClick, index = 0 }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Detect dark mode
@@ -23,14 +10,14 @@ const InstitutionCard = ({ institution, onClick, index }) => {
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
-    
+
     // Initial check
     checkDarkMode();
-    
+
     // Watch for changes
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
+
     return () => observer.disconnect();
   }, []);
 
