@@ -71,10 +71,10 @@ const InstitutionCard = ({ institution, onClick, index = 0 }) => {
     // If already a full URL, return as is
     if (logoPath.startsWith('http')) return logoPath;
     // Otherwise, prepend the base URL
-    return ${API_CONFIG.BASE_URL}${logoPath};
+    return `${API_CONFIG.BASE_URL}${logoPath}`;
   };
 
-  const logoUrl = getLogoUrl(institution.logo  institution.icon);
+  const logoUrl = getLogoUrl(institution.logo || institution.icon);
   const backgroundColor = getCardColor();
   // Text color: #172033 in light mode, #FFFFFF in dark mode
   const textColor = isDarkMode ? '#FFFFFF' : '#172033';
@@ -104,7 +104,7 @@ const InstitutionCard = ({ institution, onClick, index = 0 }) => {
           className="w-full h-full items-center justify-center text-gray-400 text-2xl font-bold"
           style={{ display: logoUrl ? 'none' : 'flex' }}
         >
-          {institution.name?.charAt(0)  '?'}
+          {institution.name?.charAt(0) || '?'}
         </div>
       </div>
 
