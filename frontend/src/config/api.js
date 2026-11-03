@@ -21,7 +21,7 @@ export const API_CONFIG = {
     ANNOUNCEMENTS: '/api/announcements',
     
     SERVICES: '/api/services',
-    CHATBOT: 'http://10.20.248.6:5000/api/chat', // Your existing chatbot API
+    CHATBOT: '/api/chat', // Chatbot API (now uses proxy)
     CONTACT: '/api/contact',
     MAP: '/api/map', // Map data endpoint
     
