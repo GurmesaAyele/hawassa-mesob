@@ -256,6 +256,11 @@ export default function AdminDashboard() {
     });
   };
 
+  const reactivateInstitution = (institution) => runMutation(
+    () => adminApi.updateInstitution(institution.id, { isActive: true }),
+    "Institution reactivated. Its services can be reactivated individually.",
+  );
+
   const saveService = (payload, id) => runMutation(
     () => id ? adminApi.updateService(id, payload) : adminApi.createService(payload),
     id ? "Service updated." : "Service created.",
@@ -270,6 +275,11 @@ export default function AdminDashboard() {
       action: () => runMutation(() => adminApi.deactivateService(service.id), "Service deactivated."),
     });
   };
+
+  const reactivateService = (service) => runMutation(
+    () => adminApi.updateService(service.id, { isActive: true }),
+    "Service reactivated.",
+  );
 
   const confirmDestructiveAction = async () => {
     if (!confirmation) return;
@@ -385,6 +395,7 @@ export default function AdminDashboard() {
             readOnly={!isSuperAdmin}
             onSave={saveInstitution}
             onDeactivate={deactivateInstitution}
+            onReactivate={reactivateInstitution}
             onDelete={deleteInstitution}
           />
         )}
@@ -397,6 +408,7 @@ export default function AdminDashboard() {
             readOnly={!isSuperAdmin}
             onSave={saveService}
             onDeactivate={deactivateService}
+            onReactivate={reactivateService}
           />
         )}
         {section === "messages" && (
