@@ -5,6 +5,7 @@ import ServiceManager from "../components/admin/ServiceManager";
 import HomeContentManager from "../components/admin/HomeContentManager";
 import MessagesManager from "../components/admin/MessagesManager";
 import SiteSettingsManager from "../components/admin/SiteSettingsManager";
+import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { adminApi } from "../services/adminApi";
 import "./AdminDashboard.css";
 
@@ -99,6 +100,7 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [confirmation, setConfirmation] = useState(null);
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
@@ -236,14 +238,22 @@ export default function AdminDashboard() {
 
   const deactivateInstitution = (institution) => {
     const name = institution.name?.en || institution.code;
-    if (!window.confirm(`Deactivate ${name} and its services? They will no longer appear in public listings.`)) return false;
-    return runMutation(() => adminApi.deactivateInstitution(institution.id), "Institution and its services deactivated.");
+    setConfirmation({
+      title: "Deactivate institution?",
+      message: `${name} and its services will no longer appear in public listings. You can reactivate them later by editing the record.`,
+      confirmLabel: "Deactivate",
+      action: () => runMutation(() => adminApi.deactivateInstitution(institution.id), "Institution and its services deactivated."),
+    });
   };
 
   const deleteInstitution = (institution) => {
     const name = institution.name?.en || institution.code;
-    if (!window.confirm(`Permanently delete ${name} and its services? This cannot be undone.`)) return false;
-    return runMutation(() => adminApi.deleteInstitution(institution.id), "Institution permanently deleted.");
+    setConfirmation({
+      title: "Delete institution permanently?",
+      message: `“${name}” and its services will be permanently deleted. This action cannot be undone.`,
+      confirmLabel: "Delete permanently",
+      action: () => runMutation(() => adminApi.deleteInstitution(institution.id), "Institution permanently deleted."),
+    });
   };
 
   const saveService = (payload, id) => runMutation(
@@ -253,8 +263,21 @@ export default function AdminDashboard() {
 
   const deactivateService = (service) => {
     const title = service.title?.en || "this service";
-    if (!window.confirm(`Deactivate ${title}? It will no longer appear in public listings.`)) return false;
-    return runMutation(() => adminApi.deactivateService(service.id), "Service deactivated.");
+    setConfirmation({
+      title: "Deactivate service?",
+      message: `“${title}” will no longer appear in public listings. You can reactivate it later by editing the record.`,
+      confirmLabel: "Deactivate",
+      action: () => runMutation(() => adminApi.deactivateService(service.id), "Service deactivated."),
+    });
+  };
+
+  const confirmDestructiveAction = async () => {
+    if (!confirmation) return;
+    try {
+      await confirmation.action();
+    } finally {
+      setConfirmation(null);
+    }
   };
 
   const updateMessageStatus = (message, isReviewed) => runMutation(
@@ -395,6 +418,15 @@ export default function AdminDashboard() {
           </>
         )}
       </main>
+      <ConfirmationDialog
+        open={Boolean(confirmation)}
+        title={confirmation?.title}
+        message={confirmation?.message}
+        confirmLabel={confirmation?.confirmLabel}
+        busy={saving}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={confirmDestructiveAction}
+      />
     </div>
   );
 }
