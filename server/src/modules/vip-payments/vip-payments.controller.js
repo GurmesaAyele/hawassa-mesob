@@ -156,11 +156,16 @@ export async function webhookHandler(req, res) {
     const reference =
       body.tx_ref ||
       body.trx_ref ||
+      body.merchant_reference ||
       body.reference ||
       body.payment_reference ||
+      body.chapa_reference ||
       body.data?.tx_ref ||
       body.data?.trx_ref ||
-      body.data?.reference;
+      body.data?.merchant_reference ||
+      body.data?.reference ||
+      body.data?.payment_reference ||
+      body.data?.chapa_reference;
 
     if (!reference) {
       // Acknowledge receipt to stop retries if body is malformed
@@ -173,6 +178,13 @@ export async function webhookHandler(req, res) {
     // 3. Trigger server-side verification directly against Chapa API
     // Never trust webhook body alone as proof of payment
     const verifyResult = await verifyVipPayment(String(reference).trim());
+
+    if (verifyResult.status >= 500) {
+      console.warn(`[vip-payments] Webhook verification encountered transient provider error (${verifyResult.status}). Requesting retry.`);
+      return res.status(502).json({
+        error: "Transient verification error. Provider retry expected.",
+      });
+    }
 
     return res.status(200).json({
       received: true,
