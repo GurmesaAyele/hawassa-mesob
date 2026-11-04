@@ -152,6 +152,7 @@ model vip_tickets {
   ticketCode      String                @unique
   citizenName     String
   citizenPhone    String
+  email           String?
   serviceId       String?
   purpose         String?
   slotDate        DateTime?
