@@ -11,6 +11,7 @@ import { adminApi } from "../services/adminApi";
 import "./AdminDashboard.css";
 
 const ADMIN_ROLES = new Set(["OPERATOR", "SUPER_ADMIN", "STAFF"]);
+const ADMIN_SESSION_EXPIRY_KEY = "adminSessionExpiresAt";
 const SECTIONS = [
   { id: "institutions", label: "Institutions" },
   { id: "services", label: "Services" },
@@ -19,6 +20,18 @@ const SECTIONS = [
   { id: "home", label: "Home content" },
   { id: "vip-tickets", label: "VIP tickets" },
 ];
+
+function getSessionExpiry(token) {
+  try {
+    const encodedPayload = token?.split(".")[1];
+    if (!encodedPayload) return "";
+    const base64 = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "=")));
+    return Number.isInteger(payload.exp) ? new Date(payload.exp * 1000).toISOString() : "";
+  } catch {
+    return "";
+  }
+}
 
 function AdminSignIn({ message, onSignedIn, authError }) {
   const [email, setEmail] = useState("");
@@ -32,13 +45,19 @@ function AdminSignIn({ message, onSignedIn, authError }) {
     setError("");
     setSubmitting(true);
     try {
-      await adminApi.login({ email: email.trim(), password });
+      const loginResult = await adminApi.login({ email: email.trim(), password });
+      const sessionExpiresAt = getSessionExpiry(loginResult?.token);
+      if (!sessionExpiresAt) {
+        throw new Error("The server did not provide a valid session expiration. Please try signing in again.");
+      }
+      localStorage.setItem(ADMIN_SESSION_EXPIRY_KEY, sessionExpiresAt);
       const { user } = await adminApi.me();
       if (!user || !ADMIN_ROLES.has(user.role)) {
         throw new Error("This account does not have access to the admin dashboard.");
       }
-      onSignedIn(user);
+      onSignedIn({ ...user, sessionExpiresAt });
     } catch (requestError) {
+      localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
       setError(requestError.message);
     } finally {
       setSubmitting(false);
@@ -186,10 +205,20 @@ export default function AdminDashboard() {
           setAuthError("This account does not have access to the admin dashboard.");
           return;
         }
+        const sessionExpiresAt = localStorage.getItem(ADMIN_SESSION_EXPIRY_KEY);
+        if (!sessionExpiresAt || !Number.isFinite(Date.parse(sessionExpiresAt)) || Date.parse(sessionExpiresAt) <= Date.now()) {
+          localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+          setAuthMessage("Please sign in again to start a new 24-hour session.");
+          adminApi.logout().catch((requestError) => {
+            if (active) setAuthError(`Could not clear the previous session. ${requestError.message}`);
+          });
+          return;
+        }
         if (user.role === "STAFF") setSection("vip-tickets");
-        setCurrentUser(user);
+        setCurrentUser({ ...user, sessionExpiresAt });
       })
       .catch((requestError) => {
+        localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
         if (active && requestError.status !== 401) setAuthError(requestError.message);
       })
       .finally(() => {
@@ -204,9 +233,10 @@ export default function AdminDashboard() {
   }, [currentUser, refreshData]);
 
   useEffect(() => {
-    function handleUnauthorized() {
+    function handleUnauthorized(event) {
       setCurrentUser(null);
-      setAuthMessage("Your session has expired. Please sign in again.");
+      localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+      setAuthMessage(event.detail?.message || "Your session has expired. Please sign in again.");
       setAuthError("");
       setInstitutions([]);
       setServices([]);
@@ -217,6 +247,58 @@ export default function AdminDashboard() {
     window.addEventListener("admin:unauthorized", handleUnauthorized);
     return () => window.removeEventListener("admin:unauthorized", handleUnauthorized);
   }, []);
+
+  useEffect(() => {
+    if (!currentUser) return undefined;
+
+    const expiresAt = Date.parse(currentUser.sessionExpiresAt);
+    const hasValidExpiry = Number.isFinite(expiresAt);
+
+    let expiryTimer;
+    let endingSession = false;
+
+    const expireSession = () => {
+      if (endingSession) return;
+      endingSession = true;
+      adminApi.logout()
+        .then(() => {
+          localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+          window.dispatchEvent(new CustomEvent("admin:unauthorized", {
+            detail: {
+              message: hasValidExpiry
+                ? "Your session expired after 24 hours. Please sign in again."
+                : "The server did not provide a valid session expiration. Please sign in again.",
+            },
+          }));
+        })
+        .catch((requestError) => {
+          localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+          window.dispatchEvent(new CustomEvent("admin:unauthorized", {
+            detail: {
+              message: hasValidExpiry
+                ? `Your session expired after 24 hours. Could not contact the server to clear the session (${requestError.message}). Please sign in again.`
+                : `The server did not provide a valid session expiration. Could not contact the server to clear the session (${requestError.message}). Please sign in again.`,
+            },
+          }));
+        });
+    };
+
+    const checkSessionExpiry = () => {
+      if (Date.now() >= expiresAt) {
+        expireSession();
+      }
+    };
+
+    expiryTimer = window.setTimeout(expireSession, hasValidExpiry ? Math.max(0, expiresAt - Date.now()) : 0);
+    window.addEventListener("focus", checkSessionExpiry);
+    document.addEventListener("visibilitychange", checkSessionExpiry);
+
+    return () => {
+      window.clearTimeout(expiryTimer);
+      window.removeEventListener("focus", checkSessionExpiry);
+      document.removeEventListener("visibilitychange", checkSessionExpiry);
+    };
+  }, [currentUser]);
 
   const signIn = (user) => {
     setAuthError("");
@@ -232,6 +314,7 @@ export default function AdminDashboard() {
     try {
       await adminApi.logout();
       setCurrentUser(null);
+      localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
       setInstitutions([]);
       setServices([]);
       setMessages([]);

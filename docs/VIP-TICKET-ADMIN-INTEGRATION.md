@@ -44,6 +44,8 @@ The current `UserRole` enum includes `CITIZEN`, `OPERATOR`, and `SUPER_ADMIN`. A
 
 Do not allow public registration to assign `STAFF`. Create Staff accounts through an authorized administrator or a controlled provisioning process. Keep account activation/deactivation behavior and password/session protections consistent with other admin accounts.
 
+Recommended policy for Staff and other admin roles: a fixed 24-hour maximum session, regardless of activity. The existing server JWT and HttpOnly cookie expire after 24 hours. The dashboard can read the JWT `exp` claim only to schedule its sign-out UI; persist only the expiration timestamp (never the token) so a page reload does not restart the timer. The server remains authoritative for all protected requests, and the dashboard must not extend the expiry on activity.
+
 ### 2. Enforce least privilege on the server
 
 The frontend hiding tabs is only a usability measure; all authorization must be enforced by the API on every request.
