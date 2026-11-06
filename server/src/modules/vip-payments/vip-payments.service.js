@@ -287,15 +287,46 @@ export async function initializeVipPayment({ reference, returnUrl, callbackUrl, 
   }
   const validPhone = /^0[79]\d{8}$/.test(cleanPhone) ? cleanPhone : null;
 
-  // Require valid citizen email explicitly (Chapa v1 requires customer email; do not fabricate)
-  const candidateEmail = email || ticket.email || ticket.citizenEmail;
-  if (!candidateEmail || typeof candidateEmail !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidateEmail.trim())) {
+  // Validate citizen email:
+  // 1. Primary source of truth: Email stored on the VIP ticket
+  // 2. Do not require citizen to enter email a second time
+  // 3. Do not allow an arbitrary request email to override the stored ticket email
+  // 4. Backward compatibility: If an old ticket has no stored email, allow a valid email from the request
+  // 5. If ticket has no email (and none provided), return a clear validation error
+  let customerEmail = null;
+
+  if (ticket.email && typeof ticket.email === "string" && ticket.email.trim()) {
+    customerEmail = ticket.email.trim().toLowerCase();
+  } else if (email && typeof email === "string" && email.trim()) {
+    // Backward compatibility for legacy tickets without a saved email
+    const cleanEmail = email.trim().toLowerCase();
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (EMAIL_REGEX.test(cleanEmail) && cleanEmail.length <= 254) {
+      customerEmail = cleanEmail;
+      // Persist the collected email to the ticket
+      try {
+        await prisma.vip_tickets.update({
+          where: { id: ticket.id },
+          data: { email: customerEmail },
+        });
+      } catch (err) {
+        console.warn("[vip-payments] Failed to persist legacy ticket email:", err.message);
+      }
+    } else {
+      return {
+        status: 400,
+        error: "Validation failed: 'email' must be a valid email address.",
+      };
+    }
+  }
+
+  // If ticket has no email and none was provided:
+  if (!customerEmail) {
     return {
       status: 400,
-      error: "Validation failed: A valid citizen 'email' is required to initialize payment.",
+      error: "VIP application does not have a registered email address. A valid email address is required for Chapa payment processing. Please provide a valid email.",
     };
   }
-  const customerEmail = candidateEmail.trim();
 
   // 5. Call Chapa hosted checkout API (v1 transaction initialize)
   const initResult = await initializeHostedCheckout({
@@ -393,8 +424,24 @@ export async function verifyVipPayment(reference) {
 
   const cleanRef = reference.trim();
 
-  // 1. Locate payment record
-  const payment = await paymentsDb.findByReference(cleanRef);
+  // 1. Locate payment record (supports merchantReference, tx_ref, providerReference, or ticketCode)
+  let payment = await paymentsDb.findByReference(cleanRef);
+  let ticket = null;
+
+  if (payment) {
+    ticket = await prisma.vip_tickets.findUnique({
+      where: { id: payment.ticketId },
+    });
+  } else {
+    // Fallback: Check if cleanRef is a VIP application reference (ticketCode) or ID
+    ticket = await findTicketByReferenceOrId(cleanRef);
+    if (ticket) {
+      payment = await paymentsDb.findFirst({
+        ticketId: ticket.id,
+      });
+    }
+  }
+
   if (!payment) {
     return {
       status: 404,
@@ -402,11 +449,7 @@ export async function verifyVipPayment(reference) {
     };
   }
 
-  // 2. Fetch associated ticket
-  const ticket = await prisma.vip_tickets.findUnique({
-    where: { id: payment.ticketId },
-  });
-
+  // 2. Validate associated ticket exists
   if (!ticket) {
     return {
       status: 404,
@@ -414,8 +457,9 @@ export async function verifyVipPayment(reference) {
     };
   }
 
-  // 3. If payment is already recorded as SUCCESS and ticket is CONFIRMED, return idempotent success
-  if (payment.status === "SUCCESS" && ticket.status === "CONFIRMED") {
+  // 3. Stale Downgrade & Idempotency Protection:
+  // If payment is already recorded as SUCCESS, NEVER re-query provider or downgrade status.
+  if (payment.status === "SUCCESS") {
     return {
       status: 200,
       success: true,
@@ -529,6 +573,13 @@ export async function verifyVipPayment(reference) {
   const paymentMethod = chapaData.payment_method || chapaData.method || null;
 
   const result = await prisma.$transaction(async (tx) => {
+    // Concurrency protection: Check if another concurrent request already marked it SUCCESS
+    const freshPaymentCheck = await paymentsDb.findByReference(payment.merchantReference);
+    if (freshPaymentCheck && freshPaymentCheck.status === "SUCCESS") {
+      const currentTicket = await tx.vip_tickets.findUnique({ where: { id: ticket.id } });
+      return { updatedPayment: freshPaymentCheck, updatedTicket: currentTicket };
+    }
+
     // Update payment record
     const updatedPayment = await paymentsDb.update(
       payment.id,
@@ -623,6 +674,11 @@ export async function getPaymentStatus(reference) {
     };
   }
 
+  const isVerified = payment ? payment.status === "SUCCESS" : false;
+  const isConfirmed = ticket ? ["CONFIRMED", "QUEUED", "SERVING", "USED"].includes(ticket.status) : false;
+  const isPending = payment ? payment.status === "PENDING" : true;
+  const canRetry = ticket?.status === "PENDING" && payment && ["FAILED", "CANCELLED", "EXPIRED"].includes(payment.status);
+
   return {
     status: 200,
     success: true,
@@ -636,7 +692,11 @@ export async function getPaymentStatus(reference) {
       currency: payment ? payment.currency : VIP_CURRENCY,
       paymentMethod: payment ? payment.paymentMethod : null,
       checkoutUrl: payment ? payment.checkoutUrl : null,
-      isVerified: payment ? payment.status === "SUCCESS" : false,
+      isVerified,
+      isConfirmed,
+      isPending,
+      canRetry: Boolean(canRetry),
+      errorMessage: payment ? payment.errorMessage : null,
       updatedAt: payment ? payment.updatedAt : ticket?.updatedAt,
     },
   };

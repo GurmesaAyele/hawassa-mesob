@@ -124,6 +124,28 @@ export function maskName(name) {
 }
 
 /**
+ * Masks an email address to protect citizen PII.
+ * Example: "citizen.applicant@example.com" -> "ci****nt@example.com"
+ */
+export function maskEmail(email) {
+  if (!email || typeof email !== "string") return "";
+  const cleaned = email.trim();
+  const atIndex = cleaned.indexOf("@");
+  if (atIndex <= 0) return "";
+
+  const user = cleaned.slice(0, atIndex);
+  const domain = cleaned.slice(atIndex);
+
+  if (user.length <= 2) {
+    return `${user[0]}*${domain}`;
+  }
+  if (user.length <= 4) {
+    return `${user[0]}**${user.slice(-1)}${domain}`;
+  }
+  return `${user.slice(0, 2)}****${user.slice(-2)}${domain}`;
+}
+
+/**
  * Formats a VIP ticket application record into the standard API response structure,
  * returning selected services as an array and protecting citizen PII and internal secrets.
  *
@@ -243,6 +265,7 @@ function formatVipApplication(ticket, fallbackServices = []) {
     isFlatFee: true,
     maskedPhone: maskPhoneNumber(ticket.citizenPhone),
     maskedCitizenName: maskName(ticket.citizenName),
+    maskedEmail: ticket.email ? maskEmail(ticket.email) : null,
     appointment,
     queue,
     capacityReservation,
@@ -284,7 +307,7 @@ function getTicketQueryInclude() {
  */
 export async function submitVipApplication(req, res) {
   try {
-    const { citizenName, citizenPhone, purpose, serviceIds, serviceId } =
+    const { citizenName, citizenPhone, email, purpose, serviceIds, serviceId } =
       req.body || {};
 
     // ─── 1. Field-level Validations ─────────────────────────────────────────
@@ -311,6 +334,20 @@ export async function submitVipApplication(req, res) {
     if (!normalizedPhone) {
       return res.status(400).json({
         error: "Validation failed: 'citizenPhone' must be a valid phone number (e.g. 0912345678 or +251912345678).",
+      });
+    }
+
+    if (!email || typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({
+        error: "Validation failed: 'email' is required.",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!EMAIL_REGEX.test(normalizedEmail) || normalizedEmail.length > 254) {
+      return res.status(400).json({
+        error: "Validation failed: 'email' must be a valid email address.",
       });
     }
 
@@ -479,6 +516,7 @@ export async function submitVipApplication(req, res) {
           ticketCode,
           citizenName: trimmedCitizenName,
           citizenPhone: normalizedPhone,
+          email: normalizedEmail,
           serviceId: orderedServices[0].id,
           purpose: trimmedPurpose,
           slotDate: null,
