@@ -347,14 +347,20 @@ const Home = () => {
   // Map section translations
   const mapTranslations = {
     English: {
-      title: 'Find Us',
-      subtitle: 'Visit our location in Hawassa City',
+      title: 'Get in Touch with Us',
+      subtitle: 'Visit our office, find us on the map, or reach out through the details below.',
+      contactUsBtn: 'Contact Us',
+      viewOnMapsBtn: 'View on Google Maps',
+      getDirectionsBtn: 'Get Directions',
+      headquarters: 'H-MESOB Headquarters',
+      servicesCenter: 'Government Services Center',
       loading: 'Loading map data...',
       errorTitle: 'Failed to load map data',
       emptyMessage: 'Location information will be available soon',
       addressLabel: 'Address',
-      phoneLabel: 'Phone',
+      phoneLabel: 'Contact',
       emailLabel: 'Email',
+      operatingHoursLabel: 'Operating Hours',
       workingHoursLabel: 'Working Hours',
       websiteBtn: 'Visit Website',
       plusCode: 'Plus Code',
@@ -362,14 +368,20 @@ const Home = () => {
       reviews: 'reviews'
     },
     Amharic: {
-      title: 'አድራሻችን',
-      subtitle: 'በሀዋሳ ከተማ ያለንበትን ቦታ ይጎብኙ',
+      title: 'ከእኛ ጋር ይገናኙ',
+      subtitle: 'ቢሮአችንን ይጎብኙ፣ በካርታ ላይ ይፈልጉን፣ ወይም በዝርዝሮች በኩል ያግኙን።',
+      contactUsBtn: 'አግኙን',
+      viewOnMapsBtn: 'በጉግል ካርታ ይመልከቱ',
+      getDirectionsBtn: 'አቅጣጫ ያግኙ',
+      headquarters: 'የሀ-መሰብ ዋና መስሪያ ቤት',
+      servicesCenter: 'የመንግስት አገልግሎት ማእከል',
       loading: 'የካርታ መረጃ በመጫን ላይ...',
       errorTitle: 'የካርታ መረጃ መጫን አልተቻለም',
       emptyMessage: 'የአድራሻ መረጃ በቅርቡ ይገኛል',
       addressLabel: 'አድራሻ',
       phoneLabel: 'ስልክ',
       emailLabel: 'ኢሜይል',
+      operatingHoursLabel: 'የስራ ሰዓታት',
       workingHoursLabel: 'የስራ ሰዓታት',
       websiteBtn: 'ድህረ ገጽ ይጎብኙ',
       plusCode: 'ፕላስ ኮድ',
@@ -377,14 +389,20 @@ const Home = () => {
       reviews: 'ግምገማዎች'
     },
     Sidama: {
-      title: 'Nooni Qoola',
-      subtitle: 'Hawassa Katama noo borrote hul',
+      title: 'Nooyera Gede Qixxisanno',
+      subtitle: 'Offiisi keenna hula, kaarta woye qoola, woy maalla leellishshote nooqixxisa.',
+      contactUsBtn: 'Nooqixxisa',
+      viewOnMapsBtn: 'Google Kaarta Woye Hula',
+      getDirectionsBtn: 'Qaggara Hegeranno',
+      headquarters: 'የሀ-መሰብ Kalaqqa Offiisi',
+      servicesCenter: 'Mootummaa Oso Maakko',
       loading: 'Kaarta maalla laaqqa gede...',
       errorTitle: 'Kaarta maalla laaqqa dandaabokki',
       emptyMessage: 'Borro maalla ammayyo hegerannooti',
       addressLabel: 'Borro',
       phoneLabel: 'Bilbila',
       emailLabel: 'Imeela',
+      operatingHoursLabel: 'Oso Saatto',
       workingHoursLabel: 'Oso Saatto',
       websiteBtn: 'Websaayiti Hul',
       plusCode: 'Palaasi Koodi',
@@ -1036,91 +1054,91 @@ const Home = () => {
       )}
 
       {/* Services Section */}
-      <section id="services" className="min-h-screen py-20 px-6 transition-colors bg-[#0F172A] dark:bg-[#0F172A]">
+      <section id="services" className="min-h-screen py-20 px-6 transition-colors bg-gray-50 dark:bg-[#0F172A]">
         <div className="max-w-[1800px] mx-auto">
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-white mb-4">Our Services</h2>
-            <p className="text-gray-400 text-lg">Access essential government services quickly and efficiently</p>
+            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 transition-colors">Our Services</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg transition-colors">Access essential government services quickly and efficiently</p>
           </div>
 
           {/* Services Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {/* Service Card 1: Local Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
               <div className="w-16 h-16 rounded-xl bg-teal-500/10 border-[3px] border-[#14B8A6] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#14B8A6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Local Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Access local government services and permits</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Local Services</h3>
+              <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Access local government services and permits</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 2: International Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
               <div className="w-16 h-16 rounded-xl bg-cyan-500/10 border-[3px] border-[#06B6D4] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#06B6D4] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">International Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">International permits and documentation services</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">International Services</h3>
+              <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">International permits and documentation services</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 3: Document Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
               <div className="w-16 h-16 rounded-xl bg-blue-500/10 border-[3px] border-[#3B82F6] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#3B82F6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Document Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Official document processing and certification</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Document Services</h3>
+              <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Official document processing and certification</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 4: Tax Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
               <div className="w-16 h-16 rounded-xl bg-amber-500/10 border-[3px] border-[#F59E0B] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#F59E0B] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Tax Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Tax filing, payment, and consultation services</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Tax Services</h3>
+              <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Tax filing, payment, and consultation services</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 5: Housing Permits */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
               <div className="w-16 h-16 rounded-xl bg-purple-500/10 border-[3px] border-[#A78BFA] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#A78BFA] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Housing Permits</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Building permits and housing documentation</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Housing Permits</h3>
+              <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Building permits and housing documentation</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 6: Vehicle Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
               <div className="w-16 h-16 rounded-xl bg-sky-500/10 border-[3px] border-[#38BDF8] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#38BDF8] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 4h8m-4 4h4m4-12V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-5-5z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354v2.292m0 0a4 4 0 11-1.172 7.828M12 6.646V10m0 0v8m0-8h5" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Vehicle Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Vehicle registration, licensing, and permits</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Vehicle Services</h3>
+              <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Vehicle registration, licensing, and permits</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 7: Education Services - Row 3 Left (Centered) */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-1 lg:col-end-2 lg:mx-auto lg:w-full lg:max-w-[400px]">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-1 lg:col-end-2 lg:mx-auto lg:w-full lg:max-w-[400px]">
               <div className="w-16 h-16 rounded-xl bg-indigo-500/10 border-[3px] border-[#6366F1] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#6366F1] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M12 14l9-5-9-5-9 5 9 5z" />
@@ -1128,21 +1146,21 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Education Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Educational certificates and academic services</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Education Services</h3>
+              <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Educational certificates and academic services</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 8: Health Services - Row 3 Right (Centered) */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-2 lg:col-end-3 lg:mx-auto lg:w-full lg:max-w-[400px]">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-2 lg:col-end-3 lg:mx-auto lg:w-full lg:max-w-[400px]">
               <div className="w-16 h-16 rounded-xl bg-red-500/10 border-[3px] border-[#EF4444] flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-[#EF4444] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Health Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Health permits, medical certificates, and services</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Health Services</h3>
+              <p className="text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Health permits, medical certificates, and services</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-5 transition-colors"></div>
             </div>
           </div>
 
@@ -1158,7 +1176,7 @@ const Home = () => {
                   window.location.href = '/services';
                 }
               }}
-              className="bg-[#24469A] hover:bg-[#1e3a7f] text-white px-8 py-4 rounded-xl text-[18px] font-semibold transition-all duration-300 hover:shadow-xl flex items-center gap-2 min-w-[260px] min-h-[60px] justify-center"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-[#24469A] dark:hover:bg-[#1e3a7f] text-white px-8 py-4 rounded-xl text-[18px] font-semibold transition-all duration-300 hover:shadow-xl flex items-center gap-2 min-w-[260px] min-h-[60px] justify-center"
             >
               View All Services
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1172,7 +1190,7 @@ const Home = () => {
       </section>
 
       {/* Motion Section - Outside container for full width */}
-      <section className="w-full h-[300px] bg-[#0F172A] flex items-center justify-center overflow-hidden">
+      <section className="w-full h-[300px] bg-gray-100 dark:bg-[#0F172A] flex items-center justify-center overflow-hidden transition-colors">
         <iframe 
           src="/src/assets/mesob-motion-loop (1).html"
           className="w-full h-full border-0"
@@ -1325,190 +1343,195 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Map Section - Always show section, but conditionally show content */}
-      <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
+      {/* Map and Contact Info Section */}
+      <section id="map" className="py-20 px-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-[#0F2847] dark:to-[#1a3a5c] transition-colors">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
-            {mt.title}
-          </h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            {mt.subtitle}
-          </p>
+          {/* Section Header with Contact Us Button */}
+          <div className="text-center mb-12">
+            <button className="inline-flex items-center gap-2 bg-[#314EA1] hover:bg-[#283d7f] dark:bg-[#314EA1] dark:hover:bg-[#283d7f] text-white px-6 py-2.5 rounded-lg mb-4 transition-all">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              {mt.contactUsBtn}
+            </button>
+            <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 transition-colors">
+              {mt.title.split(' with ')[0]} <span className="text-blue-600 dark:text-blue-400">{mt.title.split(' with ')[1] || 'Us'}</span>
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 text-lg transition-colors">
+              {mt.subtitle}
+            </p>
+          </div>
 
           {/* Loading State */}
           {mapLoading && (
             <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#2563EB]"></div>
-              <p className="ml-4 text-gray-600 dark:text-gray-400 text-lg">{mt.loading}</p>
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 dark:border-blue-500"></div>
+              <p className="ml-4 text-gray-700 dark:text-gray-300 text-lg transition-colors">Loading map data...</p>
             </div>
           )}
 
           {/* Error State */}
           {!mapLoading && mapError && (
             <div className="flex flex-col items-center justify-center py-20">
-              <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-6 py-4 rounded-lg mb-4">
-                <p className="font-semibold">{mt.errorTitle}</p>
+              <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-6 py-4 rounded-lg mb-4 transition-colors">
+                <p className="font-semibold">Failed to load map data</p>
                 <p className="text-sm mt-1">{mapError}</p>
               </div>
             </div>
           )}
 
-          {/* Empty/No Data State */}
-          {!mapLoading && !mapError && !mapData && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <svg className="w-24 h-24 text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">{mt.emptyMessage}</p>
-            </div>
-          )}
-
-          {/* Map Content - Only show if data exists */}
+          {/* Map and Info Grid */}
           {!mapLoading && !mapError && mapData && (
-            <div className="bg-gray-50 dark:bg-[#1F2A39] rounded-2xl p-8 border border-gray-200 dark:border-[#2D3748] shadow-lg">
-              {/* Map Embed - Only show if embedUrl exists */}
-              {mapData?.map?.embedUrl && (
-                <div className="w-full h-[500px] rounded-xl overflow-hidden mb-6 bg-gray-200 dark:bg-gray-700">
-                  <iframe
-                    src={mapData.map.embedUrl}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Hawassa Mesob Location"
-                  ></iframe>
-                </div>
-              )}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left: Map Card */}
+              <div className="bg-white dark:bg-[#1a3050] rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-2xl transition-colors">
+                {/* Map Embed */}
+                {mapData?.map?.embedUrl ? (
+                  <div className="w-full h-[400px] rounded-2xl overflow-hidden mb-6 bg-gray-200 dark:bg-gray-800 transition-colors">
+                    <iframe
+                      src={mapData.map.embedUrl}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen=""
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="A-MESOB Location"
+                    ></iframe>
+                  </div>
+                ) : (
+                  <div className="w-full h-[400px] rounded-2xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center mb-6 transition-colors">
+                    <p className="text-gray-500 dark:text-gray-400 transition-colors">Map not available</p>
+                  </div>
+                )}
 
-              {/* Location Details - Only show if contact data exists */}
-              {mapData?.contact && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                  {/* Address - Only show if exists */}
-                  {mapData.contact.address && (
-                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                      <div className="flex-shrink-0 w-12 h-12 bg-[#2563EB] rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {/* View on Google Maps Button */}
+                <button
+                  onClick={() => {
+                    if (mapData?.map?.directionsUrl) {
+                      window.open(mapData.map.directionsUrl, '_blank');
+                    }
+                  }}
+                  className="w-full bg-[#314EA1] hover:bg-[#283d7f] dark:bg-[#314EA1] dark:hover:bg-[#283d7f] text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {mt.viewOnMapsBtn}
+                </button>
+              </div>
+
+              {/* Right: Headquarters Info Card */}
+              <div className="bg-white dark:bg-[#1a3050] rounded-3xl p-8 border-2 border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-2xl transition-colors">
+                {/* Header with Icon */}
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-16 h-16 bg-[#314EA1] dark:bg-[#314EA1] rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors">{mt.headquarters}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 transition-colors">{mt.servicesCenter}</p>
+                  </div>
+                </div>
+
+                {/* Contact Details */}
+                <div className="space-y-6">
+                  {/* Address */}
+                  {mapData?.contact?.address && (
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.addressLabel}</h3>
-                        <p className="text-gray-600 dark:text-gray-300">
-                          {mapData.contact.address}
-                        </p>
-                        {mapData.contact.plusCode && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {mt.plusCode}: {mapData.contact.plusCode}
-                          </p>
-                        )}
+                      <div className="flex-1">
+                        <h4 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors">{mt.addressLabel}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 transition-colors">{mapData.contact.address}</p>
                       </div>
                     </div>
                   )}
 
-                  {/* Phone - Only show if exists */}
-                  {(mapData.contact.phoneDisplay || mapData.contact.phone) && (
-                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                      <div className="flex-shrink-0 w-12 h-12 bg-[#10B981] rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* Operating Hours */}
+                  {mapData?.contact?.operatingHours && (
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors">{mt.operatingHoursLabel}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 transition-colors">{mapData.contact.operatingHours}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Phone */}
+                  {(mapData?.contact?.phoneDisplay || mapData?.contact?.phone) && (
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.phoneLabel}</h3>
-                        <p className="text-gray-600 dark:text-gray-300">
-                          {mapData.contact.phoneDisplay || mapData.contact.phone}
-                        </p>
+                      <div className="flex-1">
+                        <h4 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors">{mt.phoneLabel}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 transition-colors">{mapData.contact.phoneDisplay || mapData.contact.phone}</p>
                       </div>
                     </div>
                   )}
 
-                  {/* Email - Only show if exists */}
-                  {mapData.contact.email && (
-                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                      <div className="flex-shrink-0 w-12 h-12 bg-[#F59E0B] rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* Email */}
+                  {mapData?.contact?.email && (
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.emailLabel}</h3>
-                        <p className="text-gray-600 dark:text-gray-300">
-                          {mapData.contact.email}
-                        </p>
+                      <div className="flex-1">
+                        <h4 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors">{mt.emailLabel}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 transition-colors">{mapData.contact.email}</p>
                       </div>
                     </div>
                   )}
                 </div>
-              )}
 
-              {/* Website Link - Only show if exists */}
-              {mapData?.contact?.website && (
-                <div className="mb-6">
-                  <a
-                    href={mapData.contact.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#2563EB] hover:bg-[#1e3470] text-white rounded-xl transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                    </svg>
-                    {mt.websiteBtn}
-                  </a>
-                </div>
-              )}
+                {/* Get Directions Button */}
+                <button
+                  onClick={() => {
+                    if (mapData?.map?.directionsUrl) {
+                      window.open(mapData.map.directionsUrl, '_blank');
+                    }
+                  }}
+                  className="w-full mt-8 bg-[#314EA1] hover:bg-[#283d7f] dark:bg-[#314EA1] dark:hover:bg-[#283d7f] text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                  {mt.getDirectionsBtn}
+                </button>
+              </div>
+            </div>
+          )}
 
-              {/* Working Hours - Only show if exists */}
-              {(mapData?.contact?.officeHoursDetailed || mapData?.contact?.operatingHours) && (
-                <div className="p-6 bg-white dark:bg-[#0F1419] rounded-xl mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {mt.workingHoursLabel}
-                  </h3>
-                  
-                  {mapData.contact.officeHoursDetailed ? (
-                    <div className="space-y-2">
-                      {mapData.contact.officeHoursDetailed.map((schedule, index) => (
-                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
-                          <span className="text-gray-700 dark:text-gray-300 font-medium">{schedule.days}</span>
-                          <span className="text-gray-600 dark:text-gray-400">{schedule.hours}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {mapData.contact.operatingHours}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Map Rating - Only show if exists */}
-              {mapData?.map?.rating && (
-                <div className="p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">{mapData.map.rating.score}</span>
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <svg key={i} className={`w-5 h-5 ${i < mapData.map.rating.score ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <span className="text-gray-600 dark:text-gray-400 text-sm">({mapData.map.rating.reviewsCount} {mapData.map.rating.reviewsCount === 1 ? mt.review : mt.reviews})</span>
-                  </div>
-                </div>
-              )}
+          {/* Empty State */}
+          {!mapLoading && !mapError && !mapData && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <svg className="w-24 h-24 text-gray-400 dark:text-gray-600 mb-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <p className="text-gray-600 dark:text-gray-400 text-lg transition-colors">Location information will be available soon</p>
             </div>
           )}
         </div>
       </section>
+
 
       {/* Footer */}
       <Footer />
