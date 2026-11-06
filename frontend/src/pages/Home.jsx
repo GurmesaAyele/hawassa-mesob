@@ -1300,7 +1300,7 @@ const Home = () => {
                       setVerificationWord(words[Math.floor(Math.random() * words.length)]);
                       setFormData({ ...formData, verification: '' }); // Clear input on refresh
                     }}
-                    className="ml-3 p-2.5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors bg-[#2563EB]"
+                    className="ml-3 p-2.5 rounded-full hover:bg-[#283d7f] dark:hover:bg-[#283d7f] transition-colors bg-[#314EA1]"
                     title="Generate new verification word"
                   >
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1334,7 +1334,7 @@ const Home = () => {
               <button
                 type="submit"
                 disabled={messageSending}
-                className="w-full py-3.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#2563EB]"
+                className="w-full py-3.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#314EA1] hover:bg-[#283d7f] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {messageSending ? 'Sending...' : ct.submitBtn}
               </button>
