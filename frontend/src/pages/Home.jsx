@@ -215,7 +215,7 @@ const Home = () => {
 
   // Generate random verification word on component mount
   useEffect(() => {
-    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
+    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY', 'VALID', 'CHECK', 'CONFIRM', 'MESOB'];
     const randomWord = words[Math.floor(Math.random() * words.length)];
     setVerificationWord(randomWord);
   }, []);
@@ -569,25 +569,74 @@ const Home = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (formData.verification.toUpperCase() !== verificationWord) {
-      setMessageStatus({ type: 'error', text: 'Verification failed. Please enter the correct word.' });
+    
+    // Generate fresh verification words list
+    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY', 'VALID', 'CHECK', 'CONFIRM', 'MESOB'];
+    
+    // Check verification
+    if (formData.verification.trim().toUpperCase() !== verificationWord) {
+      // Regenerate a new word on failed verification
+      const newWord = words[Math.floor(Math.random() * words.length)];
+      setVerificationWord(newWord);
+      setFormData({ ...formData, verification: '' }); // Clear the verification input
+      
+      const errorMessages = {
+        English: 'Verification failed. Please try again with the new word shown.',
+        Amharic: 'ማረጋገጫ አልተሳካም። እባክዎ በአዲሱ ቃል እንደገና ይሞክሩ።',
+        Sidama: 'Mirkaneessi dandaabokki. Haa ammayyo qaalawaan ammas yaala.'
+      };
+      setMessageStatus({ 
+        type: 'error', 
+        text: errorMessages[language] || errorMessages.English
+      });
       return;
     }
+    
     setMessageSending(true);
     setMessageStatus(null);
+    
     try {
-      await submitMessage({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        message: formData.message,
+      const result = await submitMessage({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        message: formData.message.trim(),
       });
-      setMessageStatus({ type: 'success', text: 'Message sent successfully.' });
+      
+      const successMessages = {
+        English: 'Thank you! Your message has been sent successfully.',
+        Amharic: 'እናመሰግናለን! መልእክትዎ በተሳካ ሁኔታ ተልኳል።',
+        Sidama: 'Galata! Ergaaykine milkaawaan ergagama.'
+      };
+      
+      setMessageStatus({ 
+        type: 'success', 
+        text: successMessages[language] || successMessages.English
+      });
+      
+      // Clear form and generate new verification word
       setFormData({ name: '', email: '', phone: '', message: '', verification: '' });
-      const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
-      setVerificationWord(words[Math.floor(Math.random() * words.length)]);
+      const newWord = words[Math.floor(Math.random() * words.length)];
+      setVerificationWord(newWord);
+      
     } catch (error) {
-      setMessageStatus({ type: 'error', text: error.message });
+      console.error('Message submission error:', error);
+      
+      // Regenerate verification word on error
+      const newWord = words[Math.floor(Math.random() * words.length)];
+      setVerificationWord(newWord);
+      setFormData({ ...formData, verification: '' });
+      
+      const errorMessages = {
+        English: error.message || 'Failed to send message. Please try again.',
+        Amharic: 'መልእክት መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
+        Sidama: 'Ergaa erguu dandaabokki. Haa ammas yaala.'
+      };
+      
+      setMessageStatus({ 
+        type: 'error', 
+        text: errorMessages[language] || error.message || errorMessages.English
+      });
     } finally {
       setMessageSending(false);
     }
@@ -1229,10 +1278,12 @@ const Home = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
+                      const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY', 'VALID', 'CHECK', 'CONFIRM', 'MESOB'];
                       setVerificationWord(words[Math.floor(Math.random() * words.length)]);
+                      setFormData({ ...formData, verification: '' }); // Clear input on refresh
                     }}
                     className="ml-3 p-2.5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors bg-[#2563EB]"
+                    title="Generate new verification word"
                   >
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

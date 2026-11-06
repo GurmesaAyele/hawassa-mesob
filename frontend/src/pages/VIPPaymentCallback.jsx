@@ -86,6 +86,12 @@ const VIPPaymentCallback = () => {
             setStatus('failed');
             setErrorMessage(data.errorMessage || 'Payment was not completed. Please try again.');
           }
+        } else if (!result.success) {
+          // Handle API error response  
+          console.warn('Payment verification returned error:', result);
+          clearInterval(pollInterval);
+          setStatus('failed');
+          setErrorMessage(result.error || result.message || 'Unable to verify payment status.');
         }
       } catch (error) {
         console.error('Error checking payment status:', error);
