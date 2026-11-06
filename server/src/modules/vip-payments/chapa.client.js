@@ -85,19 +85,30 @@ export async function initializeHostedCheckout({
     };
   }
 
-  const endpoint = `${config.baseUrl}/transaction/initialize`;
+  if (!customer?.email || typeof customer.email !== "string" || !customer.email.trim()) {
+    return {
+      success: false,
+      error: "Validation failed: Customer email is required for Chapa checkout initialization.",
+    };
+  }
+
   const resolvedCallbackUrl = callbackUrl || config.callbackUrl;
   const resolvedReturnUrl = returnUrl || config.returnUrl;
+
+  const endpoint = `${config.baseUrl}/transaction/initialize`;
+  // Ensure the signed POST webhook endpoint is never sent as Chapa's GET callback_url
+  const isWebhookEndpoint = resolvedCallbackUrl && /\/api\/vip-payments\/webhook\/?$/i.test(resolvedCallbackUrl);
+  const safeCallbackUrl = isWebhookEndpoint ? null : resolvedCallbackUrl;
 
   const payload = {
     amount: String(amount),
     currency,
-    email: customer?.email,
+    email: customer.email.trim().toLowerCase(),
     first_name: customer?.firstName || "Citizen",
     last_name: customer?.lastName || "Applicant",
     tx_ref: reference,
     ...(customer?.phone ? { phone_number: customer.phone } : {}),
-    ...(resolvedCallbackUrl ? { callback_url: resolvedCallbackUrl } : {}),
+    ...(safeCallbackUrl ? { callback_url: safeCallbackUrl } : {}),
     ...(resolvedReturnUrl ? { return_url: resolvedReturnUrl } : {}),
     "customization[title]": "Hawassa MESOB VIP Ticket",
     "customization[description]": "VIP priority walk-in application fee",
@@ -273,7 +284,12 @@ export function verifyChapaWebhookSignature(rawBody, signatureHeader) {
       .update(rawBody)
       .digest("hex");
 
-    const headerClean = signatureHeader.trim();
+    const headerClean = signatureHeader.trim().toLowerCase();
+    // SHA-256 hex signature must be exactly 64 lowercase hexadecimal characters
+    if (headerClean.length !== 64 || !/^[0-9a-f]{64}$/.test(headerClean)) {
+      return false;
+    }
+
     const sigBuffer = Buffer.from(headerClean, "hex");
     const compBuffer = Buffer.from(computedHmac, "hex");
 
