@@ -5,6 +5,7 @@ import ServiceManager from "../components/admin/ServiceManager";
 import HomeContentManager from "../components/admin/HomeContentManager";
 import MessagesManager from "../components/admin/MessagesManager";
 import SiteSettingsManager from "../components/admin/SiteSettingsManager";
+import VipTicketsManager from "../components/admin/VipTicketsManager";
 import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { adminApi } from "../services/adminApi";
 import "./AdminDashboard.css";
@@ -16,6 +17,7 @@ const SECTIONS = [
   { id: "messages", label: "Messages" },
   { id: "site-settings", label: "Location & contact" },
   { id: "home", label: "Home content" },
+  { id: "vip-tickets", label: "VIP tickets" },
 ];
 
 function AdminSignIn({ message, onSignedIn, authError }) {
@@ -453,6 +455,7 @@ export default function AdminDashboard() {
             </p>
           </>
         )}
+        {section === "vip-tickets" && <VipTicketsManager />}
       </main>
       <ConfirmationDialog
         open={Boolean(confirmation)}
