@@ -172,36 +172,36 @@ const Institutions = () => {
       <VIPTicket />
       
       {/* Header */}
-      <div className="pt-24 pb-12 px-6 bg-gradient-to-br from-[#294491] to-[#CB9D2A]">
+      <div className="pt-20 sm:pt-24 pb-8 sm:pb-10 md:pb-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#294491] to-[#CB9D2A]">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl font-bold text-white mb-4">{t.title}</h1>
-          <p className="text-xl text-white/90">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 px-4">{t.title}</h1>
+          <p className="text-base sm:text-lg md:text-xl text-white/90 px-4 max-w-3xl mx-auto">
             {t.subtitle}
           </p>
         </div>
       </div>
 
       {/* Content */}
-      <div className="py-16 px-6">
+      <div className="py-10 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Loading State */}
           {loading && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#294491] mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">{t.loading}</p>
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20">
+              <div className="animate-spin rounded-full h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 border-t-4 border-b-4 border-[#294491] mb-3 sm:mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">{t.loading}</p>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-6 py-4 rounded-lg mb-4">
-                <p className="font-semibold">{t.error}</p>
-                <p className="text-sm mt-1">{error}</p>
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20 px-4">
+              <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 sm:px-6 py-3 sm:py-4 rounded-lg mb-3 sm:mb-4 max-w-2xl w-full">
+                <p className="font-semibold text-sm sm:text-base">{t.error}</p>
+                <p className="text-xs sm:text-sm mt-1">{error}</p>
               </div>
               <button
                 onClick={() => window.location.reload()}
-                className="bg-[#294491] hover:bg-[#1e3470] text-white px-6 py-2 rounded-lg transition-colors"
+                className="bg-[#294491] hover:bg-[#1e3470] text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-sm sm:text-base"
               >
                 {t.retry}
               </button>
@@ -210,18 +210,18 @@ const Institutions = () => {
 
           {/* No Institutions */}
           {!loading && !error && institutions.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <svg className="w-24 h-24 text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20 px-4">
+              <svg className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-400 dark:text-gray-600 mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">{t.noInstitutions}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">{t.noInstitutions}</p>
             </div>
           )}
 
           {/* Institutions Grid */}
           {!loading && !error && institutions.length > 0 && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 mb-6 sm:mb-7 md:mb-8">
                 {currentInstitutions.map((institution) => (
                   <InstitutionCard
                     key={institution.id}
@@ -233,29 +233,31 @@ const Institutions = () => {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 mt-8">
+                <div className="flex items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-7 md:mt-8 px-4">
                   <button
                     onClick={handlePrevious}
                     disabled={currentPage === 0}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#294491] hover:bg-[#1e3470] text-white rounded-lg transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-[#294491] hover:bg-[#1e3470] text-white rounded-lg transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
-                    {t.previous}
+                    <span className="hidden sm:inline">{t.previous}</span>
+                    <span className="sm:hidden">Prev</span>
                   </button>
 
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium text-sm sm:text-base">
                     {currentPage + 1} / {totalPages}
                   </span>
 
                   <button
                     onClick={handleNext}
                     disabled={currentPage === totalPages - 1}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#294491] hover:bg-[#1e3470] text-white rounded-lg transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-[#294491] hover:bg-[#1e3470] text-white rounded-lg transition-colors disabled:bg-gray-400 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
-                    {t.next}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="hidden sm:inline">{t.next}</span>
+                    <span className="sm:hidden">Next</span>
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
