@@ -10,7 +10,7 @@ import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { adminApi } from "../services/adminApi";
 import "./AdminDashboard.css";
 
-const ADMIN_ROLES = new Set(["OPERATOR", "SUPER_ADMIN"]);
+const ADMIN_ROLES = new Set(["OPERATOR", "SUPER_ADMIN", "STAFF"]);
 const SECTIONS = [
   { id: "institutions", label: "Institutions" },
   { id: "services", label: "Services" },
@@ -129,6 +129,7 @@ export default function AdminDashboard() {
   const [confirmation, setConfirmation] = useState(null);
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+  const isStaff = currentUser?.role === "STAFF";
 
   const refreshData = useCallback(async () => {
     const results = await Promise.allSettled([
@@ -185,6 +186,7 @@ export default function AdminDashboard() {
           setAuthError("This account does not have access to the admin dashboard.");
           return;
         }
+        if (user.role === "STAFF") setSection("vip-tickets");
         setCurrentUser(user);
       })
       .catch((requestError) => {
@@ -197,7 +199,7 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || currentUser.role === "STAFF") return;
     refreshData();
   }, [currentUser, refreshData]);
 
@@ -220,6 +222,7 @@ export default function AdminDashboard() {
     setAuthError("");
     setAuthMessage("");
     setError("");
+    setSection(user.role === "STAFF" ? "vip-tickets" : "institutions");
     setCurrentUser(user);
     setLoading(true);
   };
@@ -344,19 +347,19 @@ export default function AdminDashboard() {
         <div className="admin-header__inner">
           <div className="admin-header__brand">
             <p className="admin-eyebrow">HAWASSA MESOB / ADMINISTRATION</p>
-            <h1 className="mt-1 text-2xl font-bold">Content dashboard</h1>
+            <h1 className="mt-1 text-2xl font-bold">{isStaff ? "VIP ticket desk" : "Content dashboard"}</h1>
           </div>
           <div className="admin-account">
             <span className="admin-account__avatar" aria-hidden="true">{(currentUser.name || currentUser.email || "A").slice(0, 1).toUpperCase()}</span>
             <span className="admin-account__identity">
               <strong>{currentUser.name || currentUser.email}</strong>
-              <small>{currentUser.role === "SUPER_ADMIN" ? "Super admin" : "Operator"}</small>
+              <small>{currentUser.role === "SUPER_ADMIN" ? "Super admin" : currentUser.role === "STAFF" ? "Staff" : "Operator"}</small>
             </span>
             <button type="button" className="admin-account__action" onClick={signOut}>Sign out</button>
             <Link className="admin-account__action" to="/">Public site</Link>
           </div>
           <nav className="admin-nav" aria-label="Admin sections">
-            {SECTIONS.map((item) => (
+            {SECTIONS.filter((item) => !isStaff || item.id === "vip-tickets").map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -377,7 +380,7 @@ export default function AdminDashboard() {
       </header>
 
       <main className="admin-main mx-auto max-w-7xl space-y-5 px-4 py-7 md:px-8 md:py-9">
-        <section className="admin-overview" aria-label="Dashboard summary">
+        {!isStaff && <section className="admin-overview" aria-label="Dashboard summary">
           <div className="admin-overview__intro">
             <p className="admin-eyebrow">YOUR WORKSPACE</p>
             <h2>Operations overview</h2>
@@ -403,17 +406,17 @@ export default function AdminDashboard() {
               <small>{messagesError ? "Inbox unavailable" : "Citizen contact inbox"}</small>
             </article>
           </div>
-        </section>
+        </section>}
 
-        {error && (
+        {!isStaff && error && (
           <div role="alert" className="admin-callout admin-callout--error flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-900">
             <p>{error}</p>
             <button type="button" onClick={retryLoading} className="font-semibold underline">Retry</button>
           </div>
         )}
-        {notice && <p role="status" className="admin-callout admin-callout--success border-l-4 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
+        {!isStaff && notice && <p role="status" className="admin-callout admin-callout--success border-l-4 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
 
-        {section === "institutions" && (
+        {!isStaff && section === "institutions" && (
           <InstitutionManager
             items={institutions}
             loading={loading}
@@ -425,7 +428,7 @@ export default function AdminDashboard() {
             onDelete={deleteInstitution}
           />
         )}
-        {section === "services" && (
+        {!isStaff && section === "services" && (
           <ServiceManager
             items={services}
             institutions={institutions}
@@ -437,7 +440,7 @@ export default function AdminDashboard() {
             onReactivate={reactivateService}
           />
         )}
-        {section === "messages" && (
+        {!isStaff && section === "messages" && (
           <MessagesManager
             items={messages}
             loading={loading}
@@ -446,8 +449,8 @@ export default function AdminDashboard() {
             onToggleRead={updateMessageStatus}
           />
         )}
-        {section === "site-settings" && <SiteSettingsManager readOnly={!isSuperAdmin} />}
-        {section === "home" && (
+        {!isStaff && section === "site-settings" && <SiteSettingsManager readOnly={!isSuperAdmin} />}
+        {!isStaff && section === "home" && (
           <>
             <HomeContentManager readOnly={!isSuperAdmin} />
             <p className="text-sm text-stone-600">
