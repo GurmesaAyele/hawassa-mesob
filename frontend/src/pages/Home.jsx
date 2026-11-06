@@ -347,7 +347,7 @@ const Home = () => {
   // Map section translations
   const mapTranslations = {
     English: {
-      title: 'Get in Touch with Us',
+      title: 'Get in Touch',
       subtitle: 'Visit our office, find us on the map, or reach out through the details below.',
       contactUsBtn: 'Contact Us',
       viewOnMapsBtn: 'View on Google Maps',
@@ -368,7 +368,7 @@ const Home = () => {
       reviews: 'reviews'
     },
     Amharic: {
-      title: 'ከእኛ ጋር ይገናኙ',
+      title: 'ይገናኙ',
       subtitle: 'ቢሮአችንን ይጎብኙ፣ በካርታ ላይ ይፈልጉን፣ ወይም በዝርዝሮች በኩል ያግኙን።',
       contactUsBtn: 'አግኙን',
       viewOnMapsBtn: 'በጉግል ካርታ ይመልከቱ',
@@ -389,7 +389,7 @@ const Home = () => {
       reviews: 'ግምገማዎች'
     },
     Sidama: {
-      title: 'Nooyera Gede Qixxisanno',
+      title: 'Qixxisanno',
       subtitle: 'Offiisi keenna hula, kaarta woye qoola, woy maalla leellishshote nooqixxisa.',
       contactUsBtn: 'Nooqixxisa',
       viewOnMapsBtn: 'Google Kaarta Woye Hula',
@@ -1355,7 +1355,7 @@ const Home = () => {
               {mt.contactUsBtn}
             </button>
             <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 transition-colors">
-              {mt.title.split(' with ')[0]} <span className="text-blue-600 dark:text-blue-400">{mt.title.split(' with ')[1] || 'Us'}</span>
+              {mt.title}
             </h2>
             <p className="text-gray-700 dark:text-gray-300 text-lg transition-colors">
               {mt.subtitle}
