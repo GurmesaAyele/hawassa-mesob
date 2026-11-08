@@ -48,8 +48,9 @@ export async function login(req, res) {
       });
     }
 
-    // Citizen accounts cannot log into the administrative dashboard
-    if (user.role !== "SUPER_ADMIN" && user.role !== "OPERATOR") {
+    // Only administrative and staff accounts can log into the staff/admin portal
+    const ALLOWED_ADMIN_ROLES = ["SUPER_ADMIN", "OPERATOR", "STAFF"];
+    if (!ALLOWED_ADMIN_ROLES.includes(user.role)) {
       return res.status(403).json({
         error: "Access denied. Administrative role required.",
       });
