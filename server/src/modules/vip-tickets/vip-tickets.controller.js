@@ -522,6 +522,7 @@ export async function submitVipApplication(req, res) {
           slotDate: null,
           slotTime: null,
           status: "PENDING",
+          serviceProcessingStatus: "PENDING",
           paymentRef: null,
           qrCodeUrl: null,
           vipFee,
