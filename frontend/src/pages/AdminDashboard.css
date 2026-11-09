@@ -479,6 +479,47 @@
   transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
+.admin-password-input {
+  position: relative;
+  display: block;
+}
+
+.admin-password-input input {
+  padding-right: 50px;
+}
+
+.admin-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64756e;
+  cursor: pointer;
+}
+
+.admin-password-toggle:hover {
+  background: #edf3ef;
+  color: #18543d;
+}
+
+.admin-password-toggle:focus-visible {
+  outline: 2px solid #287252;
+  outline-offset: 1px;
+}
+
+.admin-password-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
 .admin-login-field input::placeholder {
   color: #9aa8a0;
 }

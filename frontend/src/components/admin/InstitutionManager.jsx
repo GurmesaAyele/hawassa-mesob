@@ -160,7 +160,7 @@ function InstitutionForm({ initial, saving, onCancel, onSave }) {
   );
 }
 
-export default function InstitutionManager({ items, loading, saving, readOnly = false, onSave, onDeactivate, onDelete }) {
+export default function InstitutionManager({ items, loading, saving, readOnly = false, onSave, onDeactivate, onReactivate, onDelete }) {
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
   const formRef = useRef(null);
@@ -254,6 +254,7 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
                       <>
                         <Button className="admin-table-action" variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
                         {item.isActive && <Button className="admin-table-action admin-table-action--warning" variant="danger" disabled={saving} onClick={() => onDeactivate(item)}>Deactivate</Button>}
+                        {!item.isActive && <Button className="admin-table-action" disabled={saving} onClick={() => onReactivate(item)}>Reactivate</Button>}
                         <Button className="admin-table-action admin-table-action--danger" variant="danger" disabled={saving} onClick={() => onDelete(item)}>Delete</Button>
                       </>
                     )}

@@ -21,9 +21,9 @@ function articleForm(initial, category) {
     content: localizedValue(initial?.content),
     date: (initial?.publishedAt || initial?.date || "").slice(0, 10),
     image: initial?.imageUrl || initial?.image || "",
-    author: initial?.author || "",
+    author: displayText(initial?.author, ""),
     priority: initial?.priority || "medium",
-    type: initial?.category || initial?.type || "general",
+    type: displayText(initial?.category || initial?.type, "general"),
     ...(category === "videos" && {
       title: localizedValue(initial?.titleTranslations || initial?.title),
       content: localizedValue(initial?.descriptionTranslations || initial?.description),
@@ -75,7 +75,10 @@ function ContentForm({ category, initial, saving, onCancel, onSave }) {
           title: Object.fromEntries(LOCALES.map((locale) => [locale, form.title[locale].trim()])),
           content: Object.fromEntries(LOCALES.map((locale) => [locale, form.content[locale].trim()])),
           image: form.image.trim() || null,
-          ...(category === "news" && { author: form.author.trim(), category: form.type.trim() }),
+          ...(category === "news" && {
+            author: updateEnglishTranslation(initial?.author, form.author.trim()),
+            category: updateEnglishTranslation(initial?.category, form.type.trim()),
+          }),
           ...(isAnnouncement && { priority: form.priority, type: form.type }),
           date,
         };
@@ -180,6 +183,11 @@ function displayText(value, fallback = "—") {
 
 function displayTitle(item) {
   return displayText(item.title, "Untitled");
+}
+
+function updateEnglishTranslation(value, englishValue) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return englishValue;
+  return { ...value, en: englishValue };
 }
 
 export default function HomeContentManager({ readOnly = false }) {

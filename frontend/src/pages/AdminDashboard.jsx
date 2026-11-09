@@ -5,22 +5,38 @@ import ServiceManager from "../components/admin/ServiceManager";
 import HomeContentManager from "../components/admin/HomeContentManager";
 import MessagesManager from "../components/admin/MessagesManager";
 import SiteSettingsManager from "../components/admin/SiteSettingsManager";
+import VipTicketsManager from "../components/admin/VipTicketsManager";
 import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { adminApi } from "../services/adminApi";
 import "./AdminDashboard.css";
 
-const ADMIN_ROLES = new Set(["OPERATOR", "SUPER_ADMIN"]);
+const ADMIN_ROLES = new Set(["OPERATOR", "SUPER_ADMIN", "STAFF"]);
+const ADMIN_SESSION_EXPIRY_KEY = "adminSessionExpiresAt";
 const SECTIONS = [
   { id: "institutions", label: "Institutions" },
   { id: "services", label: "Services" },
   { id: "messages", label: "Messages" },
   { id: "site-settings", label: "Location & contact" },
   { id: "home", label: "Home content" },
+  { id: "vip-tickets", label: "VIP tickets" },
 ];
+
+function getSessionExpiry(token) {
+  try {
+    const encodedPayload = token?.split(".")[1];
+    if (!encodedPayload) return "";
+    const base64 = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "=")));
+    return Number.isInteger(payload.exp) ? new Date(payload.exp * 1000).toISOString() : "";
+  } catch {
+    return "";
+  }
+}
 
 function AdminSignIn({ message, onSignedIn, authError }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,13 +45,19 @@ function AdminSignIn({ message, onSignedIn, authError }) {
     setError("");
     setSubmitting(true);
     try {
-      await adminApi.login({ email: email.trim(), password });
+      const loginResult = await adminApi.login({ email: email.trim(), password });
+      const sessionExpiresAt = getSessionExpiry(loginResult?.token);
+      if (!sessionExpiresAt) {
+        throw new Error("The server did not provide a valid session expiration. Please try signing in again.");
+      }
+      localStorage.setItem(ADMIN_SESSION_EXPIRY_KEY, sessionExpiresAt);
       const { user } = await adminApi.me();
       if (!user || !ADMIN_ROLES.has(user.role)) {
         throw new Error("This account does not have access to the admin dashboard.");
       }
-      onSignedIn(user);
+      onSignedIn({ ...user, sessionExpiresAt });
     } catch (requestError) {
+      localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
       setError(requestError.message);
     } finally {
       setSubmitting(false);
@@ -69,10 +91,33 @@ function AdminSignIn({ message, onSignedIn, authError }) {
             <span>Email address</span>
             <input type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@hawassamesobcenter.et" />
           </label>
-          <label className="admin-login-field">
-            <span>Password</span>
-            <input type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" />
-          </label>
+          <div className="admin-login-field">
+            <label htmlFor="admin-password">Password</label>
+            <span className="admin-password-input">
+              <input id="admin-password" type={showPassword ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" />
+              <button
+                className="admin-password-toggle"
+                type="button"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? (
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 3l18 18" />
+                    <path d="M10.6 10.6a2 2 0 002.8 2.8" />
+                    <path d="M9.9 5.2A10.8 10.8 0 0112 5c5.5 0 9 7 9 7a14.8 14.8 0 01-3.1 3.9" />
+                    <path d="M6.2 6.2C3.9 7.8 3 12 3 12s3.5 7 9 7a10.7 10.7 0 004.1-.8" />
+                  </svg>
+                ) : (
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2.5 12s3.3-7 9.5-7 9.5 7 9.5 7-3.3 7-9.5 7-9.5-7-9.5-7z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </span>
+          </div>
           <button className="admin-login-submit" type="submit" disabled={submitting}>
             {submitting ? "Signing in..." : "Sign in to dashboard"}
           </button>
@@ -103,6 +148,7 @@ export default function AdminDashboard() {
   const [confirmation, setConfirmation] = useState(null);
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+  const isStaff = currentUser?.role === "STAFF";
 
   const refreshData = useCallback(async () => {
     const results = await Promise.allSettled([
@@ -159,9 +205,20 @@ export default function AdminDashboard() {
           setAuthError("This account does not have access to the admin dashboard.");
           return;
         }
-        setCurrentUser(user);
+        const sessionExpiresAt = localStorage.getItem(ADMIN_SESSION_EXPIRY_KEY);
+        if (!sessionExpiresAt || !Number.isFinite(Date.parse(sessionExpiresAt)) || Date.parse(sessionExpiresAt) <= Date.now()) {
+          localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+          setAuthMessage("Please sign in again to start a new 24-hour session.");
+          adminApi.logout().catch((requestError) => {
+            if (active) setAuthError(`Could not clear the previous session. ${requestError.message}`);
+          });
+          return;
+        }
+        if (user.role === "STAFF") setSection("vip-tickets");
+        setCurrentUser({ ...user, sessionExpiresAt });
       })
       .catch((requestError) => {
+        localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
         if (active && requestError.status !== 401) setAuthError(requestError.message);
       })
       .finally(() => {
@@ -171,14 +228,15 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || currentUser.role === "STAFF") return;
     refreshData();
   }, [currentUser, refreshData]);
 
   useEffect(() => {
-    function handleUnauthorized() {
+    function handleUnauthorized(event) {
       setCurrentUser(null);
-      setAuthMessage("Your session has expired. Please sign in again.");
+      localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+      setAuthMessage(event.detail?.message || "Your session has expired. Please sign in again.");
       setAuthError("");
       setInstitutions([]);
       setServices([]);
@@ -190,10 +248,63 @@ export default function AdminDashboard() {
     return () => window.removeEventListener("admin:unauthorized", handleUnauthorized);
   }, []);
 
+  useEffect(() => {
+    if (!currentUser) return undefined;
+
+    const expiresAt = Date.parse(currentUser.sessionExpiresAt);
+    const hasValidExpiry = Number.isFinite(expiresAt);
+
+    let expiryTimer;
+    let endingSession = false;
+
+    const expireSession = () => {
+      if (endingSession) return;
+      endingSession = true;
+      adminApi.logout()
+        .then(() => {
+          localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+          window.dispatchEvent(new CustomEvent("admin:unauthorized", {
+            detail: {
+              message: hasValidExpiry
+                ? "Your session expired after 24 hours. Please sign in again."
+                : "The server did not provide a valid session expiration. Please sign in again.",
+            },
+          }));
+        })
+        .catch((requestError) => {
+          localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+          window.dispatchEvent(new CustomEvent("admin:unauthorized", {
+            detail: {
+              message: hasValidExpiry
+                ? `Your session expired after 24 hours. Could not contact the server to clear the session (${requestError.message}). Please sign in again.`
+                : `The server did not provide a valid session expiration. Could not contact the server to clear the session (${requestError.message}). Please sign in again.`,
+            },
+          }));
+        });
+    };
+
+    const checkSessionExpiry = () => {
+      if (Date.now() >= expiresAt) {
+        expireSession();
+      }
+    };
+
+    expiryTimer = window.setTimeout(expireSession, hasValidExpiry ? Math.max(0, expiresAt - Date.now()) : 0);
+    window.addEventListener("focus", checkSessionExpiry);
+    document.addEventListener("visibilitychange", checkSessionExpiry);
+
+    return () => {
+      window.clearTimeout(expiryTimer);
+      window.removeEventListener("focus", checkSessionExpiry);
+      document.removeEventListener("visibilitychange", checkSessionExpiry);
+    };
+  }, [currentUser]);
+
   const signIn = (user) => {
     setAuthError("");
     setAuthMessage("");
     setError("");
+    setSection(user.role === "STAFF" ? "vip-tickets" : "institutions");
     setCurrentUser(user);
     setLoading(true);
   };
@@ -203,6 +314,7 @@ export default function AdminDashboard() {
     try {
       await adminApi.logout();
       setCurrentUser(null);
+      localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
       setInstitutions([]);
       setServices([]);
       setMessages([]);
@@ -256,6 +368,11 @@ export default function AdminDashboard() {
     });
   };
 
+  const reactivateInstitution = (institution) => runMutation(
+    () => adminApi.updateInstitution(institution.id, { isActive: true }),
+    "Institution reactivated. Its services can be reactivated individually.",
+  );
+
   const saveService = (payload, id) => runMutation(
     () => id ? adminApi.updateService(id, payload) : adminApi.createService(payload),
     id ? "Service updated." : "Service created.",
@@ -270,6 +387,11 @@ export default function AdminDashboard() {
       action: () => runMutation(() => adminApi.deactivateService(service.id), "Service deactivated."),
     });
   };
+
+  const reactivateService = (service) => runMutation(
+    () => adminApi.updateService(service.id, { isActive: true }),
+    "Service reactivated.",
+  );
 
   const confirmDestructiveAction = async () => {
     if (!confirmation) return;
@@ -308,19 +430,19 @@ export default function AdminDashboard() {
         <div className="admin-header__inner">
           <div className="admin-header__brand">
             <p className="admin-eyebrow">HAWASSA MESOB / ADMINISTRATION</p>
-            <h1 className="mt-1 text-2xl font-bold">Content dashboard</h1>
+            <h1 className="mt-1 text-2xl font-bold">{isStaff ? "VIP ticket desk" : "Content dashboard"}</h1>
           </div>
           <div className="admin-account">
             <span className="admin-account__avatar" aria-hidden="true">{(currentUser.name || currentUser.email || "A").slice(0, 1).toUpperCase()}</span>
             <span className="admin-account__identity">
               <strong>{currentUser.name || currentUser.email}</strong>
-              <small>{currentUser.role === "SUPER_ADMIN" ? "Super admin" : "Operator"}</small>
+              <small>{currentUser.role === "SUPER_ADMIN" ? "Super admin" : currentUser.role === "STAFF" ? "Staff" : "Operator"}</small>
             </span>
             <button type="button" className="admin-account__action" onClick={signOut}>Sign out</button>
             <Link className="admin-account__action" to="/">Public site</Link>
           </div>
           <nav className="admin-nav" aria-label="Admin sections">
-            {SECTIONS.map((item) => (
+            {SECTIONS.filter((item) => !isStaff || item.id === "vip-tickets").map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -341,7 +463,7 @@ export default function AdminDashboard() {
       </header>
 
       <main className="admin-main mx-auto max-w-7xl space-y-5 px-4 py-7 md:px-8 md:py-9">
-        <section className="admin-overview" aria-label="Dashboard summary">
+        {!isStaff && <section className="admin-overview" aria-label="Dashboard summary">
           <div className="admin-overview__intro">
             <p className="admin-eyebrow">YOUR WORKSPACE</p>
             <h2>Operations overview</h2>
@@ -367,17 +489,17 @@ export default function AdminDashboard() {
               <small>{messagesError ? "Inbox unavailable" : "Citizen contact inbox"}</small>
             </article>
           </div>
-        </section>
+        </section>}
 
-        {error && (
+        {!isStaff && error && (
           <div role="alert" className="admin-callout admin-callout--error flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-900">
             <p>{error}</p>
             <button type="button" onClick={retryLoading} className="font-semibold underline">Retry</button>
           </div>
         )}
-        {notice && <p role="status" className="admin-callout admin-callout--success border-l-4 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
+        {!isStaff && notice && <p role="status" className="admin-callout admin-callout--success border-l-4 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
 
-        {section === "institutions" && (
+        {!isStaff && section === "institutions" && (
           <InstitutionManager
             items={institutions}
             loading={loading}
@@ -385,10 +507,11 @@ export default function AdminDashboard() {
             readOnly={!isSuperAdmin}
             onSave={saveInstitution}
             onDeactivate={deactivateInstitution}
+            onReactivate={reactivateInstitution}
             onDelete={deleteInstitution}
           />
         )}
-        {section === "services" && (
+        {!isStaff && section === "services" && (
           <ServiceManager
             items={services}
             institutions={institutions}
@@ -397,9 +520,10 @@ export default function AdminDashboard() {
             readOnly={!isSuperAdmin}
             onSave={saveService}
             onDeactivate={deactivateService}
+            onReactivate={reactivateService}
           />
         )}
-        {section === "messages" && (
+        {!isStaff && section === "messages" && (
           <MessagesManager
             items={messages}
             loading={loading}
@@ -408,8 +532,8 @@ export default function AdminDashboard() {
             onToggleRead={updateMessageStatus}
           />
         )}
-        {section === "site-settings" && <SiteSettingsManager readOnly={!isSuperAdmin} />}
-        {section === "home" && (
+        {!isStaff && section === "site-settings" && <SiteSettingsManager readOnly={!isSuperAdmin} />}
+        {!isStaff && section === "home" && (
           <>
             <HomeContentManager readOnly={!isSuperAdmin} />
             <p className="text-sm text-stone-600">
@@ -417,6 +541,7 @@ export default function AdminDashboard() {
             </p>
           </>
         )}
+        {section === "vip-tickets" && <VipTicketsManager />}
       </main>
       <ConfirmationDialog
         open={Boolean(confirmation)}
