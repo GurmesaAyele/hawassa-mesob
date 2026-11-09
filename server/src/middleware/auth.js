@@ -51,7 +51,21 @@ export async function authenticateAdmin(req, res, next) {
         });
       }
     } catch (dbErr) {
-      console.warn("Database lookup in authenticateAdmin failed:", dbErr.message);
+      if (dbErr.message && dbErr.message.includes("UserRole")) {
+        try {
+          const rawUsers = await prisma.$queryRaw`
+            SELECT id, email, name, role::text as role, "isActive"
+            FROM users
+            WHERE id = ${decoded.id}
+            LIMIT 1
+          `;
+          user = rawUsers[0] || null;
+        } catch {
+          user = null;
+        }
+      } else {
+        console.warn("Database lookup in authenticateAdmin failed:", dbErr.message);
+      }
     }
 
     // If DB is temporarily unreachable or testing without seeded DB user, check decoded payload

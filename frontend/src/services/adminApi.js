@@ -99,4 +99,19 @@ export const adminApi = {
     body: JSON.stringify(data),
   }),
   deleteVideo: (id) => request(`/videos/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  vipTickets: {
+    list: (params = {}) => {
+      const search = new URLSearchParams();
+      if (params.page) search.set("page", params.page);
+      if (params.limit) search.set("limit", params.limit);
+      if (params.status && params.status !== "all") search.set("status", params.status);
+      const query = search.toString();
+      return request(`/admin/vip-tickets${query ? `?${query}` : ""}`);
+    },
+    updateServiceStatus: (id, status, notes = "") => request(`/admin/vip-tickets/${encodeURIComponent(id)}/service-status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, notes }),
+    }),
+    getById: (id) => request(`/admin/vip-tickets/${encodeURIComponent(id)}`),
+  },
 };

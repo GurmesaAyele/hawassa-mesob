@@ -306,7 +306,7 @@ export default function AdminDashboard() {
     setError("");
     setSection(user.role === "STAFF" ? "vip-tickets" : "institutions");
     setCurrentUser(user);
-    setLoading(true);
+    setLoading(user.role !== "STAFF");
   };
 
   const signOut = async () => {
