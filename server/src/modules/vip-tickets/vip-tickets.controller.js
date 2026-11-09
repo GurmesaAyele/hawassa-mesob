@@ -188,23 +188,6 @@ function formatVipApplication(ticket, fallbackServices = []) {
       : VIP_CONFIG.DEFAULT_FEE;
   const currency = ticket.currency || VIP_CONFIG.DEFAULT_CURRENCY;
 
-  // Structure appointment details
-  const appointment = ticket.slotDate
-    ? {
-      isAssigned: true,
-      status: "ASSIGNED",
-      slotDate: ticket.slotDate,
-      slotTime: ticket.slotTime || null,
-      message: "Appointment slot confirmed. Please arrive 10 minutes prior to your scheduled time.",
-    }
-    : {
-      isAssigned: false,
-      status: "UNASSIGNED",
-      slotDate: null,
-      slotTime: null,
-      message: "Appointment has not been scheduled yet. Your application is currently under review.",
-    };
-
   // Structure walk-in queue details
   // An application reference alone is NOT a confirmed queue position.
   // Physical check-in at the center is required to receive a queue position and queue number.
@@ -254,7 +237,11 @@ function formatVipApplication(ticket, fallbackServices = []) {
   }
 
   return {
+    id: ticket.id,
     reference: ticket.ticketCode,
+    ticketCode: ticket.ticketCode,
+    paymentRef: ticket.paymentRef || null,
+    qrCodeUrl: ticket.qrCodeUrl || null,
     status: ticket.status,
     purpose: ticket.purpose,
     serviceCount: formattedServices.length,
@@ -266,7 +253,6 @@ function formatVipApplication(ticket, fallbackServices = []) {
     maskedPhone: maskPhoneNumber(ticket.citizenPhone),
     maskedCitizenName: maskName(ticket.citizenName),
     maskedEmail: ticket.email ? maskEmail(ticket.email) : null,
-    appointment,
     queue,
     capacityReservation,
     createdAt: ticket.createdAt,
