@@ -314,7 +314,7 @@ const VIPTicket = () => {
       const requestBody = {
         reference: reference,
         email: formData.citizenEmail.trim(), // Now using the email from form
-        returnUrl: `${window.location.origin}/vip/payment/callback`
+        returnUrl: `${window.location.origin}/vip/payment/callback?reference=${encodeURIComponent(reference)}`
       };
 
       console.log('Initializing payment:', requestBody);
