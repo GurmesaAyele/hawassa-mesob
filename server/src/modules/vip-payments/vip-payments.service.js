@@ -804,7 +804,7 @@ export async function getPaymentStatus(reference) {
 
   const clean = reference.trim();
 
-  // Try finding by payment reference
+  // Try finding by payment reference (merchantReference, providerReference, or ID)
   let payment = await paymentsDb.findByReference(clean);
   let ticket = null;
 
@@ -813,12 +813,31 @@ export async function getPaymentStatus(reference) {
       where: { id: payment.ticketId },
     });
   } else {
-    // Fallback: Check if reference is a VIP ticket code
+    // Fallback: Check if reference is a VIP ticket code (VIP-XXXXXX-XXXX) or ticket ID
     ticket = await findTicketByReferenceOrId(clean);
     if (ticket) {
-      payment = await paymentsDb.findFirst({
-        ticketId: ticket.id,
-      });
+      // Step A: If ticket has a linked paymentRef, prioritize that payment
+      if (ticket.paymentRef) {
+        const linkedPayment = await paymentsDb.findByReference(ticket.paymentRef);
+        if (linkedPayment && linkedPayment.ticketId === ticket.id) {
+          payment = linkedPayment;
+        }
+      }
+
+      // Step B: If no payment resolved via paymentRef, look for a SUCCESS payment associated with this ticket
+      if (!payment) {
+        payment = await paymentsDb.findFirst({
+          ticketId: ticket.id,
+          status: "SUCCESS",
+        });
+      }
+
+      // Step C: Fall back to latest payment attempt (ordered by createdAt: 'desc')
+      if (!payment) {
+        payment = await paymentsDb.findFirst({
+          ticketId: ticket.id,
+        });
+      }
     }
   }
 
@@ -829,9 +848,13 @@ export async function getPaymentStatus(reference) {
     };
   }
 
+  const CONFIRMED_TICKET_STATUSES = ["CONFIRMED", "QUEUED", "SERVING", "USED"];
+  const isTicketAlreadyConfirmed = ticket ? CONFIRMED_TICKET_STATUSES.includes(ticket.status) : false;
+
   // Active Verification on Polling:
-  // If payment is PENDING, verify directly with Chapa with concurrency & progressive backoff protection
-  if (payment && payment.status === "PENDING") {
+  // ONLY trigger external Chapa verification if payment is PENDING and ticket is NOT already confirmed.
+  // If the database already shows ticket CONFIRMED, return confirmed state immediately!
+  if (!isTicketAlreadyConfirmed && payment && payment.status === "PENDING") {
     const merchantRef = payment.merchantReference;
     const now = Date.now();
     const tracker = verificationAttempts.get(merchantRef) || { count: 0, lastAttempt: 0 };
@@ -880,10 +903,14 @@ export async function getPaymentStatus(reference) {
     }
   }
 
+  // Recalculate status flags after potential active verification
+  const isConfirmed = ticket ? CONFIRMED_TICKET_STATUSES.includes(ticket.status) : false;
   const isVerified = payment ? payment.status === "SUCCESS" : false;
-  const isConfirmed = ticket ? ["CONFIRMED", "QUEUED", "SERVING", "USED"].includes(ticket.status) : false;
-  const isPending = payment ? payment.status === "PENDING" : true;
-  const canRetry = ticket?.status === "PENDING" && payment && ["FAILED", "CANCELLED", "EXPIRED"].includes(payment.status);
+  const isPending = !isConfirmed && (payment ? payment.status === "PENDING" : true);
+  const canRetry = !isConfirmed && ticket?.status === "PENDING" && payment && ["FAILED", "CANCELLED", "EXPIRED"].includes(payment.status);
+
+  // Ensure confirmed tickets always expose their scannable QR code
+  const qrCodeUrl = ticket ? (ticket.qrCodeUrl || (isConfirmed ? generateVipTicketQrCode(ticket.ticketCode) : null)) : null;
 
   return {
     status: 200,
@@ -903,7 +930,7 @@ export async function getPaymentStatus(reference) {
       isConfirmed,
       isPending,
       canRetry: Boolean(canRetry),
-      qrCodeUrl: ticket ? ticket.qrCodeUrl : null,
+      qrCodeUrl,
       errorMessage: payment ? payment.errorMessage : null,
       updatedAt: payment ? payment.updatedAt : ticket?.updatedAt,
     },
