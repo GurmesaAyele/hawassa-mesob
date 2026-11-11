@@ -8,6 +8,7 @@ const Navbar = () => {
   const [showAboutDropdown, setShowAboutDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true); // Default to true (dark mode on)
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -54,6 +55,13 @@ const Navbar = () => {
   };
 
   useEffect(() => {
+    // Scroll handler for navbar background transition
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
     // Check for saved dark mode preference - default is TRUE (dark mode on by default)
     const savedDarkMode = localStorage.getItem('darkMode');
     const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
@@ -89,6 +97,7 @@ const Navbar = () => {
 
     document.addEventListener('click', handleClickOutside);
     return () => {
+      window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClickOutside);
     };
   }, [showAboutDropdown, showLanguageDropdown]);
@@ -167,9 +176,18 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16" style={{
-        background: 'linear-gradient(to right, #294491 0%, #203B87 45%, #756951 72%, #CB9D2A 100%)'
-      }}>
+      <nav 
+        className="fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-500 ease-in-out"
+        style={{
+          background: isScrolled 
+            ? 'linear-gradient(to right, #24458F 0%, #1E3A7A 45%, #8B7355 72%, #D9A520 100%)'
+            : 'transparent',
+          backdropFilter: isScrolled ? 'none' : 'blur(10px)',
+          WebkitBackdropFilter: isScrolled ? 'none' : 'blur(10px)',
+          boxShadow: isScrolled ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none',
+          border: 'none'
+        }}
+      >
         <div className="flex items-center justify-between h-full px-4 sm:px-6">
           {/* Logo */}
           <button onClick={() => handleNavigation('/')} className="flex items-center gap-2 z-50">

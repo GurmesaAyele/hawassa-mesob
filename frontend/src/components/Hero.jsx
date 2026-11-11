@@ -44,7 +44,7 @@ export default function Hero({ lang, query, setQuery, popular, onOpen, orgCount,
           />
         ))}
       </div>
-      {/* Subtle overlay for text readability */}
+      {/* Balanced dark overlay - images remain beautifully visible */}
       <div className="hero__overlay" aria-hidden="true" />
       <div className="wrap hero__inner">
         <h1>{t.heroTitle}</h1>
