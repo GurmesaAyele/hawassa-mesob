@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { adminApi } from "../../services/adminApi";
 import { Button, FIELD_CLASS, Field, LocalizedFields } from "./AdminFields";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 const CONTENT_TYPES = [
   ["news", "News"],
@@ -20,9 +21,9 @@ function articleForm(initial, category) {
     content: localizedValue(initial?.content),
     date: (initial?.publishedAt || initial?.date || "").slice(0, 10),
     image: initial?.imageUrl || initial?.image || "",
-    author: initial?.author || "",
+    author: displayText(initial?.author, ""),
     priority: initial?.priority || "medium",
-    type: initial?.category || initial?.type || "general",
+    type: displayText(initial?.category || initial?.type, "general"),
     ...(category === "videos" && {
       title: localizedValue(initial?.titleTranslations || initial?.title),
       content: localizedValue(initial?.descriptionTranslations || initial?.description),
@@ -74,7 +75,10 @@ function ContentForm({ category, initial, saving, onCancel, onSave }) {
           title: Object.fromEntries(LOCALES.map((locale) => [locale, form.title[locale].trim()])),
           content: Object.fromEntries(LOCALES.map((locale) => [locale, form.content[locale].trim()])),
           image: form.image.trim() || null,
-          ...(category === "news" && { author: form.author.trim(), category: form.type.trim() }),
+          ...(category === "news" && {
+            author: updateEnglishTranslation(initial?.author, form.author.trim()),
+            category: updateEnglishTranslation(initial?.category, form.type.trim()),
+          }),
           ...(isAnnouncement && { priority: form.priority, type: form.type }),
           date,
         };
@@ -181,6 +185,11 @@ function displayTitle(item) {
   return displayText(item.title, "Untitled");
 }
 
+function updateEnglishTranslation(value, englishValue) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return englishValue;
+  return { ...value, en: englishValue };
+}
+
 export default function HomeContentManager({ readOnly = false }) {
   const [category, setCategory] = useState("news");
   const [records, setRecords] = useState({ news: [], announcements: [], videos: [] });
@@ -190,6 +199,7 @@ export default function HomeContentManager({ readOnly = false }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const refresh = useCallback(async () => {
     setError("");
@@ -250,18 +260,22 @@ export default function HomeContentManager({ readOnly = false }) {
     }
   }
 
-  async function remove(item) {
-    if (!window.confirm(`Delete "${displayTitle(item)}"? This cannot be undone.`)) return;
+  async function remove() {
+    if (!pendingDelete) return;
     setError("");
     setNotice("");
+    setSaving(true);
     try {
-      if (category === "news") await adminApi.deleteNews(item.id);
-      else if (category === "announcements") await adminApi.deleteAnnouncement(item.id);
-      else await adminApi.deleteVideo(item.id);
+      if (category === "news") await adminApi.deleteNews(pendingDelete.id);
+      else if (category === "announcements") await adminApi.deleteAnnouncement(pendingDelete.id);
+      else await adminApi.deleteVideo(pendingDelete.id);
       setNotice("Homepage content deleted.");
       await refresh();
     } catch (requestError) {
       setError(requestError.message);
+    } finally {
+      setSaving(false);
+      setPendingDelete(null);
     }
   }
 
@@ -345,7 +359,7 @@ export default function HomeContentManager({ readOnly = false }) {
                       {!readOnly && (
                         <>
                           <Button variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
-                          <Button variant="danger" onClick={() => remove(item)}>Delete</Button>
+                          <Button variant="danger" disabled={saving} onClick={() => setPendingDelete(item)}>Delete</Button>
                         </>
                       )}
                     </div>
@@ -361,6 +375,15 @@ export default function HomeContentManager({ readOnly = false }) {
           <p className="mt-1 text-sm text-stone-600">Add content here to show it on the public site.</p>
         </div>
       )}
+      <ConfirmationDialog
+        open={Boolean(pendingDelete)}
+        title={`Delete ${category === "videos" ? "video" : category === "news" ? "news item" : "announcement"}?`}
+        message={`“${pendingDelete ? displayTitle(pendingDelete) : ""}” will be permanently deleted. This action cannot be undone.`}
+        confirmLabel="Delete permanently"
+        busy={saving}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={remove}
+      />
     </section>
   );
 }

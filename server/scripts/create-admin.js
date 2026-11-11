@@ -9,7 +9,7 @@ async function main() {
 
   if (args.length < 2) {
     console.error("Usage: node scripts/create-admin.js <email> <password> [name] [role]");
-    console.error("Allowed roles: SUPER_ADMIN (default), OPERATOR");
+    console.error("Allowed roles: SUPER_ADMIN (default), OPERATOR, STAFF");
     console.error("Example: node scripts/create-admin.js manager@hawassa.gov.et Pass1234! 'Hawassa MESOB Manager' SUPER_ADMIN");
     process.exit(1);
   }
@@ -19,8 +19,8 @@ async function main() {
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedRole = role.trim().toUpperCase();
 
-  if (!["SUPER_ADMIN", "OPERATOR"].includes(normalizedRole)) {
-    console.error(`Error: Invalid role '${normalizedRole}'. Role must be 'SUPER_ADMIN' or 'OPERATOR'.`);
+  if (!["SUPER_ADMIN", "OPERATOR", "STAFF"].includes(normalizedRole)) {
+    console.error(`Error: Invalid role '${normalizedRole}'. Role must be 'SUPER_ADMIN', 'OPERATOR', or 'STAFF'.`);
     process.exit(1);
   }
 

@@ -11,6 +11,7 @@ import mapRoutes, { contactRouter } from "./modules/map/map.routes.js";
 import newsRoutes from "./modules/news/news.routes.js";
 import announcementRoutes from "./modules/announcements/announcements.routes.js";
 import vipTicketRoutes from "./modules/vip-tickets/vip-tickets.routes.js";
+import adminVipTicketRoutes from "./modules/vip-tickets/admin-vip-tickets.routes.js";
 import vipPaymentRoutes from "./modules/vip-payments/vip-payments.routes.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -94,6 +95,7 @@ app.use("/api/institutions", institutionRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/vip-tickets", vipTicketRoutes);
 app.use("/api/vip-payments", vipPaymentRoutes);
+app.use("/api/admin/vip-tickets", adminVipTicketRoutes);
 
 app.use("/api/videos", videoRoutes);
 app.use("/api/map", mapRoutes);

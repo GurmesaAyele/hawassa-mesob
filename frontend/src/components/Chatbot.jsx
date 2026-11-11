@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { API_CONFIG } from '../config/api';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,13 +17,13 @@ const Chatbot = () => {
   // Function to format markdown-style text to readable format
   const formatMessageText = (text) => {
     if (!text) return text;
-    
+
     // Remove markdown bold markers but keep the text
     let formatted = text.replace(/\*\*(.+?)\*\*/g, '$1');
-    
+
     // Keep line breaks
     formatted = formatted.replace(/\n/g, '\n');
-    
+
     return formatted;
   };
 
@@ -36,7 +37,7 @@ const Chatbot = () => {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
+
     if (!inputMessage.trim()) return;
 
     // Add user message
@@ -52,7 +53,7 @@ const Chatbot = () => {
     setIsTyping(true);
 
     try {
-      const response = await fetch('http://10.20.254.64:5000/api/chat', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,16 +69,16 @@ const Chatbot = () => {
 
       const data = await response.json();
       console.log('API Response:', data); // Debug log
-      
+
       const rawText = data.response || data.reply || data.answer || data.message || data.text || JSON.stringify(data);
       const formattedText = formatMessageText(rawText);
-      
+
       const botMessage = {
         type: 'bot',
         text: formattedText,
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, botMessage]);
       setIsTyping(false);
     } catch (error) {
@@ -137,11 +138,10 @@ const Chatbot = () => {
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-                    message.type === 'user'
-                      ? 'text-white rounded-br-none'
-                      : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-bl-none shadow-sm'
-                  }`}
+                  className={`max-w-[75%] rounded-2xl px-4 py-3 ${message.type === 'user'
+                    ? 'text-white rounded-br-none'
+                    : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-bl-none shadow-sm'
+                    }`}
                   style={message.type === 'user' ? { backgroundColor: '#294491' } : {}}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>

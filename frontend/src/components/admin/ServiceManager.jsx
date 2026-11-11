@@ -117,7 +117,7 @@ function ServiceForm({ initial, institutions, saving, onCancel, onSave }) {
   );
 }
 
-export default function ServiceManager({ items, institutions, loading, saving, readOnly = false, onSave, onDeactivate }) {
+export default function ServiceManager({ items, institutions, loading, saving, readOnly = false, onSave, onDeactivate, onReactivate }) {
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
   const rows = useMemo(() => items.filter((item) => [
@@ -184,6 +184,7 @@ export default function ServiceManager({ items, institutions, loading, saving, r
                       <>
                         <Button className="admin-table-action" variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
                         {item.isActive && <Button className="admin-table-action admin-table-action--warning" variant="danger" disabled={saving} onClick={() => onDeactivate(item)}>Deactivate</Button>}
+                        {!item.isActive && <Button className="admin-table-action" disabled={saving} onClick={() => onReactivate(item)}>Reactivate</Button>}
                       </>
                     )}
                   </div>

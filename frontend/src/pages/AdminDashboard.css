@@ -479,6 +479,47 @@
   transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
+.admin-password-input {
+  position: relative;
+  display: block;
+}
+
+.admin-password-input input {
+  padding-right: 50px;
+}
+
+.admin-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64756e;
+  cursor: pointer;
+}
+
+.admin-password-toggle:hover {
+  background: #edf3ef;
+  color: #18543d;
+}
+
+.admin-password-toggle:focus-visible {
+  outline: 2px solid #287252;
+  outline-offset: 1px;
+}
+
+.admin-password-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
 .admin-login-field input::placeholder {
   color: #9aa8a0;
 }
@@ -551,6 +592,99 @@
   border: 1px solid #dfe7e1;
   border-radius: 10px;
   background: #fff;
+}
+
+.admin-confirm-dialog {
+  width: min(100% - 32px, 480px);
+  max-width: 480px;
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 1px solid #d9e2db;
+  border-radius: 16px;
+  background: #fff;
+  color: #18352c;
+  box-shadow: 0 24px 70px rgb(12 35 25 / 28%);
+}
+
+.admin-confirm-dialog::backdrop {
+  background: rgb(13 31 23 / 58%);
+  backdrop-filter: blur(2px);
+}
+
+.admin-confirm-dialog__panel {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 16px;
+  padding: 26px;
+}
+
+.admin-confirm-dialog__icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #f0d7b3;
+  border-radius: 50%;
+  background: #fff7eb;
+  color: #a35316;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.admin-confirm-dialog__content h2 {
+  margin: 1px 0 8px;
+  color: #18352c;
+  font-size: 1.12rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.admin-confirm-dialog__content p {
+  margin: 0;
+  color: #617168;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.admin-confirm-dialog__actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.admin-confirm-dialog__actions .admin-button {
+  min-height: 42px;
+  padding-inline: 16px;
+}
+
+.admin-confirm-dialog__actions .admin-button[class~="text-red-700"] {
+  border-color: #b83c30;
+  background: #b83c30;
+  color: #fff;
+}
+
+.admin-confirm-dialog__actions .admin-button[class~="text-red-700"]:hover:not(:disabled) {
+  border-color: #962e25;
+  background: #962e25;
+}
+
+@media (max-width: 480px) {
+  .admin-confirm-dialog__panel {
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .admin-confirm-dialog__actions {
+    flex-direction: column-reverse;
+  }
+
+  .admin-confirm-dialog__actions .admin-button {
+    width: 100%;
+  }
 }
 
 .admin-header {
