@@ -48,15 +48,37 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 
 /* Hero */
 .hero { position: relative; background: var(--lake-dark); color: #fff; overflow: hidden; }
-.hero__weave {
-  position: absolute; inset: 0; opacity: .14;
-  background:
-    repeating-linear-gradient(45deg, var(--straw) 0 6px, transparent 6px 18px),
-    repeating-linear-gradient(-45deg, var(--straw) 0 6px, transparent 6px 18px);
-  mask-image: linear-gradient(90deg, transparent 35%, #000 100%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 35%, #000 100%);
+
+/* High-quality image slideshow background */
+.hero__background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
-.hero__inner { position: relative; padding-block: clamp(2.5rem, 7vw, 5rem); max-width: 760px; margin-left: max(1rem, calc((100% - 1120px) / 2)); }
+
+.hero__background-image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+}
+
+.hero__background-image.active {
+  opacity: 1;
+}
+
+/* Subtle overlay for text readability - reduced from 0.82 to 0.35 */
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.35) 100%);
+  z-index: 1;
+}
+
+.hero__inner { position: relative; z-index: 2; padding-block: clamp(2.5rem, 7vw, 5rem); max-width: 760px; margin-left: max(1rem, calc((100% - 1120px) / 2)); }
 .hero h1 { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -.01em; }
 .hero__text { font-size: 1.125rem; max-width: 55ch; color: #d6ecee; margin: 1rem 0 1.75rem; }
 .search { display: flex; align-items: center; gap: .6rem; background: #fff; color: var(--ink); border-radius: var(--radius); padding: .25rem .9rem; box-shadow: 0 0 0 3px var(--straw); }

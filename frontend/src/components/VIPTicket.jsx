@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { API_CONFIG, buildUrl, getLocaleCode } from '../config/api';
+import Navbar from './Navbar';
+import InstitutionCard from './InstitutionCard';
+import InstitutionModal from './InstitutionModal';
 
 const VIPTicket = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +15,7 @@ const VIPTicket = () => {
   const [selectedInstitution, setSelectedInstitution] = useState(null);
   const [selectedServices, setSelectedServices] = useState([]);
   const [expandedInstitution, setExpandedInstitution] = useState(null);
+  const [showInstitutionModal, setShowInstitutionModal] = useState(false);
   
   // Form Data
   const [formData, setFormData] = useState({
@@ -135,11 +139,22 @@ const VIPTicket = () => {
     });
   };
 
+  const handleInstitutionClick = (institution) => {
+    setSelectedInstitution(institution);
+    setShowInstitutionModal(true);
+  };
+
+  const handleCloseInstitutionModal = () => {
+    setShowInstitutionModal(false);
+    setSelectedInstitution(null);
+  };
+
   const handleProceedToForm = () => {
     if (selectedServices.length === 0) {
       alert('Please select at least one service');
       return;
     }
+    setShowInstitutionModal(false);
     setStep(2);
   };
 
@@ -204,6 +219,7 @@ const VIPTicket = () => {
       const requestBody = {
         citizenName: formData.citizenName.trim(),
         citizenPhone: formData.citizenPhone.trim(),
+        email: formData.citizenEmail.trim(), // ✅ Add email field required by backend
         serviceId: primaryService.id,
         purpose: formData.purpose.trim() || `VIP Service Request: ${allServiceNames}`
       };
@@ -298,7 +314,7 @@ const VIPTicket = () => {
       const requestBody = {
         reference: reference,
         email: formData.citizenEmail.trim(), // Now using the email from form
-        returnUrl: `${window.location.origin}/vip/payment/callback`
+        returnUrl: `${window.location.origin}/vip/payment/callback?reference=${encodeURIComponent(reference)}`
       };
 
       console.log('Initializing payment:', requestBody);
@@ -457,9 +473,12 @@ const VIPTicket = () => {
       title: 'VIP Ticket Service',
       subtitle: 'Fast Track Service - 1,000 ETB',
       selectInstitution: 'Select Institution & Services',
-      selectServices: 'Select one or more services',
+      selectServices: 'Choose services from any institution below',
       noServices: 'No services available',
+      noInstitutions: 'No institutions available at the moment',
       servicesSelected: 'service(s) selected',
+      selectedServices: 'Selected Services',
+      proceed: 'Proceed to Application',
       proceedToForm: 'Proceed to Application',
       applicationForm: 'VIP Application Form',
       citizenName: 'Full Name',
@@ -478,7 +497,7 @@ const VIPTicket = () => {
       checkInInstructions: 'Please check in at Hawassa MESOB Center to join the priority queue',
       done: 'Done',
       back: 'Back',
-      loading: 'Loading...',
+      loading: 'Loading institutions...',
       vipFee: 'VIP Fee',
       currency: 'ETB'
     },
@@ -486,9 +505,12 @@ const VIPTicket = () => {
       title: 'ቪአይፒ ትኬት አገልግሎት',
       subtitle: 'ፈጣን አገልግሎት - 1,000 ብር',
       selectInstitution: 'ተቋም እና አገልግሎት ይምረጡ',
-      selectServices: 'አንድ ወይም ከዚያ በላይ አገልግሎቶችን ይምረጡ',
+      selectServices: 'ከታች ካሉት ተቋማት አገልግሎቶችን ይምረጡ',
       noServices: 'ምንም አገልግሎቶች የሉም',
+      noInstitutions: 'በአሁኑ ጊዜ ምንም ተቋማት የሉም',
       servicesSelected: 'አገልግሎት(ቶች) ተመርጠዋል',
+      selectedServices: 'የተመረጡ አገልግሎቶች',
+      proceed: 'ወደ ማመልከቻ ቀጥል',
       proceedToForm: 'ወደ ማመልከቻ ቀጥል',
       applicationForm: 'የቪአይፒ ማመልከቻ ቅጽ',
       citizenName: 'ሙሉ ስም',
@@ -507,7 +529,7 @@ const VIPTicket = () => {
       checkInInstructions: 'እባክዎ በሀዋሳ መሶብ ማዕከል ተመዝግበው ወደ ቅድሚያ ወረፋ ይቀላቀሉ',
       done: 'ተከናውኗል',
       back: 'ተመለስ',
-      loading: 'በመጫን ላይ...',
+      loading: 'ተቋማት በመጫን ላይ...',
       vipFee: 'የቪአይፒ ክፍያ',
       currency: 'ብር'
     },
@@ -515,9 +537,12 @@ const VIPTicket = () => {
       title: 'VIP Tiketi Oosate',
       subtitle: 'Furgissi Oosate - 1,000 Birra',
       selectInstitution: 'Biiro nna Oosate Doorri',
-      selectServices: 'Mittu woy baaliro oosate doorri',
+      selectServices: 'Qaala Biirota horoonsi oosate doorri',
       noServices: 'Oosate yookki',
+      noInstitutions: 'Ammayyo biirota hin qabnu',
       servicesSelected: 'oosate doorrame',
+      selectedServices: 'Doorrame Oosate',
+      proceed: 'Maalifinsa gede haa',
       proceedToForm: 'Maalifinsa gede haa',
       applicationForm: 'VIP Maalifinsa Foromi',
       citizenName: 'Mala Sunti',
@@ -536,13 +561,113 @@ const VIPTicket = () => {
       checkInInstructions: 'Hawassa MESOB Seentera ware priority queue gede haa',
       done: 'Xumure',
       back: 'Deema',
-      loading: 'Laaqqa gede...',
+      loading: 'Biirota laaqqa gede...',
       vipFee: 'VIP Kaffaltii',
       currency: 'Birra'
     }
   };
 
   const t = translations[language] || translations.English;
+  
+  // If modal is open in step 1 (institution selection), show as full page
+  if (isOpen && step === 1) {
+    return (
+      <div className="fixed inset-0 z-50 bg-gray-50 dark:bg-[#0F1419] overflow-y-auto">
+        <Navbar />
+        
+        {/* Header Section */}
+        <div className="pt-20 sm:pt-24 pb-8 sm:pb-10 md:pb-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#294491] to-[#CB9D2A]">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">{t.title}</h1>
+                <p className="text-base sm:text-lg md:text-xl text-white/90">{t.selectInstitution}</p>
+              </div>
+              <button 
+                onClick={handleClose} 
+                className="p-2 sm:p-3 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Institutions Grid */}
+        <div className="py-10 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            {institutionsLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20">
+                <div className="animate-spin rounded-full h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 border-t-4 border-b-4 border-[#CB9D2A] mb-3 sm:mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">{t.loading || 'Loading institutions...'}</p>
+              </div>
+            ) : institutions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20 px-4">
+                <svg className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-400 dark:text-gray-600 mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">{t.noInstitutions || 'No institutions available'}</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 mb-6 sm:mb-8">
+                  {institutions.map((institution, index) => (
+                    <InstitutionCard
+                      key={institution.id}
+                      institution={institution}
+                      index={index}
+                      onClick={() => handleInstitutionClick(institution)}
+                    />
+                  ))}
+                </div>
+
+                {/* Selected Services Summary (floating) - Only show when services are selected */}
+                {selectedServices.length > 0 && (
+                  <div className="fixed bottom-6 right-6 bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-sm z-50">
+                    <h4 className="font-bold text-gray-900 dark:text-white mb-3">
+                      {t.selectedServices || 'Selected Services'} ({selectedServices.length})
+                    </h4>
+                    <ul className="space-y-2 mb-4">
+                      {selectedServices.map((service) => (
+                        <li key={service.id} className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                          <svg className="w-4 h-4 text-[#CB9D2A]" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          {service.title || service.name}
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={handleProceedToForm}
+                      className="w-full px-4 py-2 bg-[#CB9D2A] hover:bg-[#b8892a] text-white font-semibold rounded-lg transition-colors"
+                    >
+                      {t.proceed || 'Proceed to Application'}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Institution Modal for Service Selection */}
+        {showInstitutionModal && selectedInstitution && (
+          <InstitutionModal
+            institution={selectedInstitution}
+            onClose={handleCloseInstitutionModal}
+            language={language}
+            isVIPMode={true}
+            selectedServices={selectedServices}
+            onServiceToggle={toggleServiceSelection}
+            onProceed={handleProceedToForm}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -563,8 +688,8 @@ const VIPTicket = () => {
         </button>
       </div>
 
-      {/* VIP Ticket Modal - Full Screen on Step 1 */}
-      {isOpen && (
+      {/* VIP Ticket Modal - For Steps 2, 3, 4 */}
+      {isOpen && step !== 1 && (
         <div 
           className={`fixed z-50 bg-[#1E293B] transition-all duration-300 overflow-hidden ${
             step === 1 
