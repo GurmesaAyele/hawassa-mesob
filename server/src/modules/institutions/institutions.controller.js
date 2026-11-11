@@ -289,6 +289,65 @@ export async function listInstitutions(req, res) {
     });
   } catch (err) {
     console.error("[institutions] listInstitutions error:", err);
+    
+    // Fallback: Return mock data when database is unavailable
+    if (err.message?.includes("Can't reach database server")) {
+      console.log("[institutions] Database unavailable, returning mock data");
+      const mockData = [
+        {
+          id: "mock-1",
+          code: "INST001",
+          name: "Sample Institution 1",
+          icon: "https://via.placeholder.com/150?text=Institution+1",
+          logo: "https://via.placeholder.com/150?text=Institution+1",
+          logoUrl: "https://via.placeholder.com/150?text=Institution+1",
+          floorRoomNumber: "Floor 1, Room 101",
+          contactPhone: "+251-911-000-000",
+          isActive: true,
+          serviceCount: 5,
+          services: [],
+        },
+        {
+          id: "mock-2",
+          code: "INST002",
+          name: "Sample Institution 2",
+          icon: "https://via.placeholder.com/150?text=Institution+2",
+          logo: "https://via.placeholder.com/150?text=Institution+2",
+          logoUrl: "https://via.placeholder.com/150?text=Institution+2",
+          floorRoomNumber: "Floor 2, Room 201",
+          contactPhone: "+251-911-000-001",
+          isActive: true,
+          serviceCount: 3,
+          services: [],
+        },
+        {
+          id: "mock-3",
+          code: "INST003",
+          name: "Sample Institution 3",
+          icon: "https://via.placeholder.com/150?text=Institution+3",
+          logo: "https://via.placeholder.com/150?text=Institution+3",
+          logoUrl: "https://via.placeholder.com/150?text=Institution+3",
+          floorRoomNumber: "Floor 1, Room 105",
+          contactPhone: "+251-911-000-002",
+          isActive: true,
+          serviceCount: 7,
+          services: [],
+        },
+      ];
+      
+      return res.json({
+        data: mockData,
+        meta: {
+          total: 3,
+          page: 1,
+          limit: 20,
+          totalPages: 1,
+        },
+        _mock: true,
+        _message: "Database unavailable. Showing mock data for development.",
+      });
+    }
+    
     return res.status(500).json({ error: "Failed to fetch institutions." });
   }
 }
@@ -744,6 +803,78 @@ export async function listAllServices(req, res) {
     });
   } catch (err) {
     console.error("[institutions] listAllServices error:", err);
+    
+    // Fallback: Return mock data when database is unavailable
+    if (err.message?.includes("Can't reach database server")) {
+      console.log("[institutions] Database unavailable, returning mock services data");
+      const mockServices = [
+        {
+          id: "service-mock-1",
+          title: "Sample Service 1",
+          name: "Sample Service 1",
+          description: "This is a sample service for development purposes",
+          requirements: ["Valid ID", "Application Form"],
+          requiredDocuments: ["Valid ID", "Application Form"],
+          estimatedFee: 100,
+          cost: "100 ETB",
+          processingDays: 3,
+          duration: "3 days",
+          isActive: true,
+          vipAvailable: true,
+          vipFee: 500,
+          currency: "ETB",
+          institution: {
+            id: "mock-1",
+            code: "INST001",
+            name: "Sample Institution 1",
+            icon: "https://via.placeholder.com/150?text=Institution+1",
+            logo: "https://via.placeholder.com/150?text=Institution+1",
+            floorRoomNumber: "Floor 1, Room 101",
+            contactPhone: "+251-911-000-000",
+            isActive: true,
+          },
+        },
+        {
+          id: "service-mock-2",
+          title: "Sample Service 2",
+          name: "Sample Service 2",
+          description: "Another sample service for testing",
+          requirements: ["Passport", "Birth Certificate"],
+          requiredDocuments: ["Passport", "Birth Certificate"],
+          estimatedFee: 200,
+          cost: "200 ETB",
+          processingDays: 5,
+          duration: "5 days",
+          isActive: true,
+          vipAvailable: false,
+          vipFee: null,
+          currency: "ETB",
+          institution: {
+            id: "mock-2",
+            code: "INST002",
+            name: "Sample Institution 2",
+            icon: "https://via.placeholder.com/150?text=Institution+2",
+            logo: "https://via.placeholder.com/150?text=Institution+2",
+            floorRoomNumber: "Floor 2, Room 201",
+            contactPhone: "+251-911-000-001",
+            isActive: true,
+          },
+        },
+      ];
+      
+      return res.json({
+        data: mockServices,
+        meta: {
+          total: 2,
+          page: 1,
+          limit: 20,
+          totalPages: 1,
+        },
+        _mock: true,
+        _message: "Database unavailable. Showing mock data for development.",
+      });
+    }
+    
     return res.status(500).json({ error: "Failed to fetch services." });
   }
 }

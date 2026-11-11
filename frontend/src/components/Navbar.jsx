@@ -6,6 +6,7 @@ const Navbar = () => {
   const [language, setLanguage] = useState('English');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showAboutDropdown, setShowAboutDropdown] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true); // Default to true (dark mode on)
   const navigate = useNavigate();
   const location = useLocation();
@@ -121,6 +122,9 @@ const Navbar = () => {
   };
 
   const scrollToSection = (sectionId) => {
+    // Close mobile menu
+    setMobileMenuOpen(false);
+    
     // If not on home page, navigate to home first
     if (location.pathname !== '/') {
       navigate('/', { state: { scrollTo: sectionId } });
@@ -135,6 +139,9 @@ const Navbar = () => {
   };
 
   const handleNavigation = (path) => {
+    // Close mobile menu
+    setMobileMenuOpen(false);
+    
     // Check if path has hash (e.g., /about-us#news)
     if (path.includes('#')) {
       const [pathname, hash] = path.split('#');
@@ -159,197 +166,355 @@ const Navbar = () => {
   const t = translations[language] || translations.English;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 h-16" style={{
-      background: 'linear-gradient(to right, #294491 0%, #203B87 45%, #756951 72%, #CB9D2A 100%)'
-    }}>
-      <div className="flex items-center justify-between h-full px-6">
-        {/* Logo */}
-        <button onClick={() => handleNavigation('/')} className="flex items-center gap-2">
-          <img 
-            src={logo} 
-            alt="Hawassa Mesob Logo" 
-            className="h-14 w-14 rounded-full object-cover"
-            style={{ animation: 'spin-slow 8s linear infinite' }}
-          />
-        </button>
+    <>
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16" style={{
+        background: 'linear-gradient(to right, #294491 0%, #203B87 45%, #756951 72%, #CB9D2A 100%)'
+      }}>
+        <div className="flex items-center justify-between h-full px-4 sm:px-6">
+          {/* Logo */}
+          <button onClick={() => handleNavigation('/')} className="flex items-center gap-2 z-50">
+            <img 
+              src={logo} 
+              alt="Hawassa Mesob Logo" 
+              className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover"
+              style={{ animation: 'spin-slow 8s linear infinite' }}
+            />
+          </button>
 
-        {/* Navigation Links - Right aligned with better spacing */}
-        <div className="flex items-center gap-6 ml-12">
-          <button 
-            onClick={() => scrollToSection('home')}
-            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
-          >
-            {t.home}
-          </button>
-          <button 
-            onClick={() => scrollToSection('institutions')}
-            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
-          >
-            {t.institutions}
-          </button>
-          <button 
-            onClick={() => scrollToSection('services')}
-            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
-          >
-            {t.services}
-          </button>
-          <button 
-            onClick={() => scrollToSection('contact')}
-            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
-          >
-            {t.contact}
-          </button>
-          <button 
-            onClick={() => handleNavigation('/service-catalogue')}
-            className="text-white px-3 py-2 text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
-          >
-            {t.serviceCatalogue}
-          </button>
-          
-          {/* About Dropdown */}
-          <div 
-            className="relative about-dropdown-container"
-            onMouseEnter={() => setShowAboutDropdown(true)}
-            onMouseLeave={() => setShowAboutDropdown(false)}
-          >
+          {/* Desktop Navigation Links - Hidden on mobile */}
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6 ml-12">
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                // Toggle dropdown on click (for mobile/touch devices)
-                setShowAboutDropdown(!showAboutDropdown);
-              }}
-              className="text-white px-3 py-2 text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap flex items-center gap-1"
+              onClick={() => scrollToSection('home')}
+              className="text-white px-2 xl:px-3 py-2 text-sm xl:text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
             >
-              {t.about}
-              <svg 
-                className={`w-4 h-4 transition-transform duration-200 ${showAboutDropdown ? 'rotate-180' : ''}`} 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
+              {t.home}
+            </button>
+            <button 
+              onClick={() => scrollToSection('institutions')}
+              className="text-white px-2 xl:px-3 py-2 text-sm xl:text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            >
+              {t.institutions}
+            </button>
+            <button 
+              onClick={() => scrollToSection('services')}
+              className="text-white px-2 xl:px-3 py-2 text-sm xl:text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            >
+              {t.services}
+            </button>
+            <button 
+              onClick={() => scrollToSection('contact')}
+              className="text-white px-2 xl:px-3 py-2 text-sm xl:text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            >
+              {t.contact}
+            </button>
+            <button 
+              onClick={() => handleNavigation('/service-catalogue')}
+              className="text-white px-2 xl:px-3 py-2 text-sm xl:text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
+            >
+              {t.serviceCatalogue}
+            </button>
+            
+            {/* About Dropdown */}
+            <div 
+              className="relative about-dropdown-container"
+              onMouseEnter={() => setShowAboutDropdown(true)}
+              onMouseLeave={() => setShowAboutDropdown(false)}
+            >
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAboutDropdown(!showAboutDropdown);
+                }}
+                className="text-white px-2 xl:px-3 py-2 text-sm xl:text-base font-medium hover:bg-white/10 transition-colors whitespace-nowrap flex items-center gap-1"
               >
-                <path 
-                  fillRule="evenodd" 
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-                  clipRule="evenodd" 
-                />
-              </svg>
+                {t.about}
+                <svg 
+                  className={`w-3 h-3 xl:w-4 xl:h-4 transition-transform duration-200 ${showAboutDropdown ? 'rotate-180' : ''}`} 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              </button>
+
+              {showAboutDropdown && (
+                <div 
+                  className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 animate-fadeIn"
+                  onMouseEnter={() => setShowAboutDropdown(true)}
+                  onMouseLeave={() => setShowAboutDropdown(false)}
+                >
+                  <button
+                    onClick={() => {
+                      handleNavigation('/about-us');
+                      setShowAboutDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {t.aboutUs}
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleNavigation('/about-us#news');
+                      setShowAboutDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {t.news}
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleNavigation('/about-us#videos');
+                      setShowAboutDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {t.videos}
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleNavigation('/about-us#announcements');
+                      setShowAboutDropdown(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {t.announcements}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Dark Mode Toggle */}
+            <button 
+              onClick={toggleDarkMode}
+              className="ml-4 xl:ml-6 p-2 xl:p-2.5 rounded-full bg-white dark:bg-[#374151] hover:bg-gray-200 dark:hover:bg-gray-500 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
+            >
+              {darkMode ? (
+                <svg 
+                  className="w-4 h-4 xl:w-5 xl:h-5 text-gray-800 dark:text-white" 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              ) : (
+                <svg 
+                  className="w-4 h-4 xl:w-5 xl:h-5 text-gray-800" 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
             </button>
 
-            {/* Dropdown Menu */}
-            {showAboutDropdown && (
-              <div 
-                className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 animate-fadeIn"
-                onMouseEnter={() => setShowAboutDropdown(true)}
-                onMouseLeave={() => setShowAboutDropdown(false)}
+            {/* Language Selector */}
+            <div className="relative ml-2 language-dropdown-container">
+              <button 
+                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                className="flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-1.5 xl:py-2 bg-white dark:bg-[#374151] text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-500 hover:scale-105 font-medium transition-all duration-200 whitespace-nowrap shadow-sm hover:shadow-md text-xs xl:text-sm"
+                style={{ borderRadius: '9999px' }}
               >
-                <button
-                  onClick={() => {
-                    handleNavigation('/about-us');
-                    setShowAboutDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  {t.aboutUs}
-                </button>
-                <button
-                  onClick={() => {
-                    handleNavigation('/about-us#news');
-                    setShowAboutDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  {t.news}
-                </button>
-                <button
-                  onClick={() => {
-                    handleNavigation('/about-us#videos');
-                    setShowAboutDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  {t.videos}
-                </button>
-                <button
-                  onClick={() => {
-                    handleNavigation('/about-us#announcements');
-                    setShowAboutDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  {t.announcements}
-                </button>
-              </div>
-            )}
+                <span className="text-sm xl:text-base">🌐</span>
+                <span>{language}</span>
+                <svg className="w-3 h-3 xl:w-4 xl:h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path 
+                    fillRule="evenodd" 
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              </button>
+
+              {showLanguageDropdown && (
+                <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLanguageSelect(lang)}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        language === lang ? 'bg-[#3d5a99] text-white hover:bg-[#2d4a7f]' : 'text-gray-700 dark:text-gray-200'
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Dark Mode Toggle - Light in light mode, dark slate in dark mode, swap icons */}
-          <button 
-            onClick={toggleDarkMode}
-            className="ml-6 p-2.5 rounded-full bg-white dark:bg-[#374151] hover:bg-gray-200 dark:hover:bg-gray-500 hover:scale-110 transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            {darkMode ? (
-              // Show SUN icon in dark mode (to switch to light)
-              <svg 
-                className="w-5 h-5 text-gray-800 dark:text-white" 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
-              >
-                <path 
-                  fillRule="evenodd" 
-                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" 
-                  clipRule="evenodd" 
-                />
-              </svg>
-            ) : (
-              // Show MOON icon in light mode (to switch to dark)
-              <svg 
-                className="w-5 h-5 text-gray-800" 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
-              >
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
-            )}
-          </button>
-
-          {/* Language Selector - Pill shape with globe emoji */}
-          <div className="relative ml-2 language-dropdown-container">
+          {/* Mobile Right Side: Dark Mode + Language + Hamburger */}
+          <div className="flex lg:hidden items-center gap-2 sm:gap-3">
+            {/* Dark Mode Toggle - Mobile */}
             <button 
-              onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#374151] text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-500 hover:scale-105 font-medium transition-all duration-200 whitespace-nowrap shadow-sm hover:shadow-md"
-              style={{ borderRadius: '9999px' }}
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full bg-white dark:bg-[#374151] hover:bg-gray-200 dark:hover:bg-gray-500 transition-all duration-200 shadow-sm"
             >
-              {/* Globe Emoji */}
-              <span className="text-base">🌐</span>
-              <span className="text-sm">{language}</span>
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path 
-                  fillRule="evenodd" 
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-                  clipRule="evenodd" 
-                />
-              </svg>
+              {darkMode ? (
+                <svg 
+                  className="w-4 h-4 text-gray-800 dark:text-white" 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              ) : (
+                <svg 
+                  className="w-4 h-4 text-gray-800" 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
             </button>
 
-            {/* Dropdown Menu */}
-            {showLanguageDropdown && (
-              <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
-                {languages.map((lang) => (
-                  <button
-                    key={lang}
-                    onClick={() => handleLanguageSelect(lang)}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                      language === lang ? 'bg-[#3d5a99] text-white hover:bg-[#2d4a7f]' : 'text-gray-700 dark:text-gray-200'
-                    }`}
-                  >
-                    {lang}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Language Selector - Mobile */}
+            <div className="relative language-dropdown-container">
+              <button 
+                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-white dark:bg-[#374151] text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-500 font-medium transition-all duration-200 shadow-sm text-xs"
+                style={{ borderRadius: '9999px' }}
+              >
+                <span className="text-sm">🌐</span>
+                <span className="hidden sm:inline">{language}</span>
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path 
+                    fillRule="evenodd" 
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+              </button>
+
+              {showLanguageDropdown && (
+                <div className="absolute right-0 mt-2 w-32 sm:w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => handleLanguageSelect(lang)}
+                      className={`w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        language === lang ? 'bg-[#3d5a99] text-white hover:bg-[#2d4a7f]' : 'text-gray-700 dark:text-gray-200'
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Drawer */}
+      <div 
+        className={`fixed top-16 right-0 bottom-0 w-64 sm:w-80 bg-white dark:bg-gray-800 shadow-xl z-40 transform transition-transform duration-300 ease-in-out lg:hidden ${
+          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col h-full overflow-y-auto">
+          <div className="p-4 space-y-2">
+            <button 
+              onClick={() => scrollToSection('home')}
+              className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium"
+            >
+              {t.home}
+            </button>
+            <button 
+              onClick={() => scrollToSection('institutions')}
+              className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium"
+            >
+              {t.institutions}
+            </button>
+            <button 
+              onClick={() => scrollToSection('services')}
+              className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium"
+            >
+              {t.services}
+            </button>
+            <button 
+              onClick={() => scrollToSection('contact')}
+              className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium"
+            >
+              {t.contact}
+            </button>
+            <button 
+              onClick={() => handleNavigation('/service-catalogue')}
+              className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium"
+            >
+              {t.serviceCatalogue}
+            </button>
+
+            {/* About Section in Mobile Menu */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+              <p className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{t.about}</p>
+              <button
+                onClick={() => handleNavigation('/about-us')}
+                className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                {t.aboutUs}
+              </button>
+              <button
+                onClick={() => handleNavigation('/about-us#news')}
+                className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                {t.news}
+              </button>
+              <button
+                onClick={() => handleNavigation('/about-us#videos')}
+                className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                {t.videos}
+              </button>
+              <button
+                onClick={() => handleNavigation('/about-us#announcements')}
+                className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                {t.announcements}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </nav>
+    </>
   );
 };
 
