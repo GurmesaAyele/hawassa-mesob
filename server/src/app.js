@@ -59,7 +59,16 @@ const corsOptions = {
     return callback(new Error(`Origin '${origin}' not allowed by CORS policy`), false);
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-chapa-signature", "chapa-signature"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "x-chapa-signature",
+    "chapa-signature",
+    "Cache-Control",
+    "Pragma",
+    "If-None-Match",
+    "If-Modified-Since",
+  ],
   credentials: true,
   maxAge: 86400,
 };

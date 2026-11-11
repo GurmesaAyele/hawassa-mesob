@@ -17,12 +17,14 @@ import {
   getVipTicketById,
 } from "../src/modules/vip-tickets/vip-tickets.controller.js";
 import { generateVipTicketQrCode } from "../src/utils/qr.js";
+import { preventStatusCache } from "../src/modules/vip-payments/vip-payments.routes.js";
 
-// Helper to create mock Express response object
+// Helper to create mock Express response object with header tracking
 function createMockRes() {
   const res = {
     statusCode: 200,
     body: null,
+    headers: {},
     status(code) {
       this.statusCode = code;
       return this;
@@ -30,6 +32,26 @@ function createMockRes() {
     json(data) {
       this.body = data;
       return this;
+    },
+    set(nameOrObj, val) {
+      if (typeof nameOrObj === "object") {
+        for (const [k, v] of Object.entries(nameOrObj)) {
+          this.headers[k.toLowerCase()] = v;
+        }
+      } else {
+        this.headers[nameOrObj.toLowerCase()] = val;
+      }
+      return this;
+    },
+    setHeader(name, val) {
+      this.headers[name.toLowerCase()] = val;
+      return this;
+    },
+    get(name) {
+      return this.headers[name.toLowerCase()];
+    },
+    getHeader(name) {
+      return this.headers[name.toLowerCase()];
     },
   };
   return res;
@@ -757,5 +779,406 @@ describe("VIP Payment Verification, Confirmation & QR Code Test Suite", () => {
     assert.equal(res.body.data.status, "CONFIRMED");
     assert.equal(res.body.data.paymentRef, "VPMW9KassaPayment");
     assert.equal(res.body.data.qrCodeUrl, qrDataUri);
+  });
+
+  // ─── Regression Test 1: Pending payment returns HTTP 200, isPending: true, isConfirmed: false
+  test("Regression Test 1: PENDING payment returns HTTP 200, isPending: true, isConfirmed: false", async () => {
+    const pendingTicket = {
+      id: "ticket-reg-pending-01",
+      ticketCode: "VIP-PENDING-0001",
+      status: "PENDING",
+      paymentRef: null,
+      qrCodeUrl: null,
+    };
+    const pendingPayment = {
+      id: "pay-reg-pending-01",
+      ticketId: "ticket-reg-pending-01",
+      merchantReference: "VPMW9PENDING0001",
+      status: "PENDING",
+      amount: 1000,
+      currency: "ETB",
+    };
+
+    prisma.vip_tickets.findFirst = async () => pendingTicket;
+    prisma.vip_tickets.findUnique = async () => pendingTicket;
+    if (prisma.vip_payments) {
+      prisma.vip_payments.findFirst = async () => pendingPayment;
+      prisma.vip_payments.findByReference = async () => pendingPayment;
+    }
+
+    const req = { params: { reference: pendingTicket.ticketCode }, query: {} };
+    const res = createMockRes();
+    await getPaymentStatusHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.success, true);
+    assert.equal(res.body.data.isPending, true);
+    assert.equal(res.body.data.isConfirmed, false);
+    assert.equal(res.body.data.paymentStatus, "PENDING");
+    assert.equal(res.body.data.ticketStatus, "PENDING");
+  });
+
+  // ─── Regression Test 2: Confirmed ticket returns HTTP 200, isConfirmed: true, isPending: false, canRetry: false, and QR code
+  test("Regression Test 2: CONFIRMED ticket returns HTTP 200, isConfirmed: true, isPending: false, canRetry: false, and QR code", async () => {
+    const confirmedTicket = {
+      id: "ticket-reg-conf-02",
+      ticketCode: "VIP-CONF-0002",
+      status: "CONFIRMED",
+      paymentRef: "VPMW9CONF0002",
+      qrCodeUrl: generateVipTicketQrCode("VIP-CONF-0002"),
+    };
+    const successPayment = {
+      id: "pay-reg-conf-02",
+      ticketId: "ticket-reg-conf-02",
+      merchantReference: "VPMW9CONF0002",
+      status: "SUCCESS",
+      amount: 1000,
+      currency: "ETB",
+      paymentMethod: "telebirr",
+    };
+
+    prisma.vip_tickets.findFirst = async () => confirmedTicket;
+    prisma.vip_tickets.findUnique = async () => confirmedTicket;
+    if (prisma.vip_payments) {
+      prisma.vip_payments.findFirst = async () => successPayment;
+      prisma.vip_payments.findByReference = async () => successPayment;
+    }
+
+    const req = { params: { reference: confirmedTicket.ticketCode }, query: {} };
+    const res = createMockRes();
+    await getPaymentStatusHandler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.success, true);
+    assert.equal(res.body.data.isConfirmed, true);
+    assert.equal(res.body.data.isPending, false);
+    assert.equal(res.body.data.canRetry, false);
+    assert.equal(res.body.data.isVerified, true);
+    assert.ok(res.body.data.qrCodeUrl.startsWith("data:image/svg+xml;utf8,"));
+  });
+
+  // ─── Regression Test 3: Status endpoint strips If-None-Match and prevents HTTP 304 on polling
+  test("Regression Test 3: Status endpoint strips If-None-Match and ensures HTTP 200 with non-empty body (prevents 304)", async () => {
+    const testTicket = {
+      id: "ticket-reg-cache-03",
+      ticketCode: "VIP-NOCACHE-0003",
+      status: "CONFIRMED",
+      paymentRef: "VPMW9NOCACHE03",
+      qrCodeUrl: generateVipTicketQrCode("VIP-NOCACHE-0003"),
+    };
+    const testPayment = {
+      id: "pay-reg-cache-03",
+      ticketId: "ticket-reg-cache-03",
+      merchantReference: "VPMW9NOCACHE03",
+      status: "SUCCESS",
+      amount: 1000,
+      currency: "ETB",
+    };
+
+    prisma.vip_tickets.findFirst = async () => testTicket;
+    prisma.vip_tickets.findUnique = async () => testTicket;
+    if (prisma.vip_payments) {
+      prisma.vip_payments.findFirst = async () => testPayment;
+      prisma.vip_payments.findByReference = async () => testPayment;
+    }
+
+    // First request: simulate client polling without cache headers
+    const req1 = {
+      method: "GET",
+      url: `/api/vip-payments/status/${testTicket.ticketCode}`,
+      headers: { host: "localhost:5000" },
+      params: { reference: testTicket.ticketCode },
+    };
+    const res1 = createMockRes();
+    preventStatusCache(req1, res1, () => {});
+    await getPaymentStatusHandler(req1, res1);
+
+    assert.equal(res1.statusCode, 200);
+    assert.ok(res1.body && res1.body.success);
+    assert.equal(res1.headers["cache-control"], "no-store, no-cache, must-revalidate, proxy-revalidate");
+    assert.equal(res1.headers["pragma"], "no-cache");
+    assert.equal(res1.headers["expires"], "0");
+
+    // Second request: client repeats request with If-None-Match and If-Modified-Since
+    const req2 = {
+      method: "GET",
+      url: `/api/vip-payments/status/${testTicket.ticketCode}`,
+      headers: {
+        host: "localhost:5000",
+        "if-none-match": 'W/"12345-mocketag"',
+        "if-modified-since": new Date().toUTCString(),
+      },
+      params: { reference: testTicket.ticketCode },
+    };
+    const res2 = createMockRes();
+
+    // Execute middleware
+    let nextCalled = false;
+    preventStatusCache(req2, res2, () => { nextCalled = true; });
+
+    assert.equal(nextCalled, true);
+    // Verify conditional headers were removed so Express req.fresh evaluates strictly to false
+    assert.equal(req2.headers["if-none-match"], undefined);
+    assert.equal(req2.headers["if-modified-since"], undefined);
+
+    // Execute handler
+    await getPaymentStatusHandler(req2, res2);
+
+    // Status must remain 200 OK with full JSON body
+    assert.equal(res2.statusCode, 200);
+    assert.notEqual(res2.statusCode, 304, "Status polling must never return HTTP 304");
+    assert.ok(res2.body && res2.body.data && res2.body.data.isConfirmed === true);
+  });
+
+  // ─── Regression Test 4: Confirmed ticket skips external Chapa verification completely
+  test("Regression Test 4: Confirmed ticket skips external Chapa verification completely", async () => {
+    let chapaFetchCalls = 0;
+    globalThis.fetch = async () => {
+      chapaFetchCalls++;
+      throw new Error("Chapa fetch should NOT be called for already confirmed tickets");
+    };
+
+    const confirmedTicket = {
+      id: "ticket-reg-skip-04",
+      ticketCode: "VIP-SKIP-0004",
+      status: "CONFIRMED",
+      paymentRef: "VPMW9SKIP0004",
+      qrCodeUrl: generateVipTicketQrCode("VIP-SKIP-0004"),
+    };
+    const pendingPaymentRecord = {
+      id: "pay-reg-skip-04",
+      ticketId: "ticket-reg-skip-04",
+      merchantReference: "VPMW9SKIP0004",
+      status: "PENDING", // Even if payment record is marked PENDING in DB
+      amount: 1000,
+      currency: "ETB",
+    };
+
+    prisma.vip_tickets.findFirst = async () => confirmedTicket;
+    prisma.vip_tickets.findUnique = async () => confirmedTicket;
+    if (prisma.vip_payments) {
+      prisma.vip_payments.findFirst = async () => pendingPaymentRecord;
+      prisma.vip_payments.findByReference = async () => pendingPaymentRecord;
+    }
+
+    const result = await getPaymentStatus(confirmedTicket.ticketCode);
+
+    assert.equal(chapaFetchCalls, 0, "No external Chapa verification call must be made");
+    assert.equal(result.status, 200);
+    assert.equal(result.data.isConfirmed, true);
+    assert.equal(result.data.isPending, false);
+  });
+
+  // ─── Regression Test 5: VIP ticket reference resolves the payment stored in ticket.paymentRef
+  test("Regression Test 5: VIP ticket reference resolves the payment stored in ticket.paymentRef", async () => {
+    const linkedMerchantRef = "VPMW9LINKEDPAYREF5";
+    const mockTicket = {
+      id: "ticket-reg-payref-05",
+      ticketCode: "VIP-PAYREF-0005",
+      status: "CONFIRMED",
+      paymentRef: linkedMerchantRef,
+      qrCodeUrl: generateVipTicketQrCode("VIP-PAYREF-0005"),
+    };
+
+    const linkedPayment = {
+      id: "pay-reg-linked-05",
+      ticketId: "ticket-reg-payref-05",
+      merchantReference: linkedMerchantRef,
+      status: "SUCCESS",
+      amount: 1000,
+      currency: "ETB",
+      paymentMethod: "telebirr",
+    };
+
+    prisma.vip_tickets.findFirst = async () => mockTicket;
+    prisma.vip_tickets.findUnique = async () => mockTicket;
+    if (prisma.vip_payments) {
+      prisma.vip_payments.findFirst = async ({ where }) => {
+        if (where.OR && where.OR.some(cond => cond.merchantReference === linkedMerchantRef)) {
+          return linkedPayment;
+        }
+        return null;
+      };
+      prisma.vip_payments.findByReference = async (ref) => {
+        if (ref === linkedMerchantRef) return linkedPayment;
+        return null;
+      };
+    }
+
+    const result = await getPaymentStatus(mockTicket.ticketCode);
+
+    assert.equal(result.status, 200);
+    assert.equal(result.data.merchantReference, linkedMerchantRef);
+    assert.equal(result.data.paymentStatus, "SUCCESS");
+    assert.equal(result.data.isConfirmed, true);
+    assert.equal(result.data.isVerified, true);
+  });
+
+  // ─── Regression Test 6: VPM... merchant reference resolves correctly
+  test("Regression Test 6: VPM... merchant reference resolves correctly", async () => {
+    const merchantRef = "VPMW9MERCHANTREF6";
+    const mockTicket = {
+      id: "ticket-reg-merch-06",
+      ticketCode: "VIP-MERCH-0006",
+      status: "CONFIRMED",
+      paymentRef: merchantRef,
+      qrCodeUrl: generateVipTicketQrCode("VIP-MERCH-0006"),
+    };
+
+    const mockPayment = {
+      id: "pay-reg-merch-06",
+      ticketId: "ticket-reg-merch-06",
+      merchantReference: merchantRef,
+      status: "SUCCESS",
+      amount: 1000,
+      currency: "ETB",
+      paymentMethod: "cbe",
+    };
+
+    if (prisma.vip_payments) {
+      prisma.vip_payments.findFirst = async ({ where }) => {
+        if (where.OR && where.OR.some(cond => cond.merchantReference === merchantRef)) {
+          return mockPayment;
+        }
+        return null;
+      };
+      prisma.vip_payments.findByReference = async (ref) => {
+        if (ref === merchantRef) return mockPayment;
+        return null;
+      };
+    }
+    prisma.vip_tickets.findUnique = async () => mockTicket;
+
+    const result = await getPaymentStatus(merchantRef);
+
+    assert.equal(result.status, 200);
+    assert.equal(result.data.merchantReference, merchantRef);
+    assert.equal(result.data.applicationReference, "VIP-MERCH-0006");
+    assert.equal(result.data.isConfirmed, true);
+    assert.equal(result.data.isVerified, true);
+  });
+
+  // ─── Regression Test 7: Multiple payment attempts prioritize SUCCESS payment linked to ticket
+  test("Regression Test 7: Multiple payment attempts prioritize the SUCCESS payment linked to ticket", async () => {
+    const successMerchantRef = "VPMW9SUCCESSOLD";
+    const pendingMerchantRef = "VPMW9PENDINGNEW";
+
+    const mockTicket = {
+      id: "ticket-reg-multi-07",
+      ticketCode: "VIP-MULTI-0007",
+      status: "CONFIRMED",
+      paymentRef: successMerchantRef,
+      qrCodeUrl: generateVipTicketQrCode("VIP-MULTI-0007"),
+    };
+
+    const oldSuccessPayment = {
+      id: "pay-reg-old-success",
+      ticketId: "ticket-reg-multi-07",
+      merchantReference: successMerchantRef,
+      status: "SUCCESS",
+      amount: 1000,
+      currency: "ETB",
+      createdAt: new Date("2026-11-01T10:00:00Z"),
+    };
+
+    const newPendingPayment = {
+      id: "pay-reg-new-pending",
+      ticketId: "ticket-reg-multi-07",
+      merchantReference: pendingMerchantRef,
+      status: "PENDING",
+      amount: 1000,
+      currency: "ETB",
+      createdAt: new Date("2026-11-01T11:00:00Z"),
+    };
+
+    prisma.vip_tickets.findFirst = async () => mockTicket;
+    prisma.vip_tickets.findUnique = async () => mockTicket;
+    if (prisma.vip_payments) {
+      prisma.vip_payments.findFirst = async ({ where }) => {
+        if (where?.OR) {
+          const matchSuccess = where.OR.some(c => c.merchantReference === successMerchantRef || c.id === successMerchantRef);
+          if (matchSuccess) return oldSuccessPayment;
+          const matchPending = where.OR.some(c => c.merchantReference === pendingMerchantRef || c.id === pendingMerchantRef);
+          if (matchPending) return newPendingPayment;
+          return null; // Return null when queried with VIP-MULTI-0007 so fallback to ticket lookup occurs
+        }
+        if (where?.status === "SUCCESS") {
+          return oldSuccessPayment;
+        }
+        return newPendingPayment;
+      };
+      prisma.vip_payments.findByReference = async (ref) => {
+        if (ref === successMerchantRef) return oldSuccessPayment;
+        if (ref === pendingMerchantRef) return newPendingPayment;
+        return null;
+      };
+    }
+
+    const result = await getPaymentStatus(mockTicket.ticketCode);
+
+    assert.equal(result.status, 200);
+    assert.equal(result.data.paymentStatus, "SUCCESS", "Must resolve to the SUCCESS payment, not the newer PENDING payment");
+    assert.equal(result.data.merchantReference, successMerchantRef);
+    assert.equal(result.data.isConfirmed, true);
+    assert.equal(result.data.isPending, false);
+    assert.equal(result.data.isVerified, true);
+  });
+
+  // ─── Regression Test 8: Invalid reference handling
+  test("Regression Test 8: Empty reference returns 400, nonexistent reference returns 404", async () => {
+    // Empty reference
+    const emptyRes = await getPaymentStatus("   ");
+    assert.equal(emptyRes.status, 400);
+    assert.ok(emptyRes.error.includes("reference"));
+
+    // Nonexistent reference
+    prisma.vip_tickets.findFirst = async () => null;
+    prisma.vip_tickets.findUnique = async () => null;
+    if (prisma.vip_payments) {
+      prisma.vip_payments.findFirst = async () => null;
+      prisma.vip_payments.findByReference = async () => null;
+    }
+
+    const notFoundRes = await getPaymentStatus("VIP-DOES-NOT-EXIST-9999");
+    assert.equal(notFoundRes.status, 404);
+    assert.ok(notFoundRes.error.includes("No payment or application record found"));
+  });
+
+  // ─── Regression Test 9: Confirmed tickets in all states never return isPending or canRetry
+  test("Regression Test 9: Confirmed tickets in all confirmed states (CONFIRMED, QUEUED, SERVING, USED) never return isPending: true or canRetry: true", async () => {
+    const states = ["CONFIRMED", "QUEUED", "SERVING", "USED"];
+
+    for (const st of states) {
+      const mockTicket = {
+        id: `ticket-state-${st}`,
+        ticketCode: `VIP-STATE-${st}`,
+        status: st,
+        paymentRef: `VPMW9${st}`,
+        qrCodeUrl: generateVipTicketQrCode(`VIP-STATE-${st}`),
+      };
+      const mockPayment = {
+        id: `pay-state-${st}`,
+        ticketId: `ticket-state-${st}`,
+        merchantReference: `VPMW9${st}`,
+        status: "SUCCESS",
+        amount: 1000,
+        currency: "ETB",
+      };
+
+      prisma.vip_tickets.findFirst = async () => mockTicket;
+      prisma.vip_tickets.findUnique = async () => mockTicket;
+      if (prisma.vip_payments) {
+        prisma.vip_payments.findFirst = async () => mockPayment;
+        prisma.vip_payments.findByReference = async () => mockPayment;
+      }
+
+      const res = await getPaymentStatus(mockTicket.ticketCode);
+
+      assert.equal(res.status, 200);
+      assert.equal(res.data.isConfirmed, true, `State ${st} must have isConfirmed: true`);
+      assert.equal(res.data.isPending, false, `State ${st} must never have isPending: true`);
+      assert.equal(res.data.canRetry, false, `State ${st} must never have canRetry: true`);
+      assert.equal(res.data.isVerified, true, `State ${st} with SUCCESS payment must have isVerified: true`);
+    }
   });
 });
