@@ -195,3 +195,242 @@ await adminApi.vipTickets.updateServiceStatus(
   ticket.services[0]?.id // target serviceId
 );
 ```
+
+---
+
+## 5. Super Admin Staff Management API
+
+Super Admins have full authority to provision, inspect, update, reassign, deactivate, reset passwords for, and delete staff accounts across all institutions.
+
+### Endpoint Overview
+
+| Action | HTTP Method | Endpoint | Required Role | Description |
+| :--- | :---: | :--- | :---: | :--- |
+| **Create Staff** | `POST` | `/api/admin/staff` | `SUPER_ADMIN` | Create a new staff account bound to an institution |
+| **List Staff** | `GET` | `/api/admin/staff` | `SUPER_ADMIN` | List all staff with filtering, search, and pagination |
+| **Get Staff** | `GET` | `/api/admin/staff/:id` | `SUPER_ADMIN` | Get single staff profile with bound institution |
+| **Update Staff** | `PATCH` | `/api/admin/staff/:id` | `SUPER_ADMIN` | Update name, email, phone, institution, status, or password |
+| **Delete Staff** | `DELETE` | `/api/admin/staff/:id` | `SUPER_ADMIN` | Permanently delete a staff account |
+
+---
+
+### 5.1 Create Staff Member (`POST /api/admin/staff`)
+
+Creates a new staff account and binds it to an institution.
+
+#### Request Body
+```json
+{
+  "name": "Abebe Kebede",
+  "email": "cbe.staff@mesob.hawassa.gov.et",
+  "password": "StaffSecretPassword2026!",
+  "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+  "phone": "0911002233",
+  "isActive": true
+}
+```
+> [!NOTE]
+> You may supply either `institutionId` (UUID/cuid) or `institutionCode` (e.g., `"CBE"`, `"ICS"`, `"TELECOM"`).
+
+#### Success Response (`201 Created`)
+```json
+{
+  "success": true,
+  "message": "Staff member created successfully.",
+  "data": {
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "email": "cbe.staff@mesob.hawassa.gov.et",
+    "name": "Abebe Kebede",
+    "phone": "0911002233",
+    "role": "STAFF",
+    "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+    "isActive": true,
+    "createdAt": "2026-11-12T10:00:00.000Z",
+    "updatedAt": "2026-11-12T10:00:00.000Z",
+    "institution": {
+      "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+      "code": "CBE",
+      "name": { "en": "Commercial Bank of Ethiopia", "am": "የኢትዮጵያ ንግድ ባንክ" },
+      "icon": "https://...",
+      "floorRoomNumber": "Counter 4"
+    }
+  }
+}
+```
+
+---
+
+### 5.2 List Staff Members (`GET /api/admin/staff`)
+
+Supports query parameters:
+- `page`: default `1`
+- `limit`: default `20` (max `100`)
+- `institutionId` or `institutionCode`: Filter staff belonging to a specific institution.
+- `search`: Case-insensitive text search matching name, email, or phone.
+- `status`: `"active"`, `"inactive"`, or `"all"` (default `"all"`).
+
+#### Success Response (`200 OK`)
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "cmw8xoq210000fcyk7irp35mv",
+      "name": "Abebe Kebede",
+      "email": "cbe.staff@mesob.hawassa.gov.et",
+      "phone": "0911002233",
+      "role": "STAFF",
+      "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+      "isActive": true,
+      "institution": {
+        "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+        "code": "CBE",
+        "name": { "en": "Commercial Bank of Ethiopia" }
+      }
+    }
+  ],
+  "meta": {
+    "total": 14,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 1
+  }
+}
+```
+
+---
+
+### 5.3 Get Single Staff Member (`GET /api/admin/staff/:id`)
+
+#### Success Response (`200 OK`)
+```json
+{
+  "success": true,
+  "data": {
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "name": "Abebe Kebede",
+    "email": "cbe.staff@mesob.hawassa.gov.et",
+    "phone": "0911002233",
+    "role": "STAFF",
+    "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+    "isActive": true,
+    "institution": {
+      "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+      "code": "CBE",
+      "name": { "en": "Commercial Bank of Ethiopia" }
+    }
+  }
+}
+```
+
+---
+
+### 5.4 Update Staff Member (`PATCH /api/admin/staff/:id`)
+
+All fields in the body are optional:
+- `name`: string (min 2 chars)
+- `email`: string (valid email format, uniqueness verified)
+- `phone`: string or `null`
+- `institutionId` or `institutionCode`: Reassign to a different institution
+- `isActive`: boolean (`true` to activate, `false` to deactivate)
+- `password`: string (min 6 chars to reset staff password)
+
+#### Example Request
+```http
+PATCH /api/admin/staff/cmw8xoq210000fcyk7irp35mv
+Content-Type: application/json
+Authorization: Bearer <super_admin_jwt>
+
+{
+  "name": "Abebe Kebede Updated",
+  "phone": "0911998877",
+  "institutionCode": "ICS",
+  "isActive": true
+}
+```
+
+#### Success Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Staff member updated successfully.",
+  "data": {
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "name": "Abebe Kebede Updated",
+    "email": "cbe.staff@mesob.hawassa.gov.et",
+    "phone": "0911998877",
+    "role": "STAFF",
+    "institutionId": "ics_uuid_67890",
+    "isActive": true,
+    "institution": {
+      "id": "ics_uuid_67890",
+      "code": "ICS",
+      "name": { "en": "Immigration & Citizenship Service" }
+    }
+  }
+}
+```
+
+---
+
+### 5.5 Delete Staff Member (`DELETE /api/admin/staff/:id`)
+
+Permanently deletes the staff account.
+
+#### Example Request
+```http
+DELETE /api/admin/staff/cmw8xoq210000fcyk7irp35mv
+Authorization: Bearer <super_admin_jwt>
+```
+
+#### Success Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Staff member account deleted successfully.",
+  "data": {
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "email": "cbe.staff@mesob.hawassa.gov.et",
+    "name": "Abebe Kebede Updated"
+  }
+}
+```
+
+---
+
+### 5.6 Frontend Service Helper (`frontend/src/services/adminApi.js`)
+
+Super admin client method template:
+
+```javascript
+export const staffApi = {
+  // List staff with search and filters
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/admin/staff${qs ? `?${qs}` : ""}`);
+  },
+
+  // Get single staff by ID
+  getById: (id) => request(`/admin/staff/${encodeURIComponent(id)}`),
+
+  // Create staff member
+  create: (data) =>
+    request("/admin/staff", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  // Update staff member (profile, reassign, status, or password)
+  update: (id, data) =>
+    request(`/admin/staff/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  // Delete staff member
+  delete: (id) =>
+    request(`/admin/staff/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+};
+```
