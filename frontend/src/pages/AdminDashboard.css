@@ -768,6 +768,66 @@
   white-space: nowrap;
 }
 
+/* ─── Compact Staff Header (Pro High-Density) ───────────────── */
+.admin-header--staff {
+  background: linear-gradient(110deg, #123b30 0%, #164e3b 58%, #1f4536 100%);
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+  box-shadow: 0 4px 16px rgb(18 59 48 / 14%);
+}
+
+.admin-header--staff::before {
+  height: 2px;
+}
+
+.admin-header__inner--staff {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: min(100% - 32px, 1360px) !important;
+  margin: 0 auto !important;
+  padding: 10px 0 !important;
+  min-height: 52px;
+  flex-wrap: nowrap !important;
+}
+
+.admin-header--staff .admin-account {
+  margin-bottom: 0 !important;
+  gap: 12px;
+}
+
+.admin-header--staff .admin-account__avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 0.85rem;
+}
+
+.admin-header--staff .admin-account__identity {
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
+.admin-header--staff .admin-account__identity strong {
+  font-size: 0.82rem;
+  color: #fff;
+}
+
+.admin-header--staff .admin-account__identity small {
+  color: #a4e6ce;
+  font-size: 0.7rem;
+}
+
+.admin-header--staff .admin-account__action {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.admin-header--staff .admin-account__action:hover {
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+}
+
 .admin-account__action:hover {
   color: #fff;
   text-decoration: underline;

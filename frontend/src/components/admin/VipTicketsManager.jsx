@@ -101,118 +101,135 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
 
   return (
     <section className="admin-section" aria-labelledby="vip-tickets-heading">
-      {/* ─── Dedicated Desk Header Banner (for Staff) ─── */}
-      {isStaff && staffInstitution && (
-        <div className="mb-6 rounded-lg border border-emerald-300 bg-gradient-to-r from-emerald-50 via-teal-50 to-stone-50 p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-800 text-lg font-bold text-white shadow-sm">
-                {staffInstitution.code || "🏛️"}
-              </span>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-emerald-950">
-                    {staffInstitution.name?.en || staffInstitution.name || staffInstitution.code} Desk
-                  </h3>
-                  <span className="rounded-full bg-emerald-700 px-2.5 py-0.5 text-xs font-semibold text-white">
-                    Desk Officer
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs text-stone-600">
-                  {staffInstitution.floorRoomNumber ? `Counter / Location: ${staffInstitution.floorRoomNumber} • ` : ""}
-                  Logged in as <strong>{currentUser?.name || currentUser?.email}</strong>
-                </p>
-              </div>
-            </div>
-            <div className="rounded border border-emerald-200 bg-white/90 px-3.5 py-2 text-right shadow-xs">
-              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Assigned Queue</p>
-              <p className="text-xl font-bold text-stone-900">{totalCount} orders</p>
-            </div>
+      {/* ─── Compact Pro Toolbar (Unified Desk Info, Live Counts & Filters) ─── */}
+      <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-3.5 py-2.5 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            <h2 id="vip-tickets-heading" className="text-base font-bold text-stone-900 tracking-tight">
+              VIP Queue
+            </h2>
+            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-xs font-bold text-emerald-900">
+              {totalCount}
+            </span>
           </div>
-        </div>
-      )}
 
-      {/* ─── Super Admin Controls Header ─── */}
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-stone-500">
-            {isStaff ? "Institution VIP Queue" : "VIP service queue oversight"}
-          </p>
-          <h2 id="vip-tickets-heading" className="text-2xl font-bold text-stone-900">
-            VIP tickets <span className="ml-1 text-base font-medium text-stone-500">{totalCount}</span>
-          </h2>
+          {isStaff && staffInstitution && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-stone-100 border border-stone-200 px-2.5 py-1 text-xs text-stone-700">
+              <span className="font-bold text-emerald-800">{staffInstitution.code || "Desk"}:</span>
+              <span className="font-medium">{staffInstitution.name?.en || staffInstitution.name || staffInstitution.code}</span>
+              {staffInstitution.floorRoomNumber && (
+                <span className="text-stone-400">({staffInstitution.floorRoomNumber})</span>
+              )}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-3">
+
+        {/* ─── Filter Tabs & Actions ─── */}
+        <div className="flex flex-wrap items-center gap-2">
           {/* Institution Selector for Super Admin */}
           {isSuperAdmin && institutions.length > 0 && (
-            <div className="flex items-center gap-2">
-              <label htmlFor="vip-institution-filter" className="text-xs font-semibold text-stone-600">
-                Institution:
-              </label>
-              <select
-                id="vip-institution-filter"
-                value={institutionFilter}
-                onChange={(e) => setInstitutionFilter(e.target.value)}
-                className="rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-700 shadow-xs focus:border-emerald-700 focus:outline-hidden"
-              >
-                <option value="all">All Institutions ({institutions.length})</option>
-                {institutions.map((inst) => (
-                  <option key={inst.id} value={inst.id}>
-                    {inst.code} — {inst.name?.en || inst.name || inst.code}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={institutionFilter}
+              onChange={(e) => setInstitutionFilter(e.target.value)}
+              className="rounded border border-stone-300 bg-white px-2 py-1 text-xs font-semibold text-stone-700 focus:border-emerald-700 focus:outline-hidden"
+              aria-label="Filter by institution"
+            >
+              <option value="all">All Institutions ({institutions.length})</option>
+              {institutions.map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.code} — {inst.name?.en || inst.name || inst.code}
+                </option>
+              ))}
+            </select>
           )}
+
+          {/* Segmented Status Filter Tabs with integrated live badges */}
+          <div className="inline-flex rounded-md border border-stone-200 bg-stone-100 p-0.5 text-xs" role="group" aria-label="Filter VIP tickets by status">
+            <button
+              type="button"
+              aria-pressed={filter === "all"}
+              onClick={() => setFilter("all")}
+              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+                filter === "all"
+                  ? "bg-white text-emerald-950 shadow-xs"
+                  : "text-stone-600 hover:text-stone-900"
+              }`}
+            >
+              <span>All</span>
+              <span className="rounded-full bg-stone-200 px-1.5 py-0.2 text-[10px] font-bold">
+                {totalCount}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              aria-pressed={filter === "pending"}
+              onClick={() => setFilter("pending")}
+              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+                filter === "pending"
+                  ? "bg-white text-amber-900 shadow-xs"
+                  : "text-stone-600 hover:text-stone-900"
+              }`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+              <span>Pending</span>
+              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "pending" ? "bg-amber-100 text-amber-900" : "bg-stone-200 text-stone-700"}`}>
+                {counts.pending || 0}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              aria-pressed={filter === "in-progress"}
+              onClick={() => setFilter("in-progress")}
+              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+                filter === "in-progress"
+                  ? "bg-white text-sky-900 shadow-xs"
+                  : "text-stone-600 hover:text-stone-900"
+              }`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+              <span>In Progress</span>
+              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "in-progress" ? "bg-sky-100 text-sky-900" : "bg-stone-200 text-stone-700"}`}>
+                {counts["in-progress"] || 0}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              aria-pressed={filter === "completed"}
+              onClick={() => setFilter("completed")}
+              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+                filter === "completed"
+                  ? "bg-white text-emerald-900 shadow-xs"
+                  : "text-stone-600 hover:text-stone-900"
+              }`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+              <span>Completed</span>
+              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "completed" ? "bg-emerald-100 text-emerald-900" : "bg-stone-200 text-stone-700"}`}>
+                {counts.completed || 0}
+              </span>
+            </button>
+          </div>
 
           <button
             type="button"
             onClick={fetchTickets}
             disabled={loading}
-            className="rounded border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 shadow-xs"
           >
-            {loading ? "Refreshing..." : "↻ Refresh Queue"}
+            {loading ? "..." : "↻ Refresh"}
           </button>
         </div>
       </div>
 
       {error && (
-        <div role="alert" className="mb-4 border-l-4 border-red-600 bg-red-50 p-4 text-sm text-red-900">
+        <div role="alert" className="mb-3 border-l-4 border-red-600 bg-red-50 p-3 text-xs text-red-900">
           <p className="font-semibold">Error</p>
           <p>{error}</p>
         </div>
       )}
-
-      <div className="mb-5 grid gap-3 sm:grid-cols-3" aria-label="VIP ticket totals by status">
-        {TICKET_STATUSES.map(({ id, label }) => (
-          <article key={id} className="border border-stone-200 bg-white p-4">
-            <p className="text-sm font-medium text-stone-600">{label}</p>
-            <p className="mt-1 text-2xl font-bold text-stone-900">{counts[id] || 0}</p>
-          </article>
-        ))}
-      </div>
-
-      <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Filter VIP tickets">
-        <button
-          type="button"
-          aria-pressed={filter === "all"}
-          onClick={() => setFilter("all")}
-          className={`border px-3 py-2 text-sm font-semibold ${filter === "all" ? "border-emerald-800 bg-emerald-800 text-white" : "border-stone-300 bg-white text-stone-700 hover:bg-stone-100"}`}
-        >
-          All tickets ({totalCount})
-        </button>
-        {TICKET_STATUSES.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={filter === id}
-            onClick={() => setFilter(id)}
-            className={`border px-3 py-2 text-sm font-semibold ${filter === id ? "border-emerald-800 bg-emerald-800 text-white" : "border-stone-300 bg-white text-stone-700 hover:bg-stone-100"}`}
-          >
-            {label} ({counts[id] || 0})
-          </button>
-        ))}
-      </div>
 
       <div className="overflow-x-auto border border-stone-200 bg-white shadow-xs">
         <table className="w-full min-w-[840px] text-left text-sm">

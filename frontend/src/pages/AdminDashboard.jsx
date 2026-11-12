@@ -428,47 +428,80 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-shell min-h-screen bg-stone-50 text-stone-900">
-      <header className="admin-header border-b border-emerald-950 bg-emerald-950 text-white">
-        <div className="admin-header__inner">
-          <div className="admin-header__brand">
-            <p className="admin-eyebrow">HAWASSA MESOB / ADMINISTRATION</p>
-            <h1 className="mt-1 text-2xl font-bold">{isStaff ? "VIP ticket desk" : "Content dashboard"}</h1>
+      <header className={`admin-header ${isStaff ? "admin-header--staff" : ""} border-b border-emerald-950 bg-emerald-950 text-white`}>
+        {isStaff ? (
+          <div className="admin-header__inner admin-header__inner--staff">
+            <div className="flex items-center gap-3">
+              <Link className="flex items-center gap-2 text-white hover:opacity-90 transition-opacity" to="/">
+                <span className="flex h-7 w-7 items-center justify-center rounded bg-amber-400 font-black text-emerald-950 text-xs">M</span>
+                <span className="font-bold tracking-tight text-sm">MESOB</span>
+              </Link>
+              <span className="text-emerald-500/50">/</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-100">
+                VIP Desk
+              </span>
+              {currentUser?.institution && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-900/90 border border-emerald-700/60 px-2.5 py-0.5 text-xs font-medium text-emerald-100">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                  {currentUser.institution.name?.en || currentUser.institution.name || currentUser.institution.code} Desk
+                  {currentUser.institution.floorRoomNumber ? ` • ${currentUser.institution.floorRoomNumber}` : ""}
+                </span>
+              )}
+            </div>
+
+            <div className="admin-account">
+              <span className="admin-account__avatar" aria-hidden="true">
+                {(currentUser.name || currentUser.email || "A").slice(0, 1).toUpperCase()}
+              </span>
+              <span className="admin-account__identity">
+                <strong>{currentUser.name || currentUser.email}</strong>
+                <small>Staff Desk Officer</small>
+              </span>
+              <button type="button" className="admin-account__action" onClick={signOut}>Sign out</button>
+              <Link className="admin-account__action" to="/">Public site</Link>
+            </div>
           </div>
-          <div className="admin-account">
-            <span className="admin-account__avatar" aria-hidden="true">{(currentUser.name || currentUser.email || "A").slice(0, 1).toUpperCase()}</span>
-            <span className="admin-account__identity">
-              <strong>{currentUser.name || currentUser.email}</strong>
-              <small>{currentUser.role === "SUPER_ADMIN" ? "Super admin" : currentUser.role === "STAFF" ? "Staff" : "Operator"}</small>
-            </span>
-            <button type="button" className="admin-account__action" onClick={signOut}>Sign out</button>
-            <Link className="admin-account__action" to="/">Public site</Link>
+        ) : (
+          <div className="admin-header__inner">
+            <div className="admin-header__brand">
+              <p className="admin-eyebrow">HAWASSA MESOB / ADMINISTRATION</p>
+              <h1 className="mt-1 text-2xl font-bold">Content dashboard</h1>
+            </div>
+            <div className="admin-account">
+              <span className="admin-account__avatar" aria-hidden="true">{(currentUser.name || currentUser.email || "A").slice(0, 1).toUpperCase()}</span>
+              <span className="admin-account__identity">
+                <strong>{currentUser.name || currentUser.email}</strong>
+                <small>{currentUser.role === "SUPER_ADMIN" ? "Super admin" : "Operator"}</small>
+              </span>
+              <button type="button" className="admin-account__action" onClick={signOut}>Sign out</button>
+              <Link className="admin-account__action" to="/">Public site</Link>
+            </div>
+            <nav className="admin-nav" aria-label="Admin sections">
+              {SECTIONS.filter((item) => {
+                if (item.superAdminOnly && !isSuperAdmin) return false;
+                return true;
+              }).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-current={section === item.id ? "page" : undefined}
+                  onClick={() => setSection(item.id)}
+                  className={`admin-nav__tab border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${section === item.id ? "border-amber-300 bg-stone-50 text-emerald-950" : "border-transparent text-emerald-100 hover:bg-emerald-900"}`}
+                >
+                  <span>{item.label}</span>
+                  {item.id === "messages" && unreadCount > 0 && (
+                    <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 py-0.5 text-xs font-bold leading-none text-emerald-950" aria-label={`${unreadCount} unread`}>
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
           </div>
-          <nav className="admin-nav" aria-label="Admin sections">
-            {SECTIONS.filter((item) => {
-              if (isStaff) return item.id === "vip-tickets";
-              if (item.superAdminOnly && !isSuperAdmin) return false;
-              return true;
-            }).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                aria-current={section === item.id ? "page" : undefined}
-                onClick={() => setSection(item.id)}
-                className={`admin-nav__tab border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${section === item.id ? "border-amber-300 bg-stone-50 text-emerald-950" : "border-transparent text-emerald-100 hover:bg-emerald-900"}`}
-              >
-                <span>{item.label}</span>
-                {item.id === "messages" && unreadCount > 0 && (
-                  <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 py-0.5 text-xs font-bold leading-none text-emerald-950" aria-label={`${unreadCount} unread`}>
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
+        )}
       </header>
 
-      <main className="admin-main mx-auto max-w-7xl space-y-5 px-4 py-7 md:px-8 md:py-9">
+      <main className={`admin-main mx-auto max-w-7xl px-4 md:px-8 ${isStaff ? "py-4 md:py-5 space-y-3" : "py-7 md:py-9 space-y-5"}`}>
         {!isStaff && <section className="admin-overview" aria-label="Dashboard summary">
           <div className="admin-overview__intro">
             <p className="admin-eyebrow">YOUR WORKSPACE</p>
