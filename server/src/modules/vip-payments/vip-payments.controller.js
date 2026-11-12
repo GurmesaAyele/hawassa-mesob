@@ -98,6 +98,21 @@ export async function verifyPaymentHandler(req, res) {
  */
 export async function getPaymentStatusHandler(req, res) {
   try {
+    // Ensure cache-prevention headers are applied even when invoked directly
+    if (typeof res.set === "function") {
+      res.set({
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Surrogate-Control": "no-store",
+      });
+    } else if (typeof res.setHeader === "function") {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      res.setHeader("Surrogate-Control", "no-store");
+    }
+
     const rawRef = req.params?.reference || req.query?.reference;
 
     if (!rawRef || typeof rawRef !== "string" || !rawRef.trim()) {

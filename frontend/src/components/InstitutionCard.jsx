@@ -83,10 +83,10 @@ const InstitutionCard = ({ institution, onClick, index = 0 }) => {
     <button
       onClick={() => onClick(institution)}
       style={{ backgroundColor }}
-      className="rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-600 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center text-center h-64 w-full"
+      className="rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-gray-200 dark:border-gray-600 hover:scale-105 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center text-center h-56 sm:h-60 md:h-64 w-full"
     >
       {/* Institution Logo */}
-      <div className="institution-logo-frame institution-logo-frame--card w-24 h-24 mb-4 bg-white rounded-xl flex items-center justify-center p-3">
+      <div className="institution-logo-frame institution-logo-frame--card w-20 h-20 sm:w-22 sm:h-22 md:w-24 md:h-24 mb-3 sm:mb-4 bg-white rounded-lg sm:rounded-xl flex items-center justify-center p-2 sm:p-2.5 md:p-3">
         {institution.logo ? (
           <img
             src={logoUrl}
@@ -101,7 +101,7 @@ const InstitutionCard = ({ institution, onClick, index = 0 }) => {
           />
         ) : null}
         <div
-          className="w-full h-full items-center justify-center text-gray-400 text-2xl font-bold"
+          className="w-full h-full items-center justify-center text-gray-400 text-xl sm:text-2xl font-bold"
           style={{ display: logoUrl ? 'none' : 'flex' }}
         >
           {institution.name?.charAt(0) || '?'}
@@ -109,13 +109,13 @@ const InstitutionCard = ({ institution, onClick, index = 0 }) => {
       </div>
 
       {/* Institution Name - Dark in light mode, White in dark mode */}
-      <h3 className="font-bold text-lg leading-tight px-2" style={{ color: textColor }}>
+      <h3 className="font-bold text-base sm:text-lg leading-tight px-2" style={{ color: textColor }}>
         {institution.name || 'Unknown Institution'}
       </h3>
 
       {/* Institution Details (if any) */}
       {institution.description && (
-        <p className="text-sm mt-2 line-clamp-2" style={{ color: textColor }}>
+        <p className="text-xs sm:text-sm mt-1.5 sm:mt-2 line-clamp-2" style={{ color: textColor }}>
           {institution.description}
         </p>
       )}

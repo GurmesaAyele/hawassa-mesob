@@ -118,7 +118,7 @@ Start a Chapa v1 hosted checkout session for an existing VIP application.
 ---
 
 ### 3.2 Poll Payment Status
-Safe status polling endpoint used by the frontend to display payment progress without re-querying external APIs.
+Proactive status polling endpoint used by the frontend to display payment progress. If a payment is in `PENDING` state, this endpoint actively queries Chapa v1 for verification while enforcing a 3-second cooldown and concurrency protection.
 
 * **URL**: `/api/vip-payments/status/:reference`
 * **Method**: `GET`
@@ -130,6 +130,7 @@ Safe status polling endpoint used by the frontend to display payment progress wi
   "success": true,
   "data": {
     "applicationReference": "VIP-649796-8123",
+    "ticketCode": "VIP-649796-8123",
     "merchantReference": "VPMVO8CATC0A0F285E",
     "providerReference": "chapa-ref-12345",
     "paymentStatus": "SUCCESS",
@@ -142,6 +143,7 @@ Safe status polling endpoint used by the frontend to display payment progress wi
     "isConfirmed": true,
     "isPending": false,
     "canRetry": false,
+    "qrCodeUrl": "data:image/svg+xml;utf8,%3Csvg...",
     "errorMessage": null,
     "updatedAt": "2026-10-25T14:30:00.000Z"
   }
@@ -151,7 +153,7 @@ Safe status polling endpoint used by the frontend to display payment progress wi
 ---
 
 ### 3.3 Authoritative Payment Verification
-Explicitly triggers a server-to-server verification check against Chapa v1 (`GET https://api.chapa.co/v1/transaction/verify/{tx_ref}`) and atomically confirms the ticket.
+Explicitly triggers a server-to-server verification check against Chapa v1 (`GET https://api.chapa.co/v1/transaction/verify/{tx_ref}`) and atomically confirms the ticket, generating the digital VIP ticket and QR code.
 
 * **URL**: `/api/vip-payments/verify/:reference`
 * **Method**: `GET`
@@ -164,10 +166,16 @@ Explicitly triggers a server-to-server verification check against Chapa v1 (`GET
   "message": "Payment successfully verified. VIP application is now CONFIRMED.",
   "data": {
     "applicationReference": "VIP-649796-8123",
+    "ticketCode": "VIP-649796-8123",
     "merchantReference": "VPMVO8CATC0A0F285E",
     "providerReference": "chapa-ref-12345",
     "paymentStatus": "SUCCESS",
     "ticketStatus": "CONFIRMED",
+    "isVerified": true,
+    "isConfirmed": true,
+    "isPending": false,
+    "canRetry": false,
+    "qrCodeUrl": "data:image/svg+xml;utf8,%3Csvg...",
     "amount": 1000,
     "currency": "ETB",
     "paymentMethod": "telebirr",
@@ -183,9 +191,16 @@ Explicitly triggers a server-to-server verification check against Chapa v1 (`GET
   "message": "Payment is currently pending.",
   "data": {
     "applicationReference": "VIP-649796-8123",
+    "ticketCode": "VIP-649796-8123",
     "merchantReference": "VPMVO8CATC0A0F285E",
+    "providerReference": null,
     "paymentStatus": "PENDING",
-    "ticketStatus": "PENDING"
+    "ticketStatus": "PENDING",
+    "isVerified": false,
+    "isConfirmed": false,
+    "isPending": true,
+    "canRetry": false,
+    "qrCodeUrl": null
   }
 }
 ```

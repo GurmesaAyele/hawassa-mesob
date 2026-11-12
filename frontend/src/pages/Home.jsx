@@ -215,7 +215,7 @@ const Home = () => {
 
   // Generate random verification word on component mount
   useEffect(() => {
-    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
+    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY', 'VALID', 'CHECK', 'CONFIRM', 'MESOB'];
     const randomWord = words[Math.floor(Math.random() * words.length)];
     setVerificationWord(randomWord);
   }, []);
@@ -347,14 +347,20 @@ const Home = () => {
   // Map section translations
   const mapTranslations = {
     English: {
-      title: 'Find Us',
-      subtitle: 'Visit our location in Hawassa City',
+      title: 'Get in Touch',
+      subtitle: 'Visit our office, find us on the map, or reach out through the details below.',
+      contactUsBtn: 'Contact Us',
+      viewOnMapsBtn: 'View on Google Maps',
+      getDirectionsBtn: 'Get Directions',
+      headquarters: 'H-MESOB Headquarters',
+      servicesCenter: 'Government Services Center',
       loading: 'Loading map data...',
       errorTitle: 'Failed to load map data',
       emptyMessage: 'Location information will be available soon',
       addressLabel: 'Address',
-      phoneLabel: 'Phone',
+      phoneLabel: 'Contact',
       emailLabel: 'Email',
+      operatingHoursLabel: 'Operating Hours',
       workingHoursLabel: 'Working Hours',
       websiteBtn: 'Visit Website',
       plusCode: 'Plus Code',
@@ -362,14 +368,20 @@ const Home = () => {
       reviews: 'reviews'
     },
     Amharic: {
-      title: 'አድራሻችን',
-      subtitle: 'በሀዋሳ ከተማ ያለንበትን ቦታ ይጎብኙ',
+      title: 'ይገናኙ',
+      subtitle: 'ቢሮአችንን ይጎብኙ፣ በካርታ ላይ ይፈልጉን፣ ወይም በዝርዝሮች በኩል ያግኙን።',
+      contactUsBtn: 'አግኙን',
+      viewOnMapsBtn: 'በጉግል ካርታ ይመልከቱ',
+      getDirectionsBtn: 'አቅጣጫ ያግኙ',
+      headquarters: 'የሀ-መሰብ ዋና መስሪያ ቤት',
+      servicesCenter: 'የመንግስት አገልግሎት ማእከል',
       loading: 'የካርታ መረጃ በመጫን ላይ...',
       errorTitle: 'የካርታ መረጃ መጫን አልተቻለም',
       emptyMessage: 'የአድራሻ መረጃ በቅርቡ ይገኛል',
       addressLabel: 'አድራሻ',
       phoneLabel: 'ስልክ',
       emailLabel: 'ኢሜይል',
+      operatingHoursLabel: 'የስራ ሰዓታት',
       workingHoursLabel: 'የስራ ሰዓታት',
       websiteBtn: 'ድህረ ገጽ ይጎብኙ',
       plusCode: 'ፕላስ ኮድ',
@@ -377,14 +389,20 @@ const Home = () => {
       reviews: 'ግምገማዎች'
     },
     Sidama: {
-      title: 'Nooni Qoola',
-      subtitle: 'Hawassa Katama noo borrote hul',
+      title: 'Qixxisanno',
+      subtitle: 'Offiisi keenna hula, kaarta woye qoola, woy maalla leellishshote nooqixxisa.',
+      contactUsBtn: 'Nooqixxisa',
+      viewOnMapsBtn: 'Google Kaarta Woye Hula',
+      getDirectionsBtn: 'Qaggara Hegeranno',
+      headquarters: 'የሀ-መሰብ Kalaqqa Offiisi',
+      servicesCenter: 'Mootummaa Oso Maakko',
       loading: 'Kaarta maalla laaqqa gede...',
       errorTitle: 'Kaarta maalla laaqqa dandaabokki',
       emptyMessage: 'Borro maalla ammayyo hegerannooti',
       addressLabel: 'Borro',
       phoneLabel: 'Bilbila',
       emailLabel: 'Imeela',
+      operatingHoursLabel: 'Oso Saatto',
       workingHoursLabel: 'Oso Saatto',
       websiteBtn: 'Websaayiti Hul',
       plusCode: 'Palaasi Koodi',
@@ -569,25 +587,74 @@ const Home = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (formData.verification.toUpperCase() !== verificationWord) {
-      setMessageStatus({ type: 'error', text: 'Verification failed. Please enter the correct word.' });
+    
+    // Generate fresh verification words list
+    const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY', 'VALID', 'CHECK', 'CONFIRM', 'MESOB'];
+    
+    // Check verification
+    if (formData.verification.trim().toUpperCase() !== verificationWord) {
+      // Regenerate a new word on failed verification
+      const newWord = words[Math.floor(Math.random() * words.length)];
+      setVerificationWord(newWord);
+      setFormData({ ...formData, verification: '' }); // Clear the verification input
+      
+      const errorMessages = {
+        English: 'Verification failed. Please try again with the new word shown.',
+        Amharic: 'ማረጋገጫ አልተሳካም። እባክዎ በአዲሱ ቃል እንደገና ይሞክሩ።',
+        Sidama: 'Mirkaneessi dandaabokki. Haa ammayyo qaalawaan ammas yaala.'
+      };
+      setMessageStatus({ 
+        type: 'error', 
+        text: errorMessages[language] || errorMessages.English
+      });
       return;
     }
+    
     setMessageSending(true);
     setMessageStatus(null);
+    
     try {
-      await submitMessage({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        message: formData.message,
+      const result = await submitMessage({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        message: formData.message.trim(),
       });
-      setMessageStatus({ type: 'success', text: 'Message sent successfully.' });
+      
+      const successMessages = {
+        English: 'Thank you! Your message has been sent successfully.',
+        Amharic: 'እናመሰግናለን! መልእክትዎ በተሳካ ሁኔታ ተልኳል።',
+        Sidama: 'Galata! Ergaaykine milkaawaan ergagama.'
+      };
+      
+      setMessageStatus({ 
+        type: 'success', 
+        text: successMessages[language] || successMessages.English
+      });
+      
+      // Clear form and generate new verification word
       setFormData({ name: '', email: '', phone: '', message: '', verification: '' });
-      const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
-      setVerificationWord(words[Math.floor(Math.random() * words.length)]);
+      const newWord = words[Math.floor(Math.random() * words.length)];
+      setVerificationWord(newWord);
+      
     } catch (error) {
-      setMessageStatus({ type: 'error', text: error.message });
+      console.error('Message submission error:', error);
+      
+      // Regenerate verification word on error
+      const newWord = words[Math.floor(Math.random() * words.length)];
+      setVerificationWord(newWord);
+      setFormData({ ...formData, verification: '' });
+      
+      const errorMessages = {
+        English: error.message || 'Failed to send message. Please try again.',
+        Amharic: 'መልእክት መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
+        Sidama: 'Ergaa erguu dandaabokki. Haa ammas yaala.'
+      };
+      
+      setMessageStatus({ 
+        type: 'error', 
+        text: errorMessages[language] || error.message || errorMessages.English
+      });
     } finally {
       setMessageSending(false);
     }
@@ -637,51 +704,51 @@ const Home = () => {
           <div className="absolute inset-0 bg-[#3d5a99]/70"></div>
         </div>
 
-        <div className="relative pt-20 pb-16 px-6 min-h-screen flex items-center">
+        <div className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">
           <div className="max-w-5xl mx-auto text-center w-full">
             {/* Logo Image */}
-            <div className="flex flex-col items-center mb-4">
+            <div className="flex flex-col items-center mb-4 sm:mb-6">
               <div className="mb-3">
                 <img 
                   src={footerLogo} 
                   alt="Hawassa Mesob Logo" 
-                  className="w-[500px] h-auto mx-auto"
+                  className="w-64 sm:w-80 md:w-96 lg:w-[500px] h-auto mx-auto"
                 />
               </div>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-6xl font-bold text-white mb-4 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 leading-tight px-4">
               {t.mainHeading}
             </h1>
 
             {/* Subtitle */}
-            <p className="text-2xl text-white mb-3">
+            <p className="text-lg sm:text-xl md:text-2xl text-white mb-2 sm:mb-3 px-4">
               {t.subtitle}
             </p>
 
             {/* Description */}
-            <p className="text-lg text-white/90 mb-6">
+            <p className="text-sm sm:text-base md:text-lg text-white/90 mb-4 sm:mb-6 px-4 max-w-3xl mx-auto">
               {t.description}
             </p>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+            <form onSubmit={handleSearch} className="max-w-full sm:max-w-xl md:max-w-2xl mx-auto px-4">
               <div className="relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t.searchPlaceholder}
-                  className="w-full px-8 py-5 pr-16 rounded-full text-white placeholder-white/80 border-none focus:outline-none focus:ring-2 focus:ring-white/30 text-lg"
+                  className="w-full px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 pr-12 sm:pr-14 md:pr-16 rounded-full text-white placeholder-white/80 border-none focus:outline-none focus:ring-2 focus:ring-white/30 text-sm sm:text-base md:text-lg"
                   style={{ backgroundColor: '#294491' }}
                 />
                 <button
                   type="submit"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full hover:bg-white/10 transition-colors"
+                  className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 md:p-3 rounded-full hover:bg-white/10 transition-colors"
                 >
                   <svg 
-                    className="w-6 h-6 text-white" 
+                    className="w-5 h-5 sm:w-5 h-5 md:w-6 h-6 text-white" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -897,27 +964,27 @@ const Home = () => {
       </section>
 
       {/* Institutions Section */}
-      <section id="institutions" className="min-h-screen bg-gray-50 dark:bg-[#1a1f2e] py-20 px-6 transition-colors">
+      <section id="institutions" className="min-h-screen bg-gray-50 dark:bg-[#1a1f2e] py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 transition-colors">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">Service Provider Institutions</h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 dark:text-white mb-4 sm:mb-6 px-4">Service Provider Institutions</h2>
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-8 sm:mb-10 md:mb-12 text-base sm:text-lg px-4 max-w-3xl mx-auto">
             Access services from these government institutions all in one place
           </p>
 
           {/* Loading State */}
           {institutionsLoading && (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 dark:border-blue-400"></div>
+            <div className="flex justify-center items-center py-12 sm:py-16 md:py-20">
+              <div className="animate-spin rounded-full h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 border-t-4 border-b-4 border-blue-500 dark:border-blue-400"></div>
             </div>
           )}
 
           {/* Error State */}
           {institutionsError && (
-            <div className="bg-red-500/10 dark:bg-red-900/20 border border-red-500 dark:border-red-800 rounded-lg p-6 text-center">
-              <p className="text-red-600 dark:text-red-400 text-lg">{institutionsError}</p>
+            <div className="bg-red-500/10 dark:bg-red-900/20 border border-red-500 dark:border-red-800 rounded-lg p-4 sm:p-5 md:p-6 text-center mx-4">
+              <p className="text-red-600 dark:text-red-400 text-base sm:text-lg">{institutionsError}</p>
               <button
                 onClick={fetchInstitutions}
-                className="mt-4 px-6 py-2 bg-red-500 dark:bg-red-600 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
+                className="mt-3 sm:mt-4 px-4 sm:px-6 py-2 bg-red-500 dark:bg-red-600 text-white text-sm sm:text-base rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
               >
                 Try Again
               </button>
@@ -926,8 +993,8 @@ const Home = () => {
 
           {/* Empty State */}
           {!institutionsLoading && !institutionsError && institutions.length === 0 && (
-            <div className="text-center py-20">
-              <p className="text-gray-500 dark:text-gray-400 text-xl">No institutions available at the moment.</p>
+            <div className="text-center py-12 sm:py-16 md:py-20 px-4">
+              <p className="text-gray-500 dark:text-gray-400 text-lg sm:text-xl">No institutions available at the moment.</p>
             </div>
           )}
 
@@ -935,34 +1002,34 @@ const Home = () => {
           {!institutionsLoading && !institutionsError && institutions.length > 0 && (
             <div className="relative">
               {/* Navigation Arrows */}
-              <div className="flex items-center justify-center mb-8">
+              <div className="flex items-center justify-center mb-6 sm:mb-7 md:mb-8 px-4">
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 0}
-                  className="p-3 rounded-full bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all mr-4"
+                  className="p-2 sm:p-2.5 md:p-3 rounded-full bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all mr-3 sm:mr-4"
                 >
-                  <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
 
-                <span className="text-gray-800 dark:text-white text-sm">
+                <span className="text-gray-800 dark:text-white text-sm sm:text-base">
                   Page {currentPage + 1} of {totalPages}
                 </span>
 
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages - 1}
-                  className="p-3 rounded-full bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all ml-4"
+                  className="p-2 sm:p-2.5 md:p-3 rounded-full bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all ml-3 sm:ml-4"
                 >
-                  <svg className="w-6 h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
 
               {/* 4 Cards per Row Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
                 {currentInstitutions.map((institution, idx) => (
                   <InstitutionCard
                     key={institution.id}
@@ -987,118 +1054,118 @@ const Home = () => {
       )}
 
       {/* Services Section */}
-      <section id="services" className="min-h-screen py-20 px-6 transition-colors bg-[#0F172A] dark:bg-[#0F172A]">
+      <section id="services" className="min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 transition-colors bg-gray-50 dark:bg-[#0F172A]">
         <div className="max-w-[1800px] mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-white mb-4">Our Services</h2>
-            <p className="text-gray-400 text-lg">Access essential government services quickly and efficiently</p>
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors px-4">Our Services</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg transition-colors px-4 max-w-3xl mx-auto">Access essential government services quickly and efficiently</p>
           </div>
 
           {/* Services Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 mb-8 sm:mb-10 md:mb-12">
             {/* Service Card 1: Local Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
-              <div className="w-16 h-16 rounded-xl bg-teal-500/10 border-[3px] border-[#14B8A6] flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-[#14B8A6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-6 sm:p-7 md:p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[240px] sm:min-h-[260px] md:min-h-[280px]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-teal-500/10 border-[3px] border-[#14B8A6] flex items-center justify-center mb-3 sm:mb-4">
+                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#14B8A6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Local Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Access local government services and permits</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Local Services</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Access local government services and permits</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 2: International Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
-              <div className="w-16 h-16 rounded-xl bg-cyan-500/10 border-[3px] border-[#06B6D4] flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-[#06B6D4] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-6 sm:p-7 md:p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[240px] sm:min-h-[260px] md:min-h-[280px]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-cyan-500/10 border-[3px] border-[#06B6D4] flex items-center justify-center mb-3 sm:mb-4">
+                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#06B6D4] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">International Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">International permits and documentation services</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">International Services</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">International permits and documentation services</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 3: Document Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
-              <div className="w-16 h-16 rounded-xl bg-blue-500/10 border-[3px] border-[#3B82F6] flex items-center justify-center mb-4">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-6 sm:p-7 md:p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[240px] sm:min-h-[260px] md:min-h-[280px]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-blue-500/10 border-[3px] border-[#3B82F6] flex items-center justify-center mb-3 sm:mb-4">
                 <svg className="w-8 h-8 text-[#3B82F6] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Document Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Official document processing and certification</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Document Services</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Official document processing and certification</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 4: Tax Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
-              <div className="w-16 h-16 rounded-xl bg-amber-500/10 border-[3px] border-[#F59E0B] flex items-center justify-center mb-4">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-6 sm:p-7 md:p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[240px] sm:min-h-[260px] md:min-h-[280px]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-amber-500/10 border-[3px] border-[#F59E0B] flex items-center justify-center mb-3 sm:mb-4">
                 <svg className="w-8 h-8 text-[#F59E0B] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Tax Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Tax filing, payment, and consultation services</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Tax Services</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Tax filing, payment, and consultation services</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 5: Housing Permits */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
-              <div className="w-16 h-16 rounded-xl bg-purple-500/10 border-[3px] border-[#A78BFA] flex items-center justify-center mb-4">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-6 sm:p-7 md:p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[240px] sm:min-h-[260px] md:min-h-[280px]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-purple-500/10 border-[3px] border-[#A78BFA] flex items-center justify-center mb-3 sm:mb-4">
                 <svg className="w-8 h-8 text-[#A78BFA] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Housing Permits</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Building permits and housing documentation</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Housing Permits</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Building permits and housing documentation</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 6: Vehicle Services */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px]">
-              <div className="w-16 h-16 rounded-xl bg-sky-500/10 border-[3px] border-[#38BDF8] flex items-center justify-center mb-4">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-6 sm:p-7 md:p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[240px] sm:min-h-[260px] md:min-h-[280px]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-sky-500/10 border-[3px] border-[#38BDF8] flex items-center justify-center mb-3 sm:mb-4">
                 <svg className="w-8 h-8 text-[#38BDF8] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8m-8 4h8m-4 4h4m4-12V5a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-5-5z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354v2.292m0 0a4 4 0 11-1.172 7.828M12 6.646V10m0 0v8m0-8h5" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Vehicle Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Vehicle registration, licensing, and permits</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Vehicle Services</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Vehicle registration, licensing, and permits</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 7: Education Services - Row 3 Left (Centered) */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-1 lg:col-end-2 lg:mx-auto lg:w-full lg:max-w-[400px]">
-              <div className="w-16 h-16 rounded-xl bg-indigo-500/10 border-[3px] border-[#6366F1] flex items-center justify-center mb-4">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-6 sm:p-7 md:p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[240px] sm:min-h-[260px] md:min-h-[280px] lg:col-start-1 lg:col-end-2 lg:mx-auto lg:w-full lg:max-w-[400px]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-indigo-500/10 border-[3px] border-[#6366F1] flex items-center justify-center mb-3 sm:mb-4">
                 <svg className="w-8 h-8 text-[#6366F1] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M12 14l9-5-9-5-9 5 9 5z" />
                   <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Education Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Educational certificates and academic services</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Education Services</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Educational certificates and academic services</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
             {/* Service Card 8: Health Services - Row 3 Right (Centered) */}
-            <div className="group bg-[#1F2937] rounded-2xl p-8 border-[3px] border-[#4B5563] hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[280px] lg:col-start-2 lg:col-end-3 lg:mx-auto lg:w-full lg:max-w-[400px]">
-              <div className="w-16 h-16 rounded-xl bg-red-500/10 border-[3px] border-[#EF4444] flex items-center justify-center mb-4">
+            <div className="group bg-white dark:bg-[#1F2937] rounded-2xl p-6 sm:p-7 md:p-8 border-[3px] border-gray-200 dark:border-[#4B5563] hover:border-blue-500 dark:hover:border-[#3154B5] hover:-translate-y-1.5 transition-all duration-300 hover:shadow-[0_10px_40px_rgba(49,84,181,0.3)] flex flex-col min-h-[240px] sm:min-h-[260px] md:min-h-[280px] lg:col-start-2 lg:col-end-3 lg:mx-auto lg:w-full lg:max-w-[400px]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-red-500/10 border-[3px] border-[#EF4444] flex items-center justify-center mb-3 sm:mb-4">
                 <svg className="w-8 h-8 text-[#EF4444] group-hover:rotate-360 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <h3 className="text-[22px] font-semibold text-[#F8FAFC] mb-2 leading-tight">Health Services</h3>
-              <p className="text-[16px] text-[#CBD5E1] leading-relaxed mb-auto">Health permits, medical certificates, and services</p>
-              <div className="w-full h-1 bg-[#3154B5] rounded-[10px] mt-5"></div>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Health Services</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Health permits, medical certificates, and services</p>
+              <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
           </div>
 
           {/* View All Services Button */}
-          <div className="flex justify-center mt-12">
+          <div className="flex justify-center mt-8 sm:mt-10 md:mt-12 px-4">
             <button
               onClick={() => {
                 const servicesCatalogue = document.getElementById('service-catalogue');
@@ -1109,10 +1176,10 @@ const Home = () => {
                   window.location.href = '/services';
                 }
               }}
-              className="bg-[#24469A] hover:bg-[#1e3a7f] text-white px-8 py-4 rounded-xl text-[18px] font-semibold transition-all duration-300 hover:shadow-xl flex items-center gap-2 min-w-[260px] min-h-[60px] justify-center"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-[#24469A] dark:hover:bg-[#1e3a7f] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold transition-all duration-300 hover:shadow-xl flex items-center gap-2 min-w-[200px] sm:min-w-[260px] justify-center"
             >
               View All Services
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -1123,7 +1190,7 @@ const Home = () => {
       </section>
 
       {/* Motion Section - Outside container for full width */}
-      <section className="w-full h-[300px] bg-[#0F172A] flex items-center justify-center overflow-hidden">
+      <section className="w-full h-[300px] bg-gray-100 dark:bg-[#0F172A] flex items-center justify-center overflow-hidden transition-colors">
         <iframe 
           src="/src/assets/mesob-motion-loop (1).html"
           className="w-full h-full border-0"
@@ -1133,21 +1200,21 @@ const Home = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="min-h-screen py-20 px-6 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-[#172231] dark:to-[#1C2839] transition-colors">
+      <section id="contact" className="min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-[#172231] dark:to-[#1C2839] transition-colors">
         {/* Background Glow Effects */}
-        <div className="absolute top-20 right-40 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[100px]"></div>
-        <div className="absolute bottom-20 left-40 w-96 h-96 bg-blue-600/10 dark:bg-blue-600/5 rounded-full blur-[100px]"></div>
+        <div className="absolute top-20 right-10 sm:right-20 md:right-40 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-20 left-10 sm:left-20 md:left-40 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-blue-600/10 dark:bg-blue-600/5 rounded-full blur-[100px]"></div>
 
-        <div className="max-w-4xl mx-auto ml-20 relative z-10">
+        <div className="max-w-4xl mx-auto relative z-10">
           {/* Contact Form */}
-          <div className="rounded-3xl p-8 bg-white dark:bg-[#111827] border border-gray-200 dark:border-0 shadow-xl dark:shadow-none transition-colors">
-            <h2 className="text-[38px] font-bold mb-6 text-gray-900 dark:text-[#F8FAFC]">{ct.heading}</h2>
+          <div className="rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 bg-white dark:bg-[#111827] border border-gray-200 dark:border-0 shadow-xl dark:shadow-none transition-colors">
+            <h2 className="text-2xl sm:text-3xl md:text-[38px] font-bold mb-4 sm:mb-5 md:mb-6 text-gray-900 dark:text-[#F8FAFC]">{ct.heading}</h2>
             
-            <form onSubmit={handleFormSubmit} className="space-y-5">
+            <form onSubmit={handleFormSubmit} className="space-y-4 sm:space-y-5">
               {/* Name and Email Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                 <div>
-                  <label className="block text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
+                  <label className="block text-base sm:text-lg md:text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
                     {ct.nameLabel} <span className="text-red-600 dark:text-[#EF4444]">{ct.required}</span>
                   </label>
                   <input
@@ -1157,12 +1224,11 @@ const Home = () => {
                     onChange={handleInputChange}
                     required
                     placeholder={ct.namePlaceholder}
-                    className="w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151]"
-                    style={{ fontSize: '16px' }}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151] text-sm sm:text-base"
                   />
                 </div>
                 <div>
-                  <label className="block text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
+                  <label className="block text-base sm:text-lg md:text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
                     {ct.emailLabel} <span className="text-red-600 dark:text-[#EF4444]">{ct.required}</span>
                   </label>
                   <input
@@ -1172,29 +1238,27 @@ const Home = () => {
                     onChange={handleInputChange}
                     required
                     placeholder={ct.emailPlaceholder}
-                    className="w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151]"
-                    style={{ fontSize: '16px' }}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151] text-sm sm:text-base"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <label className="block text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">{ct.phoneLabel}</label>
+                <label className="block text-base sm:text-lg md:text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">{ct.phoneLabel}</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
                   placeholder={ct.phonePlaceholder}
-                  className="w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151]"
-                  style={{ fontSize: '16px' }}
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151] text-sm sm:text-base"
                 />
               </div>
 
               {/* Message */}
               <div>
-                <label className="block text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
+                <label className="block text-base sm:text-lg md:text-[19px] mb-2 text-gray-700 dark:text-[#E2E8F0]">
                   {ct.messageLabel} <span className="text-red-600 dark:text-[#EF4444]">{ct.required}</span>
                 </label>
                 <textarea
@@ -1204,24 +1268,23 @@ const Home = () => {
                   required
                   rows="4"
                   placeholder={ct.messagePlaceholder}
-                  className="w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all resize-none bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151]"
-                  style={{ fontSize: '16px' }}
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all resize-none bg-gray-50 dark:bg-[#1F2937] border-gray-300 dark:border-[#374151] text-sm sm:text-base"
                 />
               </div>
 
               {/* Human Verification */}
-              <div className="rounded-xl p-5 bg-gray-100 dark:bg-[#1F2937] border border-gray-300 dark:border-[#374151] transition-colors">
-                <p className="text-center mb-3 text-gray-700 dark:text-[#E2E8F0]" style={{ fontSize: '16px' }}>
+              <div className="rounded-lg sm:rounded-xl p-4 sm:p-5 bg-gray-100 dark:bg-[#1F2937] border border-gray-300 dark:border-[#374151] transition-colors">
+                <p className="text-center mb-3 text-gray-700 dark:text-[#E2E8F0] text-sm sm:text-base">
                   {ct.verificationText}
                 </p>
                 
                 {/* Verification Word Display */}
-                <div className="flex justify-center mb-3">
-                  <div className="bg-white px-6 py-3 rounded-lg">
-                    <span className="text-2xl font-bold tracking-wider" style={{ 
+                <div className="flex justify-center items-center mb-3 flex-wrap gap-2">
+                  <div className="bg-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg">
+                    <span className="text-xl sm:text-2xl font-bold tracking-wider" style={{ 
                       color: '#000',
                       fontFamily: 'monospace',
-                      letterSpacing: '6px'
+                      letterSpacing: '4px sm:6px'
                     }}>
                       {verificationWord}
                     </span>
@@ -1229,10 +1292,12 @@ const Home = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY'];
+                      const words = ['SECURE', 'VERIFY', 'HUMAN', 'ACCESS', 'TRUST', 'SAFETY', 'VALID', 'CHECK', 'CONFIRM', 'MESOB'];
                       setVerificationWord(words[Math.floor(Math.random() * words.length)]);
+                      setFormData({ ...formData, verification: '' }); // Clear input on refresh
                     }}
-                    className="ml-3 p-2.5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors bg-[#2563EB]"
+                    className="p-2 sm:p-2.5 rounded-full hover:bg-[#283d7f] dark:hover:bg-[#283d7f] transition-colors bg-[#314EA1]"
+                    title="Generate new verification word"
                   >
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -1248,8 +1313,7 @@ const Home = () => {
                   onChange={handleInputChange}
                   required
                   placeholder={ct.verificationPlaceholder}
-                  className="w-full px-4 py-2.5 rounded-xl border text-gray-900 dark:text-white text-center placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-white dark:bg-[#111827] border-gray-300 dark:border-[#374151]"
-                  style={{ fontSize: '16px' }}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl border text-gray-900 dark:text-white text-center placeholder-gray-400 dark:placeholder-[#9CA3AF] focus:outline-none focus:ring-2 transition-all bg-white dark:bg-[#111827] border-gray-300 dark:border-[#374151] text-sm sm:text-base"
                 />
               </div>
 
@@ -1257,7 +1321,7 @@ const Home = () => {
               {messageStatus && (
                 <p
                   role={messageStatus.type === 'error' ? 'alert' : 'status'}
-                  className={`rounded-lg px-4 py-3 text-sm ${messageStatus.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`}
+                  className={`rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm ${messageStatus.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}`}
                 >
                   {messageStatus.text}
                 </p>
@@ -1265,7 +1329,7 @@ const Home = () => {
               <button
                 type="submit"
                 disabled={messageSending}
-                className="w-full py-3.5 rounded-xl font-semibold text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#2563EB]"
+                className="w-full py-3 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold text-base sm:text-lg md:text-[18px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#314EA1] hover:bg-[#283d7f] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {messageSending ? 'Sending...' : ct.submitBtn}
               </button>
@@ -1274,190 +1338,195 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Map Section - Always show section, but conditionally show content */}
-      <section id="map" className="py-20 px-6 bg-white dark:bg-[#0F1419] transition-colors">
+      {/* Map and Contact Info Section */}
+      <section id="map" className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-[#0F2847] dark:to-[#1a3a5c] transition-colors">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-center text-gray-900 dark:text-white mb-6">
-            {mt.title}
-          </h2>
-          <p className="text-center text-gray-600 dark:text-gray-300 mb-12 text-lg">
-            {mt.subtitle}
-          </p>
+          {/* Section Header with Contact Us Button */}
+          <div className="text-center mb-8 sm:mb-10 md:mb-12">
+            <button className="inline-flex items-center gap-2 bg-[#314EA1] hover:bg-[#283d7f] dark:bg-[#314EA1] dark:hover:bg-[#283d7f] text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 rounded-lg mb-3 sm:mb-4 transition-all text-sm sm:text-base">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              {mt.contactUsBtn}
+            </button>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors px-4">
+              {mt.title}
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg transition-colors px-4 max-w-3xl mx-auto">
+              {mt.subtitle}
+            </p>
+          </div>
 
           {/* Loading State */}
           {mapLoading && (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#2563EB]"></div>
-              <p className="ml-4 text-gray-600 dark:text-gray-400 text-lg">{mt.loading}</p>
+            <div className="flex flex-col sm:flex-row justify-center items-center py-12 sm:py-16 md:py-20 gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 border-t-4 border-b-4 border-blue-600 dark:border-blue-500"></div>
+              <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg transition-colors">Loading map data...</p>
             </div>
           )}
 
           {/* Error State */}
           {!mapLoading && mapError && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-6 py-4 rounded-lg mb-4">
-                <p className="font-semibold">{mt.errorTitle}</p>
-                <p className="text-sm mt-1">{mapError}</p>
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20 px-4">
+              <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 sm:px-6 py-3 sm:py-4 rounded-lg mb-4 transition-colors max-w-2xl w-full">
+                <p className="font-semibold text-sm sm:text-base">Failed to load map data</p>
+                <p className="text-xs sm:text-sm mt-1">{mapError}</p>
               </div>
             </div>
           )}
 
-          {/* Empty/No Data State */}
-          {!mapLoading && !mapError && !mapData && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <svg className="w-24 h-24 text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">{mt.emptyMessage}</p>
-            </div>
-          )}
-
-          {/* Map Content - Only show if data exists */}
+          {/* Map and Info Grid */}
           {!mapLoading && !mapError && mapData && (
-            <div className="bg-gray-50 dark:bg-[#1F2A39] rounded-2xl p-8 border border-gray-200 dark:border-[#2D3748] shadow-lg">
-              {/* Map Embed - Only show if embedUrl exists */}
-              {mapData?.map?.embedUrl && (
-                <div className="w-full h-[500px] rounded-xl overflow-hidden mb-6 bg-gray-200 dark:bg-gray-700">
-                  <iframe
-                    src={mapData.map.embedUrl}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Hawassa Mesob Location"
-                  ></iframe>
-                </div>
-              )}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-7 md:gap-8">
+              {/* Left: Map Card */}
+              <div className="bg-white dark:bg-[#1a3050] rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border-2 border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-2xl transition-colors">
+                {/* Map Embed */}
+                {mapData?.map?.embedUrl ? (
+                  <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] rounded-xl sm:rounded-2xl overflow-hidden mb-4 sm:mb-5 md:mb-6 bg-gray-200 dark:bg-gray-800 transition-colors">
+                    <iframe
+                      src={mapData.map.embedUrl}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen=""
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="A-MESOB Location"
+                    ></iframe>
+                  </div>
+                ) : (
+                  <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] rounded-xl sm:rounded-2xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center mb-4 sm:mb-5 md:mb-6 transition-colors">
+                    <p className="text-gray-500 dark:text-gray-400 transition-colors text-sm sm:text-base">Map not available</p>
+                  </div>
+                )}
 
-              {/* Location Details - Only show if contact data exists */}
-              {mapData?.contact && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                  {/* Address - Only show if exists */}
-                  {mapData.contact.address && (
-                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                      <div className="flex-shrink-0 w-12 h-12 bg-[#2563EB] rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {/* View on Google Maps Button */}
+                <button
+                  onClick={() => {
+                    if (mapData?.map?.directionsUrl) {
+                      window.open(mapData.map.directionsUrl, '_blank');
+                    }
+                  }}
+                  className="w-full bg-[#314EA1] hover:bg-[#283d7f] dark:bg-[#314EA1] dark:hover:bg-[#283d7f] text-white font-semibold py-3 sm:py-3.5 md:py-4 rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {mt.viewOnMapsBtn}
+                </button>
+              </div>
+
+              {/* Right: Headquarters Info Card */}
+              <div className="bg-white dark:bg-[#1a3050] rounded-2xl sm:rounded-3xl p-6 sm:p-7 md:p-8 border-2 border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-2xl transition-colors">
+                {/* Header with Icon */}
+                <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-7 md:mb-8">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-[#314EA1] dark:bg-[#314EA1] rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors">{mt.headquarters}</h3>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 transition-colors">{mt.servicesCenter}</p>
+                  </div>
+                </div>
+
+                {/* Contact Details */}
+                <div className="space-y-5 sm:space-y-6">
+                  {/* Address */}
+                  {mapData?.contact?.address && (
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.addressLabel}</h3>
-                        <p className="text-gray-600 dark:text-gray-300">
-                          {mapData.contact.address}
-                        </p>
-                        {mapData.contact.plusCode && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {mt.plusCode}: {mapData.contact.plusCode}
-                          </p>
-                        )}
+                      <div className="flex-1">
+                        <h4 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors text-sm sm:text-base">{mt.addressLabel}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 transition-colors text-sm sm:text-base">{mapData.contact.address}</p>
                       </div>
                     </div>
                   )}
 
-                  {/* Phone - Only show if exists */}
-                  {(mapData.contact.phoneDisplay || mapData.contact.phone) && (
-                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                      <div className="flex-shrink-0 w-12 h-12 bg-[#10B981] rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* Operating Hours */}
+                  {mapData?.contact?.operatingHours && (
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors text-sm sm:text-base">{mt.operatingHoursLabel}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 transition-colors text-sm sm:text-base">{mapData.contact.operatingHours}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Phone */}
+                  {(mapData?.contact?.phoneDisplay || mapData?.contact?.phone) && (
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.phoneLabel}</h3>
-                        <p className="text-gray-600 dark:text-gray-300">
-                          {mapData.contact.phoneDisplay || mapData.contact.phone}
-                        </p>
+                      <div className="flex-1">
+                        <h4 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors">{mt.phoneLabel}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 transition-colors">{mapData.contact.phoneDisplay || mapData.contact.phone}</p>
                       </div>
                     </div>
                   )}
 
-                  {/* Email - Only show if exists */}
-                  {mapData.contact.email && (
-                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                      <div className="flex-shrink-0 w-12 h-12 bg-[#F59E0B] rounded-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* Email */}
+                  {mapData?.contact?.email && (
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{mt.emailLabel}</h3>
-                        <p className="text-gray-600 dark:text-gray-300">
-                          {mapData.contact.email}
-                        </p>
+                      <div className="flex-1">
+                        <h4 className="text-gray-900 dark:text-white font-semibold mb-1 transition-colors">{mt.emailLabel}</h4>
+                        <p className="text-gray-700 dark:text-gray-300 transition-colors">{mapData.contact.email}</p>
                       </div>
                     </div>
                   )}
                 </div>
-              )}
 
-              {/* Website Link - Only show if exists */}
-              {mapData?.contact?.website && (
-                <div className="mb-6">
-                  <a
-                    href={mapData.contact.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#2563EB] hover:bg-[#1e3470] text-white rounded-xl transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                    </svg>
-                    {mt.websiteBtn}
-                  </a>
-                </div>
-              )}
+                {/* Get Directions Button */}
+                <button
+                  onClick={() => {
+                    if (mapData?.map?.directionsUrl) {
+                      window.open(mapData.map.directionsUrl, '_blank');
+                    }
+                  }}
+                  className="w-full mt-6 sm:mt-7 md:mt-8 bg-[#314EA1] hover:bg-[#283d7f] dark:bg-[#314EA1] dark:hover:bg-[#283d7f] text-white font-semibold py-3 sm:py-3.5 md:py-4 rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                  {mt.getDirectionsBtn}
+                </button>
+              </div>
+            </div>
+          )}
 
-              {/* Working Hours - Only show if exists */}
-              {(mapData?.contact?.officeHoursDetailed || mapData?.contact?.operatingHours) && (
-                <div className="p-6 bg-white dark:bg-[#0F1419] rounded-xl mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {mt.workingHoursLabel}
-                  </h3>
-                  
-                  {mapData.contact.officeHoursDetailed ? (
-                    <div className="space-y-2">
-                      {mapData.contact.officeHoursDetailed.map((schedule, index) => (
-                        <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
-                          <span className="text-gray-700 dark:text-gray-300 font-medium">{schedule.days}</span>
-                          <span className="text-gray-600 dark:text-gray-400">{schedule.hours}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {mapData.contact.operatingHours}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Map Rating - Only show if exists */}
-              {mapData?.map?.rating && (
-                <div className="p-4 bg-white dark:bg-[#0F1419] rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">{mapData.map.rating.score}</span>
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <svg key={i} className={`w-5 h-5 ${i < mapData.map.rating.score ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <span className="text-gray-600 dark:text-gray-400 text-sm">({mapData.map.rating.reviewsCount} {mapData.map.rating.reviewsCount === 1 ? mt.review : mt.reviews})</span>
-                  </div>
-                </div>
-              )}
+          {/* Empty State */}
+          {!mapLoading && !mapError && !mapData && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <svg className="w-24 h-24 text-gray-400 dark:text-gray-600 mb-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <p className="text-gray-600 dark:text-gray-400 text-lg transition-colors">Location information will be available soon</p>
             </div>
           )}
         </div>
       </section>
+
 
       {/* Footer */}
       <Footer />
