@@ -105,13 +105,43 @@ export const adminApi = {
       if (params.page) search.set("page", params.page);
       if (params.limit) search.set("limit", params.limit);
       if (params.status && params.status !== "all") search.set("status", params.status);
+      if (params.institutionId && params.institutionId !== "all") search.set("institutionId", params.institutionId);
       const query = search.toString();
       return request(`/admin/vip-tickets${query ? `?${query}` : ""}`);
     },
-    updateServiceStatus: (id, status, notes = "") => request(`/admin/vip-tickets/${encodeURIComponent(id)}/service-status`, {
-      method: "PATCH",
-      body: JSON.stringify({ status, notes }),
-    }),
+    updateServiceStatus: (id, status, notes = "", serviceId = null) => {
+      const endpoint = serviceId
+        ? `/admin/vip-tickets/${encodeURIComponent(id)}/services/${encodeURIComponent(serviceId)}/status`
+        : `/admin/vip-tickets/${encodeURIComponent(id)}/service-status`;
+      return request(endpoint, {
+        method: "PATCH",
+        body: JSON.stringify({ status, notes }),
+      });
+    },
     getById: (id) => request(`/admin/vip-tickets/${encodeURIComponent(id)}`),
+  },
+  staff: {
+    list: (params = {}) => {
+      const search = new URLSearchParams();
+      if (params.page) search.set("page", params.page);
+      if (params.limit) search.set("limit", params.limit);
+      if (params.institutionId && params.institutionId !== "all") search.set("institutionId", params.institutionId);
+      if (params.search) search.set("search", params.search);
+      if (params.status && params.status !== "all") search.set("status", params.status);
+      const query = search.toString();
+      return request(`/admin/staff${query ? `?${query}` : ""}`);
+    },
+    getById: (id) => request(`/admin/staff/${encodeURIComponent(id)}`),
+    create: (data) => request("/admin/staff", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => request(`/admin/staff/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => request(`/admin/staff/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
   },
 };

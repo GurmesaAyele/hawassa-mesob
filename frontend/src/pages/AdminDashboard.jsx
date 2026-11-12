@@ -6,6 +6,7 @@ import HomeContentManager from "../components/admin/HomeContentManager";
 import MessagesManager from "../components/admin/MessagesManager";
 import SiteSettingsManager from "../components/admin/SiteSettingsManager";
 import VipTicketsManager from "../components/admin/VipTicketsManager";
+import StaffManager from "../components/admin/StaffManager";
 import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { adminApi } from "../services/adminApi";
 import "./AdminDashboard.css";
@@ -15,6 +16,7 @@ const ADMIN_SESSION_EXPIRY_KEY = "adminSessionExpiresAt";
 const SECTIONS = [
   { id: "institutions", label: "Institutions" },
   { id: "services", label: "Services" },
+  { id: "staff", label: "Staff members", superAdminOnly: true },
   { id: "messages", label: "Messages" },
   { id: "site-settings", label: "Location & contact" },
   { id: "home", label: "Home content" },
@@ -442,7 +444,11 @@ export default function AdminDashboard() {
             <Link className="admin-account__action" to="/">Public site</Link>
           </div>
           <nav className="admin-nav" aria-label="Admin sections">
-            {SECTIONS.filter((item) => !isStaff || item.id === "vip-tickets").map((item) => (
+            {SECTIONS.filter((item) => {
+              if (isStaff) return item.id === "vip-tickets";
+              if (item.superAdminOnly && !isSuperAdmin) return false;
+              return true;
+            }).map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -523,6 +529,9 @@ export default function AdminDashboard() {
             onReactivate={reactivateService}
           />
         )}
+        {!isStaff && isSuperAdmin && section === "staff" && (
+          <StaffManager institutions={institutions} currentUser={currentUser} />
+        )}
         {!isStaff && section === "messages" && (
           <MessagesManager
             items={messages}
@@ -541,7 +550,9 @@ export default function AdminDashboard() {
             </p>
           </>
         )}
-        {section === "vip-tickets" && <VipTicketsManager />}
+        {section === "vip-tickets" && (
+          <VipTicketsManager currentUser={currentUser} institutions={institutions} />
+        )}
       </main>
       <ConfirmationDialog
         open={Boolean(confirmation)}
