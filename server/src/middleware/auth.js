@@ -46,6 +46,16 @@ export async function authenticateAdmin(req, res, next) {
             email: true,
             name: true,
             role: true,
+            institutionId: true,
+            institution: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                icon: true,
+                floorRoomNumber: true,
+              },
+            },
             isActive: true,
           },
         });

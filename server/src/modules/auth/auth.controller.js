@@ -37,12 +37,23 @@ export async function login(req, res) {
     try {
       user = await prisma.users.findUnique({
         where: { email: normalizedEmail },
+        include: {
+          institution: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              icon: true,
+              floorRoomNumber: true,
+            },
+          },
+        },
       });
     } catch (dbErr) {
       // Graceful fallback if in-memory or node_modules Prisma Client is missing newly migrated enum values
       if (dbErr.message && dbErr.message.includes("UserRole")) {
         const rawUsers = await prisma.$queryRaw`
-          SELECT id, email, name, "passwordHash", role::text as role, "isActive"
+          SELECT id, email, name, "passwordHash", role::text as role, "institutionId", "isActive"
           FROM users
           WHERE email = ${normalizedEmail}
           LIMIT 1
@@ -82,9 +93,17 @@ export async function login(req, res) {
       email: user.email,
       name: user.name,
       role: user.role,
+      institutionId: user.institutionId || null,
+      institution: user.institution || null,
     };
 
-    const token = signToken(safeUser);
+    const token = signToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      institutionId: user.institutionId || null,
+    });
 
     res.cookie(COOKIE_NAME, token, getCookieOptions());
 
@@ -129,6 +148,8 @@ export function getCurrentUser(req, res) {
       email: req.user.email,
       name: req.user.name,
       role: req.user.role,
+      institutionId: req.user.institutionId || null,
+      institution: req.user.institution || null,
     },
   });
 }
