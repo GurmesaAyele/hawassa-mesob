@@ -19,6 +19,7 @@ model ServiceProvider {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   services        Service[]
+  users           users[]
 
   @@map("service_providers")
 }
@@ -136,15 +137,19 @@ model MapLocation {
 }
 
 model users {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  phone        String?
-  name         String
-  passwordHash String
-  role         UserRole @default(CITIZEN)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String           @id @default(cuid())
+  email         String           @unique
+  phone         String?
+  name          String
+  passwordHash  String
+  role          UserRole         @default(CITIZEN)
+  institutionId String?
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  institution   ServiceProvider? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+
+  @@index([institutionId])
 }
 
 model vip_tickets {
@@ -152,6 +157,7 @@ model vip_tickets {
   ticketCode      String                @unique
   citizenName     String
   citizenPhone    String
+  email           String?
   serviceId       String?
   purpose         String?
   slotDate        DateTime?
@@ -166,29 +172,38 @@ model vip_tickets {
   queueDate       DateTime?             /// The date (start of day) this ticket is queued for
   checkedInAt     DateTime?             /// When the customer joined the active queue
   servedAt        DateTime?             /// When the customer started being served
-  completedAt     DateTime?             /// When service was completed
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime
-  services        Service?              @relation(fields: [serviceId], references: [id])
-  ticket_services vip_ticket_services[]
-  payments        vip_payments[]
+  completedAt             DateTime?                 /// When service was completed
+  serviceProcessingStatus ServiceProcessingStatus   @default(PENDING) /// Staff service processing lifecycle
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime
+  services                Service?                  @relation(fields: [serviceId], references: [id])
+  ticket_services         vip_ticket_services[]
+  payments                vip_payments[]
+  status_history          vip_ticket_status_history[]
 
   @@index([slotDate, slotTime])
   @@index([ticketCode])
   @@index([queueDate, status])
+  @@index([serviceProcessingStatus])
 }
 
 model vip_ticket_services {
-  id        String      @id
-  ticketId  String
-  serviceId String
-  createdAt DateTime    @default(now())
-  ticket    vip_tickets @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  service   Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  id                      String                  @id
+  ticketId                String
+  serviceId               String
+  serviceProcessingStatus ServiceProcessingStatus @default(PENDING)
+  servedAt                DateTime?
+  completedAt             DateTime?
+  servedById              String?
+  notes                   String?
+  createdAt               DateTime                @default(now())
+  ticket                  vip_tickets             @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  service                 Service                 @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@unique([ticketId, serviceId])
   @@index([ticketId])
   @@index([serviceId])
+  @@index([serviceProcessingStatus])
   @@map("vip_ticket_services")
 }
 
@@ -219,6 +234,31 @@ model vip_payments {
   @@map("vip_payments")
 }
 
+model vip_ticket_status_history {
+  id             String                   @id @default(cuid())
+  ticketId       String
+  serviceId      String?
+  previousStatus ServiceProcessingStatus?
+  newStatus      ServiceProcessingStatus
+  changedById    String?
+  changedByName  String?
+  notes          String?
+  createdAt      DateTime                 @default(now())
+
+  ticket         vip_tickets              @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([serviceId])
+  @@index([createdAt])
+  @@map("vip_ticket_status_history")
+}
+
+enum ServiceProcessingStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
 enum PaymentStatus {
   PENDING
   SUCCESS
@@ -240,5 +280,6 @@ enum UserRole {
   CITIZEN
   OPERATOR
   SUPER_ADMIN
+  STAFF
 }
 

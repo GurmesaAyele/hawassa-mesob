@@ -98,6 +98,21 @@ export async function verifyPaymentHandler(req, res) {
  */
 export async function getPaymentStatusHandler(req, res) {
   try {
+    // Ensure cache-prevention headers are applied even when invoked directly
+    if (typeof res.set === "function") {
+      res.set({
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Surrogate-Control": "no-store",
+      });
+    } else if (typeof res.setHeader === "function") {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      res.setHeader("Surrogate-Control", "no-store");
+    }
+
     const rawRef = req.params?.reference || req.query?.reference;
 
     if (!rawRef || typeof rawRef !== "string" || !rawRef.trim()) {
@@ -156,11 +171,16 @@ export async function webhookHandler(req, res) {
     const reference =
       body.tx_ref ||
       body.trx_ref ||
+      body.merchant_reference ||
       body.reference ||
       body.payment_reference ||
+      body.chapa_reference ||
       body.data?.tx_ref ||
       body.data?.trx_ref ||
-      body.data?.reference;
+      body.data?.merchant_reference ||
+      body.data?.reference ||
+      body.data?.payment_reference ||
+      body.data?.chapa_reference;
 
     if (!reference) {
       // Acknowledge receipt to stop retries if body is malformed
@@ -173,6 +193,13 @@ export async function webhookHandler(req, res) {
     // 3. Trigger server-side verification directly against Chapa API
     // Never trust webhook body alone as proof of payment
     const verifyResult = await verifyVipPayment(String(reference).trim());
+
+    if (verifyResult.status >= 500) {
+      console.warn(`[vip-payments] Webhook verification encountered transient provider error (${verifyResult.status}). Requesting retry.`);
+      return res.status(502).json({
+        error: "Transient verification error. Provider retry expected.",
+      });
+    }
 
     return res.status(200).json({
       received: true,

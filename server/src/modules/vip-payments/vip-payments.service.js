@@ -5,10 +5,39 @@ import {
   initializeHostedCheckout,
   verifyPaymentWithChapa,
 } from "./chapa.client.js";
+import { generateVipTicketQrCode } from "../../utils/qr.js";
 
 // Authoritative fee in ETB (1,000 ETB)
 export const VIP_FEE = 1000;
 export const VIP_CURRENCY = "ETB";
+
+// In-memory verification cache and mutex for controlled status polling with progressive backoff
+const verificationAttempts = new Map(); // merchantReference -> { count: number, lastAttempt: number }
+const inFlightVerifications = new Map(); // merchantReference -> Promise<verifyResult>
+
+/**
+ * Calculates progressive cooldown delay in milliseconds based on attempt count.
+ * Attempt 0: 0ms (immediate)
+ * Attempt 1: 3,000ms (3s)
+ * Attempt 2: 5,000ms (5s)
+ * Attempt 3: 8,000ms (8s)
+ * Attempt 4+: 10,000ms (10s max cap)
+ */
+export function getProgressiveCooldownMs(attemptCount) {
+  if (attemptCount <= 0) return 0;
+  if (attemptCount === 1) return 3000;
+  if (attemptCount === 2) return 5000;
+  if (attemptCount === 3) return 8000;
+  return 10000;
+}
+
+/**
+ * Resets in-memory verification caches (used by test suites).
+ */
+export function _resetVerificationCache() {
+  verificationAttempts.clear();
+  inFlightVerifications.clear();
+}
 
 /**
  * Generates a unique, collision-resistant merchant reference.
@@ -61,7 +90,10 @@ export async function findTicketByReferenceOrId(referenceOrId) {
 const paymentsDb = {
   async findFirst(where) {
     if (prisma.vip_payments) {
-      return prisma.vip_payments.findFirst({ where });
+      return prisma.vip_payments.findFirst({
+        where,
+        orderBy: { createdAt: "desc" },
+      });
     }
     // Fallback SQL query if prisma client is not yet regenerated
     const conditions = [];
@@ -97,9 +129,10 @@ const paymentsDb = {
         where: {
           OR: [{ merchantReference: ref }, { providerReference: ref }, { id: ref }],
         },
+        orderBy: { createdAt: "desc" },
       });
     }
-    const sql = `SELECT * FROM "vip_payments" WHERE "merchantReference" = $1 OR "providerReference" = $1 OR "id" = $1 LIMIT 1`;
+    const sql = `SELECT * FROM "vip_payments" WHERE "merchantReference" = $1 OR "providerReference" = $1 OR "id" = $1 ORDER BY "createdAt" DESC LIMIT 1`;
     const rows = await prisma.$queryRawUnsafe(sql, ref).catch(() => []);
     return rows[0] || null;
   },
@@ -287,15 +320,46 @@ export async function initializeVipPayment({ reference, returnUrl, callbackUrl, 
   }
   const validPhone = /^0[79]\d{8}$/.test(cleanPhone) ? cleanPhone : null;
 
-  // Require valid citizen email explicitly (Chapa v1 requires customer email; do not fabricate)
-  const candidateEmail = email || ticket.email || ticket.citizenEmail;
-  if (!candidateEmail || typeof candidateEmail !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidateEmail.trim())) {
+  // Validate citizen email:
+  // 1. Primary source of truth: Email stored on the VIP ticket
+  // 2. Do not require citizen to enter email a second time
+  // 3. Do not allow an arbitrary request email to override the stored ticket email
+  // 4. Backward compatibility: If an old ticket has no stored email, allow a valid email from the request
+  // 5. If ticket has no email (and none provided), return a clear validation error
+  let customerEmail = null;
+
+  if (ticket.email && typeof ticket.email === "string" && ticket.email.trim()) {
+    customerEmail = ticket.email.trim().toLowerCase();
+  } else if (email && typeof email === "string" && email.trim()) {
+    // Backward compatibility for legacy tickets without a saved email
+    const cleanEmail = email.trim().toLowerCase();
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (EMAIL_REGEX.test(cleanEmail) && cleanEmail.length <= 254) {
+      customerEmail = cleanEmail;
+      // Persist the collected email to the ticket
+      try {
+        await prisma.vip_tickets.update({
+          where: { id: ticket.id },
+          data: { email: customerEmail },
+        });
+      } catch (err) {
+        console.warn("[vip-payments] Failed to persist legacy ticket email:", err.message);
+      }
+    } else {
+      return {
+        status: 400,
+        error: "Validation failed: 'email' must be a valid email address.",
+      };
+    }
+  }
+
+  // If ticket has no email and none was provided:
+  if (!customerEmail) {
     return {
       status: 400,
-      error: "Validation failed: A valid citizen 'email' is required to initialize payment.",
+      error: "VIP application does not have a registered email address. A valid email address is required for Chapa payment processing. Please provide a valid email.",
     };
   }
-  const customerEmail = candidateEmail.trim();
 
   // 5. Call Chapa hosted checkout API (v1 transaction initialize)
   const initResult = await initializeHostedCheckout({
@@ -393,8 +457,24 @@ export async function verifyVipPayment(reference) {
 
   const cleanRef = reference.trim();
 
-  // 1. Locate payment record
-  const payment = await paymentsDb.findByReference(cleanRef);
+  // 1. Locate payment record (supports merchantReference, tx_ref, providerReference, or ticketCode)
+  let payment = await paymentsDb.findByReference(cleanRef);
+  let ticket = null;
+
+  if (payment) {
+    ticket = await prisma.vip_tickets.findUnique({
+      where: { id: payment.ticketId },
+    });
+  } else {
+    // Fallback: Check if cleanRef is a VIP application reference (ticketCode) or ID
+    ticket = await findTicketByReferenceOrId(cleanRef);
+    if (ticket) {
+      payment = await paymentsDb.findFirst({
+        ticketId: ticket.id,
+      });
+    }
+  }
+
   if (!payment) {
     return {
       status: 404,
@@ -402,11 +482,7 @@ export async function verifyVipPayment(reference) {
     };
   }
 
-  // 2. Fetch associated ticket
-  const ticket = await prisma.vip_tickets.findUnique({
-    where: { id: payment.ticketId },
-  });
-
+  // 2. Validate associated ticket exists
   if (!ticket) {
     return {
       status: 404,
@@ -414,20 +490,42 @@ export async function verifyVipPayment(reference) {
     };
   }
 
-  // 3. If payment is already recorded as SUCCESS and ticket is CONFIRMED, return idempotent success
-  if (payment.status === "SUCCESS" && ticket.status === "CONFIRMED") {
+  // 3. Stale Downgrade & Idempotency Protection:
+  // If payment is already recorded as SUCCESS, NEVER re-query provider or downgrade status.
+  if (payment.status === "SUCCESS") {
+    let qrCodeUrl = ticket.qrCodeUrl;
+    if (!qrCodeUrl && ticket.ticketCode) {
+      try {
+        qrCodeUrl = generateVipTicketQrCode(ticket.ticketCode);
+        await prisma.vip_tickets.update({
+          where: { id: ticket.id },
+          data: { qrCodeUrl },
+        });
+        ticket.qrCodeUrl = qrCodeUrl;
+      } catch (err) {
+        // Non-fatal if QR update fails
+      }
+    }
+
     return {
       status: 200,
       success: true,
       message: "Payment already verified and confirmed.",
       data: {
         applicationReference: ticket.ticketCode,
+        ticketCode: ticket.ticketCode,
         merchantReference: payment.merchantReference,
         providerReference: payment.providerReference,
         paymentStatus: payment.status,
         ticketStatus: ticket.status,
+        isVerified: true,
+        isConfirmed: true,
+        isPending: false,
+        canRetry: false,
+        qrCodeUrl: qrCodeUrl || ticket.qrCodeUrl || null,
         amount: payment.amount,
         currency: payment.currency,
+        paymentMethod: payment.paymentMethod,
         verifiedAt: payment.verifiedAt,
       },
     };
@@ -442,8 +540,17 @@ export async function verifyVipPayment(reference) {
       status: 502,
       error: `Chapa verification query failed: ${verifyRes.error}`,
       data: {
+        applicationReference: ticket.ticketCode,
+        ticketCode: ticket.ticketCode,
+        merchantReference: payment.merchantReference,
+        providerReference: payment.providerReference,
         paymentStatus: payment.status,
         ticketStatus: ticket.status,
+        isVerified: false,
+        isConfirmed: ["CONFIRMED", "QUEUED", "SERVING", "USED"].includes(ticket.status),
+        isPending: payment.status === "PENDING",
+        canRetry: false,
+        qrCodeUrl: ticket.qrCodeUrl || null,
       },
     };
   }
@@ -463,6 +570,7 @@ export async function verifyVipPayment(reference) {
         status: updatedStatus,
         errorMessage: chapaData.message || `Payment ${chapaStatus}`,
       });
+      payment.status = updatedStatus;
     }
 
     return {
@@ -471,64 +579,151 @@ export async function verifyVipPayment(reference) {
       message: `Payment is currently ${chapaStatus || "PENDING"}.`,
       data: {
         applicationReference: ticket.ticketCode,
+        ticketCode: ticket.ticketCode,
         merchantReference: payment.merchantReference,
+        providerReference: payment.providerReference,
         paymentStatus: updatedStatus,
         ticketStatus: ticket.status,
+        isVerified: false,
+        isConfirmed: ["CONFIRMED", "QUEUED", "SERVING", "USED"].includes(ticket.status),
+        isPending: updatedStatus === "PENDING",
+        canRetry: ["FAILED", "CANCELLED", "EXPIRED"].includes(updatedStatus),
+        qrCodeUrl: ticket.qrCodeUrl || null,
       },
     };
   }
 
   // 6. Security verification checks
   // A. Transaction reference validation: ensure response belongs to this exact payment attempt
-  const returnedTxRef = chapaData.tx_ref || chapaData.reference;
-  if (returnedTxRef && returnedTxRef !== payment.merchantReference) {
-    console.error(`[vip-payments] Transaction reference mismatch: Expected ${payment.merchantReference}, received ${returnedTxRef}`);
-    await paymentsDb.update(payment.id, {
-      status: "FAILED",
-      errorMessage: `Transaction reference mismatch: expected ${payment.merchantReference}, got ${returnedTxRef}`,
-    });
+  // Strictly compare chapaData.tx_ref against the stored merchant reference.
+  // Never compare Chapa's internal reference against the merchant reference.
+  const chapaTxRef = chapaData.tx_ref ? String(chapaData.tx_ref).trim() : null;
+
+  if (!chapaTxRef) {
+    // Missing tx_ref: Inconclusive verification. Safe handling without falsely marking payment FAILED.
+    // Return HTTP 200 with isPending: true (reserve 400 for genuinely invalid requests or explicit mismatches)
+    console.warn(`[vip-payments] Verification inconclusive: Chapa response missing tx_ref for merchant reference ${payment.merchantReference}`);
+    return {
+      status: 200,
+      success: false,
+      message: "Payment verification inconclusive: Provider response missing transaction reference. Payment remains pending.",
+      data: {
+        applicationReference: ticket.ticketCode,
+        ticketCode: ticket.ticketCode,
+        merchantReference: payment.merchantReference,
+        providerReference: payment.providerReference,
+        paymentStatus: payment.status,
+        ticketStatus: ticket.status,
+        isVerified: false,
+        isConfirmed: false,
+        isPending: payment.status === "PENDING",
+        canRetry: false,
+        qrCodeUrl: ticket.qrCodeUrl || null,
+      },
+    };
+  }
+
+  if (chapaTxRef !== payment.merchantReference) {
+    console.warn(`[vip-payments] Transaction reference mismatch: Expected ${payment.merchantReference}, received ${chapaTxRef}`);
     return {
       status: 400,
+      success: false,
       error: "Payment verification failed: Transaction reference mismatch.",
+      data: {
+        applicationReference: ticket.ticketCode,
+        ticketCode: ticket.ticketCode,
+        merchantReference: payment.merchantReference,
+        providerReference: payment.providerReference,
+        paymentStatus: payment.status,
+        ticketStatus: ticket.status,
+        isVerified: false,
+        isConfirmed: false,
+        isPending: payment.status === "PENDING",
+        canRetry: false,
+        qrCodeUrl: ticket.qrCodeUrl || null,
+      },
     };
   }
 
-  // B. Amount check: exactly 1,000 ETB
-  const chapaAmount = Number(chapaData.amount);
-  const isValidAmount = chapaAmount === VIP_FEE || chapaAmount === VIP_CONFIG.DEFAULT_FEE;
+  // B. Amount check: compare against stored payment record (safely handling formatted strings like "1,000.00")
+  const parseAmount = (val) => {
+    if (val === undefined || val === null) return NaN;
+    const cleaned = String(val).replace(/,/g, "").trim();
+    return parseFloat(cleaned);
+  };
+  const chapaAmount = parseAmount(chapaData.amount);
+  const expectedFee = Number(payment.amount) || VIP_FEE;
+  const isValidAmount = !isNaN(chapaAmount) && Math.abs(chapaAmount - expectedFee) < 0.01;
+
   if (!isValidAmount) {
-    console.error(`[vip-payments] Amount mismatch: Expected ${VIP_FEE} ETB, received ${chapaAmount}`);
+    console.error(`[vip-payments] Amount mismatch: Expected ${expectedFee} ETB, received ${chapaAmount}`);
     await paymentsDb.update(payment.id, {
       status: "FAILED",
-      errorMessage: `Amount mismatch: expected ${VIP_FEE}, got ${chapaAmount}`,
+      errorMessage: `Amount mismatch: expected ${expectedFee}, got ${chapaAmount}`,
     });
     return {
       status: 400,
+      success: false,
       error: "Payment verification failed: Amount does not match the VIP application fee.",
+      data: {
+        applicationReference: ticket.ticketCode,
+        ticketCode: ticket.ticketCode,
+        merchantReference: payment.merchantReference,
+        providerReference: payment.providerReference,
+        paymentStatus: "FAILED",
+        ticketStatus: ticket.status,
+        isVerified: false,
+        isConfirmed: false,
+        isPending: false,
+        canRetry: true,
+        qrCodeUrl: ticket.qrCodeUrl || null,
+      },
     };
   }
 
-  // C. Currency check
-  const chapaCurrency = String(chapaData.currency || "").toUpperCase();
-  if (chapaCurrency && chapaCurrency !== VIP_CURRENCY) {
-    console.error(`[vip-payments] Currency mismatch: Expected ${VIP_CURRENCY}, received ${chapaCurrency}`);
+  // C. Currency check: compare against stored payment record
+  const chapaCurrency = String(chapaData.currency || "").trim().toUpperCase();
+  const expectedCurrency = String(payment.currency || VIP_CURRENCY).trim().toUpperCase();
+  if (chapaCurrency && chapaCurrency !== expectedCurrency) {
+    console.error(`[vip-payments] Currency mismatch: Expected ${expectedCurrency}, received ${chapaCurrency}`);
     await paymentsDb.update(payment.id, {
       status: "FAILED",
-      errorMessage: `Currency mismatch: expected ${VIP_CURRENCY}, got ${chapaCurrency}`,
+      errorMessage: `Currency mismatch: expected ${expectedCurrency}, got ${chapaCurrency}`,
     });
     return {
       status: 400,
+      success: false,
       error: "Payment verification failed: Currency mismatch.",
+      data: {
+        applicationReference: ticket.ticketCode,
+        ticketCode: ticket.ticketCode,
+        merchantReference: payment.merchantReference,
+        providerReference: payment.providerReference,
+        paymentStatus: "FAILED",
+        ticketStatus: ticket.status,
+        isVerified: false,
+        isConfirmed: false,
+        isPending: false,
+        canRetry: true,
+        qrCodeUrl: ticket.qrCodeUrl || null,
+      },
     };
   }
 
-
-  // 7. Atomic transaction: Update payment to SUCCESS and ticket to CONFIRMED
+  // 7. Atomic transaction: Update payment to SUCCESS and ticket to CONFIRMED, generating digital QR code
   const verifiedAt = new Date();
   const providerRef = chapaData.reference || chapaData.payment_reference || payment.providerReference;
   const paymentMethod = chapaData.payment_method || chapaData.method || null;
+  const qrCodeUrl = ticket.qrCodeUrl || generateVipTicketQrCode(ticket.ticketCode);
 
   const result = await prisma.$transaction(async (tx) => {
+    // Concurrency protection: Check if another concurrent request already marked it SUCCESS
+    const freshPaymentCheck = await paymentsDb.findByReference(payment.merchantReference);
+    if (freshPaymentCheck && freshPaymentCheck.status === "SUCCESS") {
+      const currentTicket = await tx.vip_tickets.findUnique({ where: { id: ticket.id } });
+      return { updatedPayment: freshPaymentCheck, updatedTicket: currentTicket };
+    }
+
     // Update payment record
     const updatedPayment = await paymentsDb.update(
       payment.id,
@@ -545,7 +740,7 @@ export async function verifyVipPayment(reference) {
     // Fetch fresh ticket status inside transaction to prevent race conditions
     const freshTicket = await tx.vip_tickets.findUnique({
       where: { id: ticket.id },
-      select: { id: true, status: true, ticketCode: true },
+      select: { id: true, status: true, ticketCode: true, qrCodeUrl: true },
     });
 
     // Do NOT overwrite or demote tickets that have already advanced to QUEUED, SERVING, or USED
@@ -557,6 +752,7 @@ export async function verifyVipPayment(reference) {
       data: {
         status: targetTicketStatus,
         paymentRef: payment.merchantReference,
+        qrCodeUrl: freshTicket?.qrCodeUrl || qrCodeUrl,
         updatedAt: verifiedAt,
       },
     });
@@ -564,17 +760,22 @@ export async function verifyVipPayment(reference) {
     return { updatedPayment, updatedTicket };
   });
 
-
   return {
     status: 200,
     success: true,
     message: "Payment successfully verified. VIP application is now CONFIRMED.",
     data: {
       applicationReference: result.updatedTicket.ticketCode,
+      ticketCode: result.updatedTicket.ticketCode,
       merchantReference: result.updatedPayment.merchantReference,
       providerReference: result.updatedPayment.providerReference,
       paymentStatus: result.updatedPayment.status,
       ticketStatus: result.updatedTicket.status,
+      isVerified: true,
+      isConfirmed: true,
+      isPending: false,
+      canRetry: false,
+      qrCodeUrl: result.updatedTicket.qrCodeUrl,
       amount: result.updatedPayment.amount,
       currency: result.updatedPayment.currency,
       paymentMethod: result.updatedPayment.paymentMethod,
@@ -584,7 +785,12 @@ export async function verifyVipPayment(reference) {
 }
 
 /**
- * Retrieves safe payment status for frontend status polling without exposing secrets.
+ * Retrieves safe payment status for frontend status polling with proactive Chapa verification.
+ *
+ * Polling Behavior:
+ * - If payment is PENDING, triggers server-side Chapa verification directly.
+ * - Protected by an in-flight mutex and a cooldown (3000ms) to prevent provider throttling.
+ * - Resolves application reference (VIP-...) to latest merchant reference (VP...).
  *
  * @param {string} reference - Merchant reference or ticket code
  */
@@ -598,7 +804,7 @@ export async function getPaymentStatus(reference) {
 
   const clean = reference.trim();
 
-  // Try finding by payment reference
+  // Try finding by payment reference (merchantReference, providerReference, or ID)
   let payment = await paymentsDb.findByReference(clean);
   let ticket = null;
 
@@ -607,12 +813,31 @@ export async function getPaymentStatus(reference) {
       where: { id: payment.ticketId },
     });
   } else {
-    // Fallback: Check if reference is a VIP ticket code
+    // Fallback: Check if reference is a VIP ticket code (VIP-XXXXXX-XXXX) or ticket ID
     ticket = await findTicketByReferenceOrId(clean);
     if (ticket) {
-      payment = await paymentsDb.findFirst({
-        ticketId: ticket.id,
-      });
+      // Step A: If ticket has a linked paymentRef, prioritize that payment
+      if (ticket.paymentRef) {
+        const linkedPayment = await paymentsDb.findByReference(ticket.paymentRef);
+        if (linkedPayment && linkedPayment.ticketId === ticket.id) {
+          payment = linkedPayment;
+        }
+      }
+
+      // Step B: If no payment resolved via paymentRef, look for a SUCCESS payment associated with this ticket
+      if (!payment) {
+        payment = await paymentsDb.findFirst({
+          ticketId: ticket.id,
+          status: "SUCCESS",
+        });
+      }
+
+      // Step C: Fall back to latest payment attempt (ordered by createdAt: 'desc')
+      if (!payment) {
+        payment = await paymentsDb.findFirst({
+          ticketId: ticket.id,
+        });
+      }
     }
   }
 
@@ -623,11 +848,76 @@ export async function getPaymentStatus(reference) {
     };
   }
 
+  const CONFIRMED_TICKET_STATUSES = ["CONFIRMED", "QUEUED", "SERVING", "USED"];
+  const isTicketAlreadyConfirmed = ticket ? CONFIRMED_TICKET_STATUSES.includes(ticket.status) : false;
+
+  // Active Verification on Polling:
+  // ONLY trigger external Chapa verification if payment is PENDING and ticket is NOT already confirmed.
+  // If the database already shows ticket CONFIRMED, return confirmed state immediately!
+  if (!isTicketAlreadyConfirmed && payment && payment.status === "PENDING") {
+    const merchantRef = payment.merchantReference;
+    const now = Date.now();
+    const tracker = verificationAttempts.get(merchantRef) || { count: 0, lastAttempt: 0 };
+    const cooldownMs = getProgressiveCooldownMs(tracker.count);
+
+    if (inFlightVerifications.has(merchantRef)) {
+      try {
+        await inFlightVerifications.get(merchantRef);
+      } catch (err) {
+        // ignore in-flight error
+      }
+      const reloadedPayment = await paymentsDb.findByReference(merchantRef);
+      if (reloadedPayment) {
+        payment = reloadedPayment;
+        ticket = await prisma.vip_tickets.findUnique({ where: { id: payment.ticketId } });
+      }
+    } else if (now - tracker.lastAttempt >= cooldownMs) {
+      verificationAttempts.set(merchantRef, {
+        count: tracker.count + 1,
+        lastAttempt: now,
+      });
+
+      const verifyPromise = (async () => {
+        return verifyVipPayment(merchantRef);
+      })();
+
+      inFlightVerifications.set(merchantRef, verifyPromise);
+
+      try {
+        await verifyPromise;
+      } catch (err) {
+        console.warn("[vip-payments] Controlled polling verification error:", err.message);
+      } finally {
+        inFlightVerifications.delete(merchantRef);
+      }
+
+      // Reload fresh payment and ticket after verification
+      const refreshedPayment = await paymentsDb.findByReference(merchantRef);
+      if (refreshedPayment) {
+        payment = refreshedPayment;
+        ticket = await prisma.vip_tickets.findUnique({ where: { id: payment.ticketId } });
+        if (payment.status !== "PENDING") {
+          verificationAttempts.delete(merchantRef);
+        }
+      }
+    }
+  }
+
+  // Recalculate status flags after potential active verification
+  const isConfirmed = ticket ? CONFIRMED_TICKET_STATUSES.includes(ticket.status) : false;
+  const isVerified = payment ? payment.status === "SUCCESS" : false;
+  const isPending = !isConfirmed && (payment ? payment.status === "PENDING" : true);
+  const canRetry = !isConfirmed && ticket?.status === "PENDING" && payment && ["FAILED", "CANCELLED", "EXPIRED"].includes(payment.status);
+
+  // Ensure confirmed tickets always expose their scannable QR code
+  const qrCodeUrl = ticket ? (ticket.qrCodeUrl || (isConfirmed ? generateVipTicketQrCode(ticket.ticketCode) : null)) : null;
+
   return {
     status: 200,
     success: true,
     data: {
       applicationReference: ticket ? ticket.ticketCode : null,
+      ticketCode: ticket ? ticket.ticketCode : null,
       merchantReference: payment ? payment.merchantReference : null,
       providerReference: payment ? payment.providerReference : null,
       paymentStatus: payment ? payment.status : "NOT_INITIALIZED",
@@ -636,7 +926,12 @@ export async function getPaymentStatus(reference) {
       currency: payment ? payment.currency : VIP_CURRENCY,
       paymentMethod: payment ? payment.paymentMethod : null,
       checkoutUrl: payment ? payment.checkoutUrl : null,
-      isVerified: payment ? payment.status === "SUCCESS" : false,
+      isVerified,
+      isConfirmed,
+      isPending,
+      canRetry: Boolean(canRetry),
+      qrCodeUrl,
+      errorMessage: payment ? payment.errorMessage : null,
       updatedAt: payment ? payment.updatedAt : ticket?.updatedAt,
     },
   };

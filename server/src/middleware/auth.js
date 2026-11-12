@@ -46,12 +46,36 @@ export async function authenticateAdmin(req, res, next) {
             email: true,
             name: true,
             role: true,
+            institutionId: true,
+            institution: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                icon: true,
+                floorRoomNumber: true,
+              },
+            },
             isActive: true,
           },
         });
       }
     } catch (dbErr) {
-      console.warn("Database lookup in authenticateAdmin failed:", dbErr.message);
+      if (dbErr.message && dbErr.message.includes("UserRole")) {
+        try {
+          const rawUsers = await prisma.$queryRaw`
+            SELECT id, email, name, role::text as role, "isActive"
+            FROM users
+            WHERE id = ${decoded.id}
+            LIMIT 1
+          `;
+          user = rawUsers[0] || null;
+        } catch {
+          user = null;
+        }
+      } else {
+        console.warn("Database lookup in authenticateAdmin failed:", dbErr.message);
+      }
     }
 
     // If DB is temporarily unreachable or testing without seeded DB user, check decoded payload
@@ -68,7 +92,7 @@ export async function authenticateAdmin(req, res, next) {
       });
     }
 
-    if (user.role !== "SUPER_ADMIN" && user.role !== "OPERATOR") {
+    if (user.role !== "SUPER_ADMIN" && user.role !== "OPERATOR" && user.role !== "STAFF") {
       return res.status(403).json({
         error: "Access denied. Administrative privileges required.",
       });
@@ -93,7 +117,7 @@ export function requireRole(...allowedRoles) {
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      if (!allowedRoles.includes("OPERATOR") && req.user.role === "OPERATOR") {
+      if (!allowedRoles.includes("OPERATOR") && req.user.role === "OPERATOR" && (req.baseUrl?.includes("messages") || req.baseUrl?.includes("contact"))) {
         return res.status(403).json({
           error: "Access denied. Citizen contact messages are restricted exclusively to SUPER_ADMIN.",
         });

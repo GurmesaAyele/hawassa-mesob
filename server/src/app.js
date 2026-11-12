@@ -11,7 +11,9 @@ import mapRoutes, { contactRouter } from "./modules/map/map.routes.js";
 import newsRoutes from "./modules/news/news.routes.js";
 import announcementRoutes from "./modules/announcements/announcements.routes.js";
 import vipTicketRoutes from "./modules/vip-tickets/vip-tickets.routes.js";
+import adminVipTicketRoutes from "./modules/vip-tickets/admin-vip-tickets.routes.js";
 import vipPaymentRoutes from "./modules/vip-payments/vip-payments.routes.js";
+import staffRoutes from "./modules/staff/staff.routes.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { listContactMessages, updateContactMessageReviewStatus } from "./modules/map/map.controller.js";
@@ -59,7 +61,16 @@ const corsOptions = {
     return callback(new Error(`Origin '${origin}' not allowed by CORS policy`), false);
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-chapa-signature", "chapa-signature"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "x-chapa-signature",
+    "chapa-signature",
+    "Cache-Control",
+    "Pragma",
+    "If-None-Match",
+    "If-Modified-Since",
+  ],
   credentials: true,
   maxAge: 86400,
 };
@@ -94,6 +105,8 @@ app.use("/api/institutions", institutionRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/vip-tickets", vipTicketRoutes);
 app.use("/api/vip-payments", vipPaymentRoutes);
+app.use("/api/admin/vip-tickets", adminVipTicketRoutes);
+app.use("/api/admin/staff", staffRoutes);
 
 app.use("/api/videos", videoRoutes);
 app.use("/api/map", mapRoutes);
