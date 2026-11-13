@@ -449,7 +449,9 @@ export async function updateVipTicketServiceStatus(req, res) {
       }
 
       if (requestedServiceId) {
-        targetTicketServices = instServices.filter((ts) => ts.serviceId === requestedServiceId.trim());
+        targetTicketServices = instServices.filter(
+          (ts) => ts.serviceId === requestedServiceId.trim() || ts.id === requestedServiceId.trim()
+        );
         if (targetTicketServices.length === 0) {
           return res.status(403).json({
             error: "Access denied: The specified service does not belong to your assigned institution.",
@@ -461,7 +463,9 @@ export async function updateVipTicketServiceStatus(req, res) {
     } else {
       // Super Admin: target specific service if requested, or all
       if (requestedServiceId) {
-        targetTicketServices = allTicketServices.filter((ts) => ts.serviceId === requestedServiceId.trim());
+        targetTicketServices = allTicketServices.filter(
+          (ts) => ts.serviceId === requestedServiceId.trim() || ts.id === requestedServiceId.trim()
+        );
         if (targetTicketServices.length === 0) {
           return res.status(404).json({
             error: `Service '${requestedServiceId}' not found on this VIP ticket.`,
