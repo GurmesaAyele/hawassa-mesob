@@ -201,7 +201,6 @@ export async function getQueueProgressStatus(metrics, txOrPrisma = prisma) {
     orderBy: { queueNumber: "asc" },
     select: {
       queueNumber: true,
-      ticketCode: true,
       servedAt: true,
     },
   });
@@ -402,7 +401,8 @@ export async function startServingVipTicket(ticketIdOrCode, txOrPrisma = prisma)
     where: { id: ticket.id },
     data: {
       status: "SERVING",
-      servedAt: now,
+      serviceProcessingStatus: "IN_PROGRESS",
+      servedAt: ticket.servedAt || now,
       updatedAt: now,
     },
   });
@@ -443,8 +443,9 @@ export async function completeVipService(ticketIdOrCode, txOrPrisma = prisma) {
     where: { id: ticket.id },
     data: {
       status: "USED",
+      serviceProcessingStatus: "COMPLETED",
       completedAt: now,
-      servedAt: ticket.servedAt || now,
+      servedAt,
       updatedAt: now,
     },
   });
@@ -1362,12 +1363,25 @@ export async function getQueuePosition(req, res) {
  */
 export async function getQueueStatus(req, res) {
   try {
+    if (req.headers) {
+      delete req.headers["if-none-match"];
+      delete req.headers["if-modified-since"];
+    }
+
+    if (typeof res.set === "function") {
+      res.set({
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      });
+    }
+
     const workingDay = isTodayWorkingDay();
     const hoursCheck = isQueueWithinOperatingHours();
     const metrics = await getTodayCapacityMetrics(prisma);
     const progress = await getQueueProgressStatus(metrics, prisma);
 
-    // Current ticket being served (no PII)
+    // Current ticket being served (no PII, no private ticket codes)
     const servingTicket = await prisma.vip_tickets.findFirst({
       where: {
         queueDate: { gte: metrics.startOfDay, lte: metrics.endOfDay },
@@ -1376,12 +1390,11 @@ export async function getQueueStatus(req, res) {
       orderBy: { queueNumber: "asc" },
       select: {
         queueNumber: true,
-        ticketCode: true,
         servedAt: true,
       },
     });
 
-    // Next in queue (no PII)
+    // Next in queue (no PII, no private ticket codes)
     const nextTicket = await prisma.vip_tickets.findFirst({
       where: {
         queueDate: { gte: metrics.startOfDay, lte: metrics.endOfDay },
@@ -1390,9 +1403,17 @@ export async function getQueueStatus(req, res) {
       orderBy: { queueNumber: "asc" },
       select: {
         queueNumber: true,
-        ticketCode: true,
       },
     });
+
+    // Calculate empirical waiting time based on actual completions today
+    const { waitingTime, waitingTimeInfo } = await calculateEmpiricalWaitingTime(
+      prisma,
+      metrics.startOfDay,
+      metrics.endOfDay,
+      null,
+      null
+    );
 
     return res.json({
       success: true,
@@ -1423,7 +1444,6 @@ export async function getQueueStatus(req, res) {
           ? {
               queueNumber: servingTicket.queueNumber,
               queueDisplay: `VIP-${String(servingTicket.queueNumber).padStart(3, "0")}`,
-              ticketCode: servingTicket.ticketCode,
               servedAt: servingTicket.servedAt,
             }
           : null,
@@ -1431,10 +1451,13 @@ export async function getQueueStatus(req, res) {
           ? {
               queueNumber: nextTicket.queueNumber,
               queueDisplay: `VIP-${String(nextTicket.queueNumber).padStart(3, "0")}`,
-              ticketCode: nextTicket.ticketCode,
             }
           : null,
         lastCompletedAt: progress.lastCompletedAt,
+        estimatedWaitingTime: waitingTime,
+        estimatedWaitingTimeInfo: waitingTimeInfo,
+        waitingTime,
+        waitingTimeInfo,
       },
     });
   } catch (err) {
