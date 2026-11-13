@@ -34,5 +34,21 @@ router.patch(
   updateVipTicketServiceStatus
 );
 
+// PATCH /api/admin/vip-tickets/:id/services/:serviceId/status - Per-service status update
+router.patch(
+  "/:id/services/:serviceId/status",
+  authenticateAdmin,
+  requireRole("SUPER_ADMIN", "STAFF"),
+  updateVipTicketServiceStatus
+);
+
+// PATCH /api/admin/vip-tickets/:id/services/:serviceId/service-status - Alias for per-service status update
+router.patch(
+  "/:id/services/:serviceId/service-status",
+  authenticateAdmin,
+  requireRole("SUPER_ADMIN", "STAFF"),
+  updateVipTicketServiceStatus
+);
+
 export default router;
 

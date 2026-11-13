@@ -14,6 +14,7 @@ import vipTicketRoutes from "./modules/vip-tickets/vip-tickets.routes.js";
 import adminVipTicketRoutes from "./modules/vip-tickets/admin-vip-tickets.routes.js";
 import vipPaymentRoutes from "./modules/vip-payments/vip-payments.routes.js";
 import vipDashboardRoutes from "./modules/vip-dashboard/vip-dashboard.routes.js";
+import staffRoutes from "./modules/staff/staff.routes.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { listContactMessages, updateContactMessageReviewStatus } from "./modules/map/map.controller.js";
@@ -107,6 +108,7 @@ app.use("/api/vip-tickets", vipTicketRoutes);
 app.use("/api/vip-payments", vipPaymentRoutes);
 app.use("/api/admin/vip-tickets", adminVipTicketRoutes);
 app.use("/api/vip-dashboard", vipDashboardRoutes);
+app.use("/api/admin/staff", staffRoutes);
 
 app.use("/api/videos", videoRoutes);
 app.use("/api/map", mapRoutes);

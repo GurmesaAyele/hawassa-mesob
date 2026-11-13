@@ -30,6 +30,13 @@ before(async () => {
   const port = server.address().port;
   baseUrl = `http://127.0.0.1:${port}`;
 
+  // Retrieve an active service ID for testing ticket creation
+  const activeService = await prisma.service.findFirst({
+    where: { isActive: true },
+    select: { id: true, providerId: true },
+  });
+  testServiceId = activeService?.id;
+
   const defaultPasswordHash = await hashPassword("MesobTestPass2026!");
 
   // Ensure test accounts exist in DB
@@ -58,12 +65,13 @@ before(async () => {
     }),
     prisma.users.upsert({
       where: { email: "vip_test_staff@mesob.gov.et" },
-      update: { role: "STAFF", isActive: true },
+      update: { role: "STAFF", institutionId: activeService?.providerId, isActive: true },
       create: {
         email: "vip_test_staff@mesob.gov.et",
         name: "Test Staff Member",
         passwordHash: defaultPasswordHash,
         role: "STAFF",
+        institutionId: activeService?.providerId,
         isActive: true,
       },
     }),
@@ -127,13 +135,6 @@ before(async () => {
 
   // Generate token for CITIZEN
   citizenToken = signToken(citUser);
-
-  // Retrieve an active service ID for testing ticket creation
-  const activeService = await prisma.service.findFirst({
-    where: { isActive: true },
-    select: { id: true },
-  });
-  testServiceId = activeService?.id;
 });
 
 after(async () => {
@@ -330,6 +331,10 @@ describe("3. Admin VIP Tickets List Endpoint (GET /api/admin/vip-tickets)", () =
       where: { ticketCode: createdTestTicketCode },
     });
     createdTestTicketId = dbTicket.id;
+    await prisma.vip_tickets.update({
+      where: { id: createdTestTicketId },
+      data: { status: "CONFIRMED" },
+    });
   });
 
   test("Anonymous GET /api/admin/vip-tickets returns 401 Unauthorized", async () => {

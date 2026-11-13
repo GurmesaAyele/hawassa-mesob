@@ -1,97 +1,86 @@
-# VIP Tickets Staff & Admin API Integration Guide
+# VIP Tickets Staff & Multi-Institution Tenant Isolation API Guide
 
-This guide is for frontend developers integrating the **Staff Portal & VIP Ticket Processing** views on the Hawassa MESOB Admin Dashboard.
-
----
-
-## 1. Architectural Overview & Role Matrix
-
-The backend introduces the **`STAFF`** user role and a separate **`serviceProcessingStatus`** lifecycle so staff work progress remains completely independent from citizen payment status and queue numbers.
-
-### Role Authorization Matrix
-
-| Capability | `SUPER_ADMIN` | `OPERATOR` | `STAFF` | `CITIZEN` |
-| :--- | :---: | :---: | :---: | :---: |
-| **Sign in to Admin Dashboard** | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No (403) |
-| **Browse Admin VIP Ticket Work List** | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No (403) |
-| **Advance VIP Service Status** (`pending` $\to$ `in-progress` $\to$ `completed`) | ✅ Yes | ❌ No (403) | ✅ Yes | ❌ No (403) |
-| **Roll back / Reset VIP Status** (Super Admin override) | ✅ Yes | ❌ No (403) | ❌ No (400) | ❌ No (403) |
-| **Manage Institutions, Services, News, Site Settings** | ✅ Yes | ✅ Yes | ❌ No (403) | ❌ No (403) |
-| **Access Citizen Contact Message Inbox** | ✅ Yes | ❌ No (403) | ❌ No (403) | ❌ No (403) |
-
-### Dual Lifecycle Separation
-
-- **`status` (`TicketStatus`)**: Tracks citizen payment and center queue entry (`PENDING`, `CONFIRMED`, `QUEUED`, `SERVING`, `USED`, `CANCELLED`).
-- **`serviceProcessingStatus` (`ServiceProcessingStatus`)**: Tracks back-office staff service fulfillment (`pending`, `in-progress`, `completed`).
+This guide is for frontend developers integrating the **Dedicated Institution Staff Desks & VIP Ticket Processing** views on the Hawassa MESOB Admin Dashboard.
 
 ---
 
-## 2. Authentication & Session Handling
+## 1. Architectural Overview: Institution Tenant Isolation
 
-### Endpoint: `POST /api/auth/login`
-Staff accounts authenticate through the standard admin login endpoint.
+Hawassa MESOB connects citizens to multiple governmental and financial institutions (e.g., Commercial Bank of Ethiopia, Immigration & Nationality, Trade Authority). 
 
-**Request:**
-```http
-POST /api/auth/login
-Content-Type: application/json
+Each institution has dedicated desk staff who **only see and process VIP orders requested for their own institution**.
 
-{
-  "email": "staff.member@mesob.hawassa.gov.et",
-  "password": "StaffSecretPassword2026!"
-}
-```
+### Key Tenancy & Security Principles
 
-**Success Response (`200 OK`):**
+1. **Staff $\leftrightarrow$ Institution Binding**:
+   - Every `STAFF` account is strictly bound to an `institutionId` (e.g., CBE ID `e8b69e0e-056b-47e7-a147-cf37b178ee39`).
+   - Center-wide administrators (`SUPER_ADMIN`) have global oversight across all institutions.
+2. **Multi-Institution Fan-Out Orders**:
+   - When a citizen orders multiple services across different institutions on a single VIP ticket (e.g. 1 CBE service + 1 Immigration service), the order is sent to each institution's staff desk separately.
+   - **Cross-Institution Privacy**: CBE staff ONLY sees the citizen's CBE requested service. Immigration's requested service is completely withheld/masked from CBE staff.
+3. **Independent Service Lifecycles**:
+   - Each institution's desk staff advances their service order status independently (`pending` $\to$ `in-progress` $\to$ `completed`).
+   - CBE staff completing their service does **not** close Immigration's pending service.
+   - The ticket's `overallStatus` becomes `completed` only when **all** institutions finish serving the citizen.
+4. **Verified Orders Queue**:
+   - Staff desks display **verified/confirmed VIP orders** (`ticketStatus: "CONFIRMED"`, `QUEUED`, `SERVING`, `USED`). Unpaid/unverified drafts are filtered out of active staff queues.
+
+---
+
+## 2. Authentication & Desk Identification
+
+### Endpoint: `POST /api/auth/login` and `GET /api/auth/me`
+
+When staff authenticate, their bound institution is returned in `user.institution`.
+
+**Example Response (`200 OK`):**
 ```json
 {
   "message": "Authentication successful.",
   "user": {
-    "id": "usr_cuid12345",
-    "email": "staff.member@mesob.hawassa.gov.et",
-    "name": "Abebe Kebede",
-    "role": "STAFF"
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "email": "staff@mesob.hawassa.gov.et",
+    "name": "Hawassa MESOB CBE Staff",
+    "role": "STAFF",
+    "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+    "institution": {
+      "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+      "code": "CBE",
+      "name": {
+        "en": "Commercial Bank of Ethiopia",
+        "am": "የኢትዮጵያ ንግድ ባንክ",
+        "sid": "Itiyoophiyu Daldalu Baanke"
+      },
+      "icon": "building-library",
+      "floorRoomNumber": "Ground Floor, Hall B"
+    }
   },
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-}
-```
-*Sets an `HttpOnly`, `SameSite=Lax` session cookie (`mesob_admin_token`) expiring in 24 hours.*
-
-### Endpoint: `GET /api/auth/me`
-Fetches current authenticated profile.
-
-**Success Response (`200 OK`):**
-```json
-{
-  "user": {
-    "id": "usr_cuid12345",
-    "email": "staff.member@mesob.hawassa.gov.et",
-    "name": "Abebe Kebede",
-    "role": "STAFF"
-  }
 }
 ```
 
 ---
 
-## 3. Admin VIP Tickets List
+## 3. Dedicated Staff Queue Endpoints
 
 ### Endpoint: `GET /api/admin/vip-tickets`
 
-Retrieves a paginated list of VIP applications with unmasked applicant information for staff handling.
+Retrieves the paginated list of VIP orders scoped strictly to the authenticated staff member's institution.
 
 #### Query Parameters
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `page` | `integer` | `1` | Page number (must be $\ge 1$). |
-| `limit` | `integer` | `25` | Number of records per page (capped at `100`). |
-| `status` | `string` | *(all)* | Filter by processing status: `pending`, `in-progress`, or `completed`. |
+| `page` | `integer` | `1` | Page number ($\ge 1$). |
+| `limit` | `integer` | `25` | Number of items per page (max `100`). |
+| `status` | `string` | *(all)* | Filter by processing status: `pending`, `in-progress`, `completed`. |
+| `includeUnconfirmed` | `boolean` | `false` | Set `true` to include unverified/draft applications. |
+| `institutionId` | `string` | *(none)* | *(Super Admin only)* Filter orders by institution ID. |
 
-#### Example Request
+#### Example Request (CBE Desk Staff)
 ```http
-GET /api/admin/vip-tickets?page=1&limit=25&status=pending
-Cookie: mesob_admin_token=...
+GET /api/admin/vip-tickets?status=pending
+Authorization: Bearer <staff_token>
 ```
 
 #### Success Response (`200 OK`)
@@ -99,198 +88,349 @@ Cookie: mesob_admin_token=...
 {
   "data": [
     {
-      "id": "a7d5d9ff-f6b2-4d08-9a83-48d45adbc1cb",
+      "id": "tkt_cuid12345",
       "reference": "VIP-950963-5E8A",
-      "person": "Gurmesa Ayele",
-      "phone": "0916970942",
-      "email": "gurmesa@example.com",
-      "service": "Ethiopian Origin ID, Visa Application",
+      "person": "Abebe Kebede",
+      "phone": "0911234567",
+      "email": "citizen@example.com",
+      "service": "Bank Account Opening",
       "services": [
         {
-          "id": "srv-101",
-          "name": "Ethiopian Origin ID",
-          "estimatedFee": 500,
-          "processingDays": 3,
+          "id": "srv_cbe_01",
+          "ticketServiceId": "ts_cuid999",
+          "name": "Bank Account Opening",
+          "status": "pending",
+          "estimatedFee": 0,
+          "processingDays": 1,
           "provider": {
-            "id": "prov-1",
-            "code": "IMMIGRATION",
-            "name": "Immigration & Nationality Department"
-          }
-        },
-        {
-          "id": "srv-102",
-          "name": "Visa Application",
-          "estimatedFee": 500,
-          "processingDays": 2,
-          "provider": {
-            "id": "prov-1",
-            "code": "IMMIGRATION",
-            "name": "Immigration & Nationality Department"
+            "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+            "code": "CBE",
+            "name": "Commercial Bank of Ethiopia"
           }
         }
       ],
-      "purpose": "Urgent travel and business verification",
-      "vipFee": 1000,
-      "currency": "ETB",
-      "ticketStatus": "CONFIRMED",
       "status": "pending",
-      "issuedAt": "2026-11-09T01:30:00.000Z",
-      "updatedAt": "2026-11-09T01:30:00.000Z",
-      "queueNumber": 4,
-      "queueDisplay": "VIP-004"
+      "overallStatus": "in-progress",
+      "ticketStatus": "CONFIRMED",
+      "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+      "issuedAt": "2026-11-12T10:00:00.000Z"
     }
   ],
   "meta": {
-    "total": 42,
+    "total": 1,
     "page": 1,
     "limit": 25,
-    "totalPages": 2,
+    "totalPages": 1,
     "statusCounts": {
-      "pending": 18,
-      "in-progress": 14,
-      "completed": 10
-    }
+      "pending": 1,
+      "in-progress": 0,
+      "completed": 0
+    },
+    "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39"
   }
 }
 ```
 
 > [!NOTE]
-> `meta.statusCounts` returns the global counts across **all** tickets regardless of the active filter or page, allowing the dashboard status filter tabs to display dynamic counts effortlessly.
+> Even if the citizen requested both CBE and Immigration services, CBE staff will **only** see the CBE service in `services` and `service`. The Immigration service is securely isolated.
 
 ---
-
-## 4. Status Transition & Audit Trail
 
 ### Endpoint: `PATCH /api/admin/vip-tickets/:id/service-status`
+### Sub-Resource: `PATCH /api/admin/vip-tickets/:id/services/:serviceId/status`
 
-Advances or updates the service-processing status of a VIP application.
+Advances the service processing status of an institution's VIP service order.
 
-#### Permissions & Transition Rules
-- **`STAFF`**: Allowed forward transitions only:
-  - `pending` $\to$ `in-progress`
-  - `in-progress` $\to$ `completed`
-  - Any backward transition (e.g., `completed` $\to$ `pending`) returns `400 Bad Request`.
-- **`SUPER_ADMIN`**: Can perform any transition, including corrective resets.
-- **`OPERATOR`**: Disallowed (`403 Forbidden`).
-- **Idempotency**: If target status equals the current status, returns `200 OK` without creating duplicate audit rows.
+#### Authorization Rules
+- **STAFF**: Can **only** update services belonging to their assigned institution. Attempting to update another institution's service returns **`403 Forbidden`**.
+- **Forward Progression**: Staff can only advance `pending` $\to$ `in-progress` $\to$ `completed`. Backward transitions return `400 Bad Request`.
+- **SUPER_ADMIN**: Can update any institution's service with corrective rollback authority.
 
 #### Request Body
-
-| Field | Type | Required | Description |
-| :--- | :--- | :---: | :--- |
-| `status` | `string` | **Yes** | Target status: `"pending"`, `"in-progress"`, or `"completed"`. |
-| `notes` | `string` | No | Optional processing notes or comments. |
-
-**Example Request:**
-```http
-PATCH /api/admin/vip-tickets/a7d5d9ff-f6b2-4d08-9a83-48d45adbc1cb/service-status
-Content-Type: application/json
-Cookie: mesob_admin_token=...
-
+```json
 {
   "status": "in-progress",
-  "notes": "Verified origin documents with immigration desk"
+  "notes": "Citizen verified at Counter 4"
 }
 ```
 
-**Success Response (`200 OK`):**
+#### Success Response (`200 OK`)
 ```json
 {
   "success": true,
-  "message": "VIP ticket service-processing status updated from 'pending' to 'in-progress'.",
+  "message": "VIP order service status updated to 'in-progress'.",
   "data": {
-    "id": "a7d5d9ff-f6b2-4d08-9a83-48d45adbc1cb",
+    "id": "tkt_cuid12345",
     "reference": "VIP-950963-5E8A",
-    "person": "Gurmesa Ayele",
     "status": "in-progress",
-    "updatedAt": "2026-11-09T01:35:12.000Z"
+    "overallStatus": "in-progress"
   },
   "history": {
-    "id": "hist-999",
     "previousStatus": "pending",
     "newStatus": "in-progress",
-    "changedBy": "Abebe Kebede",
-    "notes": "Verified origin documents with immigration desk",
-    "createdAt": "2026-11-09T01:35:12.000Z"
+    "changedBy": "Hawassa MESOB CBE Staff",
+    "notes": "Citizen verified at Counter 4",
+    "createdAt": "2026-11-12T10:15:00.000Z"
   }
 }
 ```
 
 ---
 
-## 5. Single VIP Ticket Details & Full Audit Trail
+## 4. Frontend Helper Reference
 
-### Endpoint: `GET /api/admin/vip-tickets/:id`
+`frontend/src/services/adminApi.js`:
 
-Retrieves complete details for a ticket including the complete audit history.
+```javascript
+// Fetch VIP orders for authenticated staff desk
+const response = await adminApi.vipTickets.list({
+  status: "pending", // "all", "pending", "in-progress", "completed"
+});
 
-**Success Response (`200 OK`):**
+// Advance service processing status
+await adminApi.vipTickets.updateServiceStatus(
+  ticket.id,
+  "in-progress", // nextStatus
+  "Counter notes", // optional notes
+  ticket.services[0]?.id // target serviceId
+);
+```
+
+---
+
+## 5. Super Admin Staff Management API
+
+Super Admins have full authority to provision, inspect, update, reassign, deactivate, reset passwords for, and delete staff accounts across all institutions.
+
+### Endpoint Overview
+
+| Action | HTTP Method | Endpoint | Required Role | Description |
+| :--- | :---: | :--- | :---: | :--- |
+| **Create Staff** | `POST` | `/api/admin/staff` | `SUPER_ADMIN` | Create a new staff account bound to an institution |
+| **List Staff** | `GET` | `/api/admin/staff` | `SUPER_ADMIN` | List all staff with filtering, search, and pagination |
+| **Get Staff** | `GET` | `/api/admin/staff/:id` | `SUPER_ADMIN` | Get single staff profile with bound institution |
+| **Update Staff** | `PATCH` | `/api/admin/staff/:id` | `SUPER_ADMIN` | Update name, email, phone, institution, status, or password |
+| **Delete Staff** | `DELETE` | `/api/admin/staff/:id` | `SUPER_ADMIN` | Permanently delete a staff account |
+
+---
+
+### 5.1 Create Staff Member (`POST /api/admin/staff`)
+
+Creates a new staff account and binds it to an institution.
+
+#### Request Body
+```json
+{
+  "name": "Abebe Kebede",
+  "email": "cbe.staff@mesob.hawassa.gov.et",
+  "password": "StaffSecretPassword2026!",
+  "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+  "phone": "0911002233",
+  "isActive": true
+}
+```
+> [!NOTE]
+> You may supply either `institutionId` (UUID/cuid) or `institutionCode` (e.g., `"CBE"`, `"ICS"`, `"TELECOM"`).
+
+#### Success Response (`201 Created`)
+```json
+{
+  "success": true,
+  "message": "Staff member created successfully.",
+  "data": {
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "email": "cbe.staff@mesob.hawassa.gov.et",
+    "name": "Abebe Kebede",
+    "phone": "0911002233",
+    "role": "STAFF",
+    "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+    "isActive": true,
+    "createdAt": "2026-11-12T10:00:00.000Z",
+    "updatedAt": "2026-11-12T10:00:00.000Z",
+    "institution": {
+      "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+      "code": "CBE",
+      "name": { "en": "Commercial Bank of Ethiopia", "am": "የኢትዮጵያ ንግድ ባንክ" },
+      "icon": "https://...",
+      "floorRoomNumber": "Counter 4"
+    }
+  }
+}
+```
+
+---
+
+### 5.2 List Staff Members (`GET /api/admin/staff`)
+
+Supports query parameters:
+- `page`: default `1`
+- `limit`: default `20` (max `100`)
+- `institutionId` or `institutionCode`: Filter staff belonging to a specific institution.
+- `search`: Case-insensitive text search matching name, email, or phone.
+- `status`: `"active"`, `"inactive"`, or `"all"` (default `"all"`).
+
+#### Success Response (`200 OK`)
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "cmw8xoq210000fcyk7irp35mv",
+      "name": "Abebe Kebede",
+      "email": "cbe.staff@mesob.hawassa.gov.et",
+      "phone": "0911002233",
+      "role": "STAFF",
+      "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+      "isActive": true,
+      "institution": {
+        "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+        "code": "CBE",
+        "name": { "en": "Commercial Bank of Ethiopia" }
+      }
+    }
+  ],
+  "meta": {
+    "total": 14,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 1
+  }
+}
+```
+
+---
+
+### 5.3 Get Single Staff Member (`GET /api/admin/staff/:id`)
+
+#### Success Response (`200 OK`)
 ```json
 {
   "success": true,
   "data": {
-    "id": "a7d5d9ff-f6b2-4d08-9a83-48d45adbc1cb",
-    "reference": "VIP-950963-5E8A",
-    "person": "Gurmesa Ayele",
-    "phone": "0916970942",
-    "status": "in-progress",
-    "history": [
-      {
-        "id": "hist-2",
-        "previousStatus": "pending",
-        "newStatus": "in-progress",
-        "changedById": "usr-1",
-        "changedByName": "Abebe Kebede",
-        "notes": "Verified origin documents",
-        "createdAt": "2026-11-09T01:35:12.000Z"
-      }
-    ]
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "name": "Abebe Kebede",
+    "email": "cbe.staff@mesob.hawassa.gov.et",
+    "phone": "0911002233",
+    "role": "STAFF",
+    "institutionId": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+    "isActive": true,
+    "institution": {
+      "id": "e8b69e0e-056b-47e7-a147-cf37b178ee39",
+      "code": "CBE",
+      "name": { "en": "Commercial Bank of Ethiopia" }
+    }
   }
 }
 ```
 
 ---
 
-## 6. Frontend Integration Helper (`frontend/src/services/adminApi.js`)
+### 5.4 Update Staff Member (`PATCH /api/admin/staff/:id`)
 
-Add the following methods to `adminApi` in `frontend/src/services/adminApi.js`:
+All fields in the body are optional:
+- `name`: string (min 2 chars)
+- `email`: string (valid email format, uniqueness verified)
+- `phone`: string or `null`
+- `institutionId` or `institutionCode`: Reassign to a different institution
+- `isActive`: boolean (`true` to activate, `false` to deactivate)
+- `password`: string (min 6 chars to reset staff password)
+
+#### Example Request
+```http
+PATCH /api/admin/staff/cmw8xoq210000fcyk7irp35mv
+Content-Type: application/json
+Authorization: Bearer <super_admin_jwt>
+
+{
+  "name": "Abebe Kebede Updated",
+  "phone": "0911998877",
+  "institutionCode": "ICS",
+  "isActive": true
+}
+```
+
+#### Success Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Staff member updated successfully.",
+  "data": {
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "name": "Abebe Kebede Updated",
+    "email": "cbe.staff@mesob.hawassa.gov.et",
+    "phone": "0911998877",
+    "role": "STAFF",
+    "institutionId": "ics_uuid_67890",
+    "isActive": true,
+    "institution": {
+      "id": "ics_uuid_67890",
+      "code": "ICS",
+      "name": { "en": "Immigration & Citizenship Service" }
+    }
+  }
+}
+```
+
+---
+
+### 5.5 Delete Staff Member (`DELETE /api/admin/staff/:id`)
+
+Permanently deletes the staff account.
+
+#### Example Request
+```http
+DELETE /api/admin/staff/cmw8xoq210000fcyk7irp35mv
+Authorization: Bearer <super_admin_jwt>
+```
+
+#### Success Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Staff member account deleted successfully.",
+  "data": {
+    "id": "cmw8xoq210000fcyk7irp35mv",
+    "email": "cbe.staff@mesob.hawassa.gov.et",
+    "name": "Abebe Kebede Updated"
+  }
+}
+```
+
+---
+
+### 5.6 Frontend Service Helper (`frontend/src/services/adminApi.js`)
+
+Super admin client method template:
 
 ```javascript
-export const adminApi = {
-  // ... existing methods
-
-  /**
-   * Fetch VIP tickets with pagination and filtering
-   * @param {Object} params - { page: 1, limit: 25, status: 'pending' }
-   */
-  vipTickets: (params = {}) => {
-    const query = new URLSearchParams();
-    if (params.page) query.set("page", params.page);
-    if (params.limit) query.set("limit", params.limit);
-    if (params.status && params.status !== "all") query.set("status", params.status);
-    const qs = query.toString();
-    return request(`/admin/vip-tickets${qs ? `?${qs}` : ""}`);
+export const staffApi = {
+  // List staff with search and filters
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/admin/staff${qs ? `?${qs}` : ""}`);
   },
 
-  /**
-   * Update the service-processing status of a VIP ticket
-   * @param {string} ticketId
-   * @param {string} status - 'pending' | 'in-progress' | 'completed'
-   * @param {string} [notes]
-   */
-  updateVipServiceStatus: (ticketId, status, notes = "") => {
-    return request(`/admin/vip-tickets/${encodeURIComponent(ticketId)}/service-status`, {
+  // Get single staff by ID
+  getById: (id) => request(`/admin/staff/${encodeURIComponent(id)}`),
+
+  // Create staff member
+  create: (data) =>
+    request("/admin/staff", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  // Update staff member (profile, reassign, status, or password)
+  update: (id, data) =>
+    request(`/admin/staff/${encodeURIComponent(id)}`, {
       method: "PATCH",
-      body: JSON.stringify({ status, notes }),
-    });
-  },
+      body: JSON.stringify(data),
+    }),
 
-  /**
-   * Get ticket details with audit history
-   * @param {string} ticketId
-   */
-  vipTicketDetails: (ticketId) => {
-    return request(`/admin/vip-tickets/${encodeURIComponent(ticketId)}`);
-  },
+  // Delete staff member
+  delete: (id) =>
+    request(`/admin/staff/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
 };
 ```
