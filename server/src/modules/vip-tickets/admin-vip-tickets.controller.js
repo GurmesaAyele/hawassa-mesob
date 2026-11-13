@@ -69,6 +69,33 @@ export function getAdminTicketIncludes() {
 }
 
 /**
+ * Helper to compute the processing status of each service on a ticket
+ * from the ticket's status history records.
+ */
+export function extractServiceStatuses(ticket, services = []) {
+  const statuses = {};
+  const baseStatus = ticket?.serviceProcessingStatus || "PENDING";
+  for (const s of services) {
+    if (s && s.id) {
+      statuses[s.id] = baseStatus;
+    }
+  }
+
+  const history = Array.isArray(ticket?.status_history) ? ticket.status_history : [];
+  for (const s of services) {
+    if (!s || !s.id) continue;
+    for (const h of history) {
+      if (h.notes && h.notes.includes(`[service:${s.id}]`)) {
+        statuses[s.id] = h.newStatus;
+        break; // First match is the latest because status_history is ordered createdAt desc
+      }
+    }
+  }
+
+  return statuses;
+}
+
+/**
  * Formats a raw VIP ticket database record into the client-side admin contract.
  */
 export function formatAdminTicket(ticket) {
@@ -81,6 +108,8 @@ export function formatAdminTicket(ticket) {
   } else if (ticket.services) {
     services = [ticket.services];
   }
+
+  const serviceStatuses = extractServiceStatuses(ticket, services);
 
   const formattedServices = services.map((s) => {
     let name = s.id;
@@ -96,6 +125,7 @@ export function formatAdminTicket(ticket) {
       name,
       estimatedFee: s.estimatedFee ?? null,
       processingDays: s.processingDays ?? null,
+      status: serializeStatus(serviceStatuses[s.id] || ticket.serviceProcessingStatus),
       provider: s.provider
         ? {
             id: s.provider.id,
@@ -128,6 +158,8 @@ export function formatAdminTicket(ticket) {
     updatedAt: ticket.updatedAt instanceof Date ? ticket.updatedAt.toISOString() : ticket.updatedAt,
     queueNumber: ticket.queueNumber || null,
     queueDisplay: ticket.queueNumber ? `VIP-${String(ticket.queueNumber).padStart(3, "0")}` : null,
+    servedAt: ticket.servedAt instanceof Date ? ticket.servedAt.toISOString() : ticket.servedAt || null,
+    completedAt: ticket.completedAt instanceof Date ? ticket.completedAt.toISOString() : ticket.completedAt || null,
     history: Array.isArray(ticket.status_history)
       ? ticket.status_history.map((h) => ({
           id: h.id,
@@ -246,7 +278,7 @@ export async function listAdminVipTickets(req, res) {
 export async function updateVipTicketServiceStatus(req, res) {
   try {
     const { id } = req.params;
-    const { status, notes } = req.body || {};
+    const { status, notes, serviceId } = req.body || {};
     const currentUser = req.user;
 
     if (!id || typeof id !== "string" || !id.trim()) {
@@ -288,43 +320,162 @@ export async function updateVipTicketServiceStatus(req, res) {
       });
     }
 
-    const currentDbStatus = ticket.serviceProcessingStatus;
-
-    // ─── Idempotency Check ──────────────────────────────────────────────────
-    // If ticket is already in the target status, return 200 without duplicate audit row
-    if (currentDbStatus === targetDbStatus) {
-      return res.status(200).json({
-        success: true,
-        message: `Ticket is already in '${serializeStatus(targetDbStatus)}' status.`,
-        data: formatAdminTicket(ticket),
-      });
-    }
-
-    // ─── Transition Validation ──────────────────────────────────────────────
-    // STAFF can only progress forward: PENDING -> IN_PROGRESS -> COMPLETED
-    if (currentUser.role === "STAFF") {
-      const isValidTransition =
-        (currentDbStatus === "PENDING" && targetDbStatus === "IN_PROGRESS") ||
-        (currentDbStatus === "IN_PROGRESS" && targetDbStatus === "COMPLETED");
-
-      if (!isValidTransition) {
-        return res.status(400).json({
-          error: `Invalid status transition from '${serializeStatus(currentDbStatus)}' to '${serializeStatus(targetDbStatus)}'. Staff can only advance status forward: 'pending' -> 'in-progress' -> 'completed'.`,
-        });
-      }
-    }
-    // SUPER_ADMIN can perform any transition (e.g., reset back to pending or in-progress)
-
-    // ─── Atomic Database Transaction ────────────────────────────────────────
     const now = new Date();
     const historyId = crypto.randomUUID();
     const trimmedNotes = typeof notes === "string" && notes.trim() ? notes.trim() : null;
 
+    // Resolve all associated services on this ticket
+    const allServices = [];
+    if (Array.isArray(ticket.ticket_services) && ticket.ticket_services.length > 0) {
+      for (const ts of ticket.ticket_services) {
+        if (ts.service) allServices.push(ts.service);
+        else if (ts.serviceId) allServices.push({ id: ts.serviceId });
+      }
+    } else if (ticket.services) {
+      allServices.push(ticket.services);
+    } else if (ticket.serviceId) {
+      allServices.push({ id: ticket.serviceId });
+    }
+
+    const targetServiceId = typeof serviceId === "string" && serviceId.trim() ? serviceId.trim() : null;
+
+    let nextTicketProcessingStatus = ticket.serviceProcessingStatus;
+    let nextTicketLifecycleStatus = ticket.status;
+    let nextServedAt = ticket.servedAt;
+    let nextCompletedAt = ticket.completedAt;
+    let historyNotes = trimmedNotes;
+    let historyPrevStatus = ticket.serviceProcessingStatus;
+
+    if (targetServiceId) {
+      // ─── Case A: Updating status for a specific service on a multi-service ticket ───
+      const serviceExists = allServices.some((s) => s.id === targetServiceId);
+      if (!serviceExists) {
+        return res.status(400).json({
+          error: `Validation failed: Service ID '${targetServiceId}' does not belong to this VIP ticket.`,
+        });
+      }
+
+      const currentServiceStatuses = extractServiceStatuses(ticket, allServices);
+      const currentServiceDbStatus = currentServiceStatuses[targetServiceId] || ticket.serviceProcessingStatus;
+
+      // Idempotency check for this individual service
+      if (currentServiceDbStatus === targetDbStatus) {
+        return res.status(200).json({
+          success: true,
+          message: `Ticket service '${targetServiceId}' is already in '${serializeStatus(targetDbStatus)}' status.`,
+          data: formatAdminTicket(ticket),
+        });
+      }
+
+      // STAFF forward progression rule on this service
+      if (currentUser.role === "STAFF") {
+        const isValidTransition =
+          (currentServiceDbStatus === "PENDING" && targetDbStatus === "IN_PROGRESS") ||
+          (currentServiceDbStatus === "IN_PROGRESS" && targetDbStatus === "COMPLETED");
+
+        if (!isValidTransition) {
+          return res.status(400).json({
+            error: `Invalid status transition from '${serializeStatus(currentServiceDbStatus)}' to '${serializeStatus(targetDbStatus)}'. Staff can only advance status forward: 'pending' -> 'in-progress' -> 'completed'.`,
+          });
+        }
+      }
+
+      // Calculate aggregate ticket status across all associated services
+      const updatedStatuses = {
+        ...currentServiceStatuses,
+        [targetServiceId]: targetDbStatus,
+      };
+
+      const statusesArray = allServices.map((s) => updatedStatuses[s.id] || "PENDING");
+      const allCompleted = statusesArray.length > 0 && statusesArray.every((st) => st === "COMPLETED");
+      const anyInProgressOrCompleted = statusesArray.some((st) => st === "IN_PROGRESS" || st === "COMPLETED");
+
+      if (allCompleted) {
+        // Every associated service is finished: mark ticket completed and used
+        nextTicketProcessingStatus = "COMPLETED";
+        nextTicketLifecycleStatus = "USED";
+        nextCompletedAt = now;
+        nextServedAt = nextServedAt || now;
+      } else if (anyInProgressOrCompleted) {
+        // At least one service is underway or finished, but others remain: ticket stays IN_PROGRESS & SERVING
+        nextTicketProcessingStatus = "IN_PROGRESS";
+        if (ticket.status === "QUEUED" || ticket.status === "CONFIRMED") {
+          nextTicketLifecycleStatus = "SERVING";
+        }
+        nextServedAt = nextServedAt || now;
+        if (ticket.status === "USED") {
+          nextTicketLifecycleStatus = "SERVING";
+          nextCompletedAt = null;
+        }
+      } else {
+        nextTicketProcessingStatus = "PENDING";
+        if (ticket.status === "SERVING" || ticket.status === "USED") {
+          nextTicketLifecycleStatus = ticket.queueNumber ? "QUEUED" : "CONFIRMED";
+          nextServedAt = null;
+          nextCompletedAt = null;
+        }
+      }
+
+      historyPrevStatus = currentServiceDbStatus;
+      historyNotes = `[service:${targetServiceId}] ${trimmedNotes || ""}`.trim();
+    } else {
+      // ─── Case B: Updating status for the entire ticket (or single-service ticket) ───
+      const currentDbStatus = ticket.serviceProcessingStatus;
+
+      // Idempotency check
+      if (currentDbStatus === targetDbStatus) {
+        return res.status(200).json({
+          success: true,
+          message: `Ticket is already in '${serializeStatus(targetDbStatus)}' status.`,
+          data: formatAdminTicket(ticket),
+        });
+      }
+
+      // STAFF forward progression rule
+      if (currentUser.role === "STAFF") {
+        const isValidTransition =
+          (currentDbStatus === "PENDING" && targetDbStatus === "IN_PROGRESS") ||
+          (currentDbStatus === "IN_PROGRESS" && targetDbStatus === "COMPLETED");
+
+        if (!isValidTransition) {
+          return res.status(400).json({
+            error: `Invalid status transition from '${serializeStatus(currentDbStatus)}' to '${serializeStatus(targetDbStatus)}'. Staff can only advance status forward: 'pending' -> 'in-progress' -> 'completed'.`,
+          });
+        }
+      }
+
+      nextTicketProcessingStatus = targetDbStatus;
+
+      if (targetDbStatus === "IN_PROGRESS") {
+        if (ticket.status === "QUEUED" || ticket.status === "CONFIRMED") {
+          nextTicketLifecycleStatus = "SERVING";
+        }
+        nextServedAt = nextServedAt || now;
+      } else if (targetDbStatus === "COMPLETED") {
+        nextTicketLifecycleStatus = "USED";
+        nextCompletedAt = now;
+        nextServedAt = nextServedAt || now;
+      } else if (targetDbStatus === "PENDING") {
+        if (ticket.status === "SERVING" || ticket.status === "USED") {
+          nextTicketLifecycleStatus = ticket.queueNumber ? "QUEUED" : "CONFIRMED";
+          nextServedAt = null;
+          nextCompletedAt = null;
+        }
+      }
+
+      historyPrevStatus = currentDbStatus;
+      historyNotes = trimmedNotes;
+    }
+
+    // ─── Atomic Database Transaction ────────────────────────────────────────
     const [updatedTicket, historyRecord] = await prisma.$transaction([
       prisma.vip_tickets.update({
         where: { id: ticket.id },
         data: {
-          serviceProcessingStatus: targetDbStatus,
+          serviceProcessingStatus: nextTicketProcessingStatus,
+          status: nextTicketLifecycleStatus,
+          servedAt: nextServedAt,
+          completedAt: nextCompletedAt,
           updatedAt: now,
         },
         include: getAdminTicketIncludes(),
@@ -333,11 +484,11 @@ export async function updateVipTicketServiceStatus(req, res) {
         data: {
           id: historyId,
           ticketId: ticket.id,
-          previousStatus: currentDbStatus,
+          previousStatus: historyPrevStatus,
           newStatus: targetDbStatus,
           changedById: currentUser.id,
           changedByName: currentUser.name,
-          notes: trimmedNotes,
+          notes: historyNotes,
           createdAt: now,
         },
       }),
@@ -345,7 +496,7 @@ export async function updateVipTicketServiceStatus(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: `VIP ticket service-processing status updated from '${serializeStatus(currentDbStatus)}' to '${serializeStatus(targetDbStatus)}'.`,
+      message: `VIP ticket service-processing status updated from '${serializeStatus(historyPrevStatus)}' to '${serializeStatus(targetDbStatus)}'.`,
       data: formatAdminTicket(updatedTicket),
       history: {
         id: historyRecord.id,
