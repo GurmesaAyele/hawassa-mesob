@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminApi } from "../../services/adminApi";
+import { EmptyState } from "./AdminFields";
+import { Skeleton, SkeletonVipTable, SkeletonText } from "./AdminSkeleton";
 
 const TICKET_STATUSES = [
   { id: "pending", label: "Pending" },
@@ -12,6 +14,15 @@ const STATUS_STYLES = {
   "in-progress": "border-sky-200 bg-sky-50 text-sky-900",
   completed: "border-emerald-200 bg-emerald-50 text-emerald-900",
 };
+
+function getInstName(inst) {
+  if (!inst) return "";
+  if (typeof inst.name === "string") return inst.name;
+  if (inst.name && typeof inst.name === "object") {
+    return inst.name.en || inst.name.am || inst.name.sid || inst.code || "";
+  }
+  return inst.code || "";
+}
 
 function formatDate(value) {
   if (!value) return "—";
@@ -29,13 +40,34 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [updatingServiceId, setUpdatingServiceId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedRef, setCopiedRef] = useState(null);
+  const [updatingKey, setUpdatingKey] = useState(null);
   const [selectedTicketHistory, setSelectedTicketHistory] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
   const isStaff = currentUser?.role === "STAFF";
   const staffInstitution = currentUser?.institution;
+
+  const copyRef = (text) => {
+    if (!text) return;
+    navigator.clipboard?.writeText(text);
+    setCopiedRef(text);
+    setTimeout(() => setCopiedRef(null), 2000);
+  };
+
+  const filteredTickets = useMemo(() => {
+    if (!searchQuery.trim()) return tickets;
+    const q = searchQuery.toLowerCase().trim();
+    return tickets.filter((t) => {
+      const ref = (t.reference || t.id || "").toLowerCase();
+      const name = (t.person || t.fullName || "").toLowerCase();
+      const phone = (t.phone || "").toLowerCase();
+      const email = (t.email || "").toLowerCase();
+      return ref.includes(q) || name.includes(q) || phone.includes(q) || email.includes(q);
+    });
+  }, [tickets, searchQuery]);
 
   const fetchTickets = useCallback(async () => {
     setLoading(true);
@@ -69,8 +101,9 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
     fetchTickets();
   }, [fetchTickets]);
 
-  const handleUpdateStatus = async (ticketId, nextStatus, serviceId) => {
-    setUpdatingServiceId(serviceId || ticketId);
+  const handleUpdateStatus = async (ticketId, nextStatus, serviceId, uniqueKey) => {
+    const key = uniqueKey || `${ticketId}:${serviceId}`;
+    setUpdatingKey(key);
     setError("");
     try {
       await adminApi.vipTickets.updateServiceStatus(ticketId, nextStatus, "", serviceId);
@@ -78,7 +111,7 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
     } catch (err) {
       setError(err.message || `Failed to update status to ${nextStatus}.`);
     } finally {
-      setUpdatingServiceId(null);
+      setUpdatingKey(null);
     }
   };
 
@@ -100,9 +133,9 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
   };
 
   return (
-    <section className="admin-section" aria-labelledby="vip-tickets-heading">
+    <section className="space-y-4" aria-labelledby="vip-tickets-heading">
       {/* ─── Compact Pro Toolbar (Unified Desk Info, Live Counts & Filters) ─── */}
-      <div className="mb-3.5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-3.5 py-2.5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200/90 bg-white p-3.5 shadow-xs">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-2">
             <h2 id="vip-tickets-heading" className="text-base font-bold text-stone-900 tracking-tight">
@@ -116,7 +149,7 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
           {isStaff && staffInstitution && (
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-stone-100 border border-stone-200 px-2.5 py-1 text-xs text-stone-700">
               <span className="font-bold text-emerald-800">{staffInstitution.code || "Desk"}:</span>
-              <span className="font-medium">{staffInstitution.name?.en || staffInstitution.name || staffInstitution.code}</span>
+              <span className="font-medium">{getInstName(staffInstitution)}</span>
               {staffInstitution.floorRoomNumber && (
                 <span className="text-stone-400">({staffInstitution.floorRoomNumber})</span>
               )}
@@ -126,18 +159,38 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
 
         {/* ─── Filter Tabs & Actions ─── */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Quick Search */}
+          <div className="relative">
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search reference, citizen..."
+              className="w-48 sm:w-56 rounded-md border border-stone-300 bg-white px-2.5 py-1 text-xs text-stone-900 placeholder:text-stone-400 focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700/20"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
           {/* Institution Selector for Super Admin */}
           {isSuperAdmin && institutions.length > 0 && (
             <select
               value={institutionFilter}
               onChange={(e) => setInstitutionFilter(e.target.value)}
-              className="rounded border border-stone-300 bg-white px-2 py-1 text-xs font-semibold text-stone-700 focus:border-emerald-700 focus:outline-hidden"
+              className="rounded-md border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 focus:border-emerald-700 focus:outline-hidden"
               aria-label="Filter by institution"
             >
               <option value="all">All Institutions ({institutions.length})</option>
               {institutions.map((inst) => (
                 <option key={inst.id} value={inst.id}>
-                  {inst.code} — {inst.name?.en || inst.name || inst.code}
+                  {inst.code} — {getInstName(inst)}
                 </option>
               ))}
             </select>
@@ -217,9 +270,10 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
             type="button"
             onClick={fetchTickets}
             disabled={loading}
-            className="inline-flex items-center gap-1 rounded border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 shadow-xs transition-all"
           >
-            {loading ? "..." : "↻ Refresh"}
+            <span className={loading ? "inline-block animate-spin" : ""}>↻</span>
+            <span>{loading ? "Updating..." : "Refresh"}</span>
           </button>
         </div>
       </div>
@@ -231,9 +285,9 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
         </div>
       )}
 
-      <div className="overflow-x-auto border border-stone-200 bg-white shadow-xs">
+      <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white shadow-xs">
         <table className="w-full min-w-[840px] text-left text-sm">
-          <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-600">
+          <thead className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
             <tr>
               <th scope="col" className="px-4 py-3">Ticket Ref</th>
               <th scope="col" className="px-4 py-3">Citizen Contact</th>
@@ -245,28 +299,69 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
           </thead>
           <tbody>
             {loading && tickets.length === 0 ? (
+              <SkeletonVipTable rows={5} />
+            ) : filteredTickets.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-stone-500">
-                  Loading verified VIP orders...
-                </td>
-              </tr>
-            ) : tickets.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-stone-500">
-                  No VIP tickets found for this view.
+                <td colSpan="6" className="p-0">
+                  <EmptyState
+                    icon="queue"
+                    title={tickets.length === 0 ? (filter === "all" ? "VIP Queue is clear" : `No ${filter} tickets in queue`) : "No matching tickets"}
+                    description={
+                      tickets.length === 0
+                        ? "All citizen appointments for this desk are up-to-date. New incoming orders will appear here automatically."
+                        : `No tickets match "${searchQuery}". Try searching for another name, phone, or ticket reference.`
+                    }
+                    action={
+                      searchQuery ? (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery("")}
+                          className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition-all shadow-xs"
+                        >
+                          Clear search
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={fetchTickets}
+                          disabled={loading}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 shadow-xs transition-all"
+                        >
+                          <span className={loading ? "inline-block animate-spin" : ""}>↻</span>
+                          <span>Refresh Queue</span>
+                        </button>
+                      )
+                    }
+                  />
                 </td>
               </tr>
             ) : (
-              tickets.map((ticket) => {
+              filteredTickets.map((ticket) => {
                 const serviceList = ticket.services && ticket.services.length > 0
                   ? ticket.services
                   : [{ id: null, title: ticket.service, status: ticket.status }];
 
                 return (
-                  <tr key={ticket.id || ticket.reference} className="border-t border-stone-200 hover:bg-stone-50/50">
+                  <tr key={ticket.id || ticket.reference} className="border-t border-stone-200 hover:bg-stone-50/50 transition-colors">
                     <td className="whitespace-nowrap px-4 py-4 align-top">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-stone-900">{ticket.reference}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold text-xs bg-stone-100 text-stone-900 px-2 py-0.5 rounded border border-stone-200">
+                          {ticket.reference}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyRef(ticket.reference)}
+                          title="Click to copy reference"
+                          className="rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors"
+                        >
+                          {copiedRef === ticket.reference ? (
+                            <span className="text-[10px] font-bold text-emerald-600">✓</span>
+                          ) : (
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                        </button>
                         {ticket.ticketStatus && (
                           <span className="rounded bg-stone-100 px-1.5 py-0.5 text-xs font-semibold text-stone-600">
                             {ticket.ticketStatus}
@@ -276,9 +371,10 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                       <button
                         type="button"
                         onClick={() => viewHistory(ticket)}
-                        className="mt-1.5 inline-block text-xs font-medium text-emerald-700 hover:underline"
+                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
                       >
-                        🕒 View Audit Log
+                        <span>🕒</span>
+                        <span>Audit Log</span>
                       </button>
                     </td>
 
@@ -294,12 +390,14 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                         {serviceList.map((svc, idx) => {
                           const svcTitle = svc.title?.en || svc.title || svc.name || "VIP Service";
                           const svcInst = svc.institution?.code || svc.institution?.name?.en || "";
-                          const svcStatus = svc.status || ticket.status || "pending";
-                          const isBusy = updatingServiceId === (svc.id || ticket.id);
+                          const svcStatus = svc.status || "pending";
+                          const serviceIdentifier = svc.ticketServiceId || svc.id || `svc-${idx}`;
+                          const serviceKey = `${ticket.id}:${serviceIdentifier}`;
+                          const isBusy = updatingKey === serviceKey;
 
                           return (
                             <div
-                              key={svc.id || idx}
+                              key={serviceKey}
                               className="flex flex-wrap items-center justify-between gap-2 rounded border border-stone-200 bg-stone-50/60 p-2.5 text-xs"
                             >
                               <div className="min-w-0 flex-1">
@@ -330,24 +428,26 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                                   <button
                                     type="button"
                                     disabled={isBusy}
-                                    onClick={() => handleUpdateStatus(ticket.id, "in-progress", svc.id)}
-                                    className="rounded bg-sky-600 px-2.5 py-1 font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
+                                    onClick={() => handleUpdateStatus(ticket.id, "in-progress", svc.ticketServiceId || svc.id, serviceKey)}
+                                    className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-3 py-1 font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-xs"
                                   >
-                                    {isBusy ? "..." : "Start →"}
+                                    {isBusy ? <span className="inline-block animate-spin text-[10px]">↻</span> : null}
+                                    <span>{isBusy ? "Updating..." : "Start →"}</span>
                                   </button>
                                 )}
                                 {svcStatus === "in-progress" && (
                                   <button
                                     type="button"
                                     disabled={isBusy}
-                                    onClick={() => handleUpdateStatus(ticket.id, "completed", svc.id)}
-                                    className="rounded bg-emerald-700 px-2.5 py-1 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                                    onClick={() => handleUpdateStatus(ticket.id, "completed", svc.ticketServiceId || svc.id, serviceKey)}
+                                    className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-3 py-1 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 transition-colors shadow-xs"
                                   >
-                                    {isBusy ? "..." : "Done ✓"}
+                                    {isBusy ? <span className="inline-block animate-spin text-[10px]">↻</span> : null}
+                                    <span>{isBusy ? "Updating..." : "Done ✓"}</span>
                                   </button>
                                 )}
                                 {svcStatus === "completed" && (
-                                  <span className="text-[11px] font-bold text-emerald-800">
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                                     ✓ Served
                                   </span>
                                 )}
@@ -389,21 +489,26 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
 
       {/* ─── Audit History Modal ─── */}
       {selectedTicketHistory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-xl rounded-lg border border-stone-200 bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-xl rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div>
-                <h3 className="text-lg font-bold text-stone-900">
-                  Ticket Audit Trail: {selectedTicketHistory.ticket?.reference}
-                </h3>
-                <p className="text-xs text-stone-500">
-                  Citizen: {selectedTicketHistory.ticket?.person}
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-stone-900">
+                    Audit Trail:
+                  </h3>
+                  <span className="font-mono font-bold text-xs bg-stone-100 text-stone-800 px-2 py-0.5 rounded border border-stone-200">
+                    {selectedTicketHistory.ticket?.reference}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-stone-500">
+                  Citizen: <strong>{selectedTicketHistory.ticket?.person}</strong>
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedTicketHistory(null)}
-                className="rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+                className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors"
               >
                 ✕
               </button>
@@ -411,34 +516,58 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
 
             <div className="mt-4 max-h-96 overflow-y-auto space-y-3">
               {historyLoading ? (
-                <p className="py-6 text-center text-sm text-stone-500">Loading audit history...</p>
-              ) : selectedTicketHistory.records.length === 0 ? (
-                <p className="py-6 text-center text-sm text-stone-500">No status changes recorded yet.</p>
-              ) : (
-                selectedTicketHistory.records.map((rec) => (
-                  <div key={rec.id} className="rounded border border-stone-200 bg-stone-50 p-3 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-stone-900">
-                        {rec.previousStatus || "START"} → <span className="text-emerald-700">{rec.newStatus}</span>
-                      </span>
-                      <span className="text-stone-500">{formatDate(rec.createdAt)}</span>
+                <div className="space-y-2.5 py-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="rounded-xl border border-stone-100 bg-stone-50/80 p-3.5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-3.5 w-28" />
+                        <Skeleton className="h-2.5 w-20" />
+                      </div>
+                      <Skeleton className="h-3 w-40" />
+                      <Skeleton className="h-2.5 w-3/4 opacity-60" />
                     </div>
-                    <p className="mt-1 text-stone-600">
-                      Officer: <strong>{rec.changedByName || "System"}</strong>
-                    </p>
-                    {rec.notes && (
-                      <p className="mt-1 italic text-stone-700">Note: &ldquo;{rec.notes}&rdquo;</p>
-                    )}
-                  </div>
-                ))
+                  ))}
+                </div>
+              ) : selectedTicketHistory.records.length === 0 ? (
+                <EmptyState
+                  icon="queue"
+                  title="No status changes recorded"
+                  description="This ticket is in its initial queued state and has not been updated yet."
+                />
+              ) : (
+                <div className="relative pl-4 space-y-4 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-200">
+                  {selectedTicketHistory.records.map((rec) => (
+                    <div key={rec.id} className="relative rounded-xl border border-stone-200/90 bg-white p-3.5 text-xs shadow-xs">
+                      <div className="absolute -left-4.5 top-4 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-600 ring-2 ring-emerald-100"></div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-stone-500">{rec.previousStatus || "QUEUED"}</span>
+                          <span className="text-stone-400">→</span>
+                          <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 uppercase text-[11px]">
+                            {rec.newStatus}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-stone-400">{formatDate(rec.createdAt)}</span>
+                      </div>
+                      <p className="mt-2 text-stone-600">
+                        Updated by: <strong className="text-stone-800">{rec.changedByName || "System"}</strong>
+                      </p>
+                      {rec.notes && (
+                        <p className="mt-1.5 rounded-md bg-stone-50 p-2 italic text-stone-700 border border-stone-100">
+                          &ldquo;{rec.notes}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
-            <div className="mt-5 border-t border-stone-200 pt-3 text-right">
+            <div className="mt-5 border-t border-stone-100 pt-3 text-right">
               <button
                 type="button"
                 onClick={() => setSelectedTicketHistory(null)}
-                className="rounded border border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+                className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 shadow-xs transition-colors"
               >
                 Close
               </button>

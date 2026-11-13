@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminApi } from "../../services/adminApi";
-import { Button, FIELD_CLASS, Field } from "./AdminFields";
+import { Button, FIELD_CLASS, Field, EmptyState, Status } from "./AdminFields";
+import { Skeleton, SkeletonTable } from "./AdminSkeleton";
 import ConfirmationDialog from "./ConfirmationDialog";
+
+function getInstitutionDisplayName(inst) {
+  if (!inst) return "Unassigned";
+  if (typeof inst.name === "string") return inst.name;
+  if (inst.name && typeof inst.name === "object") {
+    return inst.name.en || inst.name.am || inst.name.sid || inst.code || "Unassigned";
+  }
+  return inst.code || "Unassigned";
+}
 
 function formatDate(value) {
   if (!value) return "—";
@@ -174,59 +184,134 @@ export default function StaffManager({ institutions = [], currentUser }) {
   const inactiveCount = staffList.length - activeCount;
 
   return (
-    <section className="admin-section" aria-labelledby="staff-heading">
-      {/* ─── Header & Primary Action ─── */}
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <section className="space-y-4" aria-labelledby="staff-heading">
+      {/* ─── Elevated Header & Primary Action ─── */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-stone-500">Institution Desk Accounts</p>
-          <h2 id="staff-heading" className="text-2xl font-bold text-stone-900">
-            Staff members <span className="ml-1 text-base font-medium text-stone-500">{totalCount}</span>
-          </h2>
+          <div className="flex items-center gap-2.5">
+            <h2 id="staff-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
+              Staff Member Accounts
+            </h2>
+            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+              {totalCount}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-stone-500">
+            Authorized desk officers assigned to manage VIP appointments and orders.
+          </p>
         </div>
-        <Button type="button" variant="primary" onClick={openCreateModal}>
-          + Add Staff Member
+
+        <Button
+          type="button"
+          variant="primary"
+          onClick={openCreateModal}
+          className="rounded-xl shadow-xs flex items-center gap-1.5"
+        >
+          <span className="text-base leading-none">+</span>
+          <span>Add Staff Member</span>
         </Button>
       </div>
 
       {notice && (
-        <div role="status" className="mb-4 border-l-4 border-emerald-700 bg-emerald-50 p-4 text-sm text-emerald-900">
+        <div role="status" className="border-l-4 border-emerald-700 bg-emerald-50 p-3.5 text-xs text-emerald-900 rounded-r-lg">
           <p className="font-semibold">{notice}</p>
         </div>
       )}
 
       {error && (
-        <div role="alert" className="mb-4 border-l-4 border-red-600 bg-red-50 p-4 text-sm text-red-900">
+        <div role="alert" className="border-l-4 border-red-600 bg-red-50 p-3.5 text-xs text-red-900 rounded-r-lg">
           <p className="font-semibold">Error</p>
           <p>{error}</p>
         </div>
       )}
 
       {/* ─── Metrics Cards ─── */}
-      <div className="mb-5 grid gap-3 sm:grid-cols-3" aria-label="Staff member summary totals">
-        <article className="border border-stone-200 bg-white p-4">
-          <p className="text-sm font-medium text-stone-600">Total Staff Accounts</p>
-          <p className="mt-1 text-2xl font-bold text-stone-900">{totalCount}</p>
+      <div className="grid gap-4 sm:grid-cols-3" aria-label="Staff member summary totals">
+        <article className="relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs hover:shadow-md transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-400"></div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 font-mono text-xs font-bold">
+              STAFF
+            </span>
+            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold uppercase text-stone-600">
+              Accounts
+            </span>
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Total Staff Accounts</p>
+          {loading && staffList.length === 0 ? (
+            <Skeleton className="h-8 w-20 mt-1" />
+          ) : (
+            <p className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">{totalCount}</p>
+          )}
+          <p className="mt-2 text-xs font-medium text-stone-500">Authorized desk operators</p>
         </article>
-        <article className="border border-stone-200 bg-white p-4">
-          <p className="text-sm font-medium text-stone-600">Active Desks</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-800">{activeCount}</p>
+
+        <article className="relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs hover:shadow-md transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-emerald-400"></div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 font-mono text-xs font-bold">
+              ONLINE
+            </span>
+            <span className="rounded-full bg-emerald-100/80 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-800">
+              Active Desks
+            </span>
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Active Desks</p>
+          {loading && staffList.length === 0 ? (
+            <Skeleton className="h-8 w-20 mt-1" />
+          ) : (
+            <p className="mt-1 text-3xl font-extrabold tracking-tight text-emerald-800">{activeCount}</p>
+          )}
+          <p className="mt-2 text-xs font-medium text-stone-500 flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Serving citizen requests
+          </p>
         </article>
-        <article className="border border-stone-200 bg-white p-4">
-          <p className="text-sm font-medium text-stone-600">Deactivated</p>
-          <p className="mt-1 text-2xl font-bold text-stone-500">{inactiveCount}</p>
+
+        <article className="relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs hover:shadow-md transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-stone-400 to-stone-300"></div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-600 border border-stone-200 font-mono text-xs font-bold">
+              PAUSED
+            </span>
+            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold uppercase text-stone-500">
+              Suspended
+            </span>
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Deactivated</p>
+          {loading && staffList.length === 0 ? (
+            <Skeleton className="h-8 w-20 mt-1" />
+          ) : (
+            <p className="mt-1 text-3xl font-extrabold tracking-tight text-stone-500">{inactiveCount}</p>
+          )}
+          <p className="mt-2 text-xs font-medium text-stone-500">Access currently paused</p>
         </article>
       </div>
 
       {/* ─── Search & Filters Bar ─── */}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-[220px]">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <div className="relative flex-1 min-w-[220px]">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search staff by name, email, or phone..."
-            className={FIELD_CLASS}
+            className="w-full rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         {institutions.length > 0 && (
@@ -234,134 +319,173 @@ export default function StaffManager({ institutions = [], currentUser }) {
             <select
               value={institutionFilter}
               onChange={(e) => setInstitutionFilter(e.target.value)}
-              className={FIELD_CLASS}
+              className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-2xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
             >
-              <option value="all">All Institutions</option>
+              <option value="all">All Institutions ({institutions.length})</option>
               {institutions.map((inst) => (
                 <option key={inst.id} value={inst.id}>
-                  {inst.code} — {inst.name?.en || inst.name || inst.code}
+                  {inst.code} — {getInstitutionDisplayName(inst)}
                 </option>
               ))}
             </select>
           </div>
         )}
 
-        <div className="flex rounded border border-stone-300 bg-white">
+        <div className="inline-flex rounded-xl border border-stone-200 bg-stone-100 p-0.5 text-xs shadow-2xs">
           <button
             type="button"
             onClick={() => setStatusFilter("all")}
-            className={`px-3 py-2 text-xs font-semibold ${statusFilter === "all" ? "bg-emerald-800 text-white" : "text-stone-700 hover:bg-stone-100"}`}
+            className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${statusFilter === "all" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
           >
             All
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter("active")}
-            className={`px-3 py-2 text-xs font-semibold ${statusFilter === "active" ? "bg-emerald-800 text-white" : "text-stone-700 hover:bg-stone-100"}`}
+            className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${statusFilter === "active" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
           >
             Active
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter("inactive")}
-            className={`px-3 py-2 text-xs font-semibold ${statusFilter === "inactive" ? "bg-emerald-800 text-white" : "text-stone-700 hover:bg-stone-100"}`}
+            className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${statusFilter === "inactive" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
           >
             Inactive
           </button>
         </div>
 
-        <Button type="button" variant="secondary" onClick={fetchStaff} disabled={loading}>
-          {loading ? "Refreshing..." : "↻ Refresh"}
-        </Button>
+        <button
+          type="button"
+          onClick={fetchStaff}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 shadow-2xs transition-all"
+        >
+          <span className={loading ? "inline-block animate-spin" : ""}>↻</span>
+          <span>{loading ? "Refreshing..." : "Refresh"}</span>
+        </button>
       </div>
 
       {/* ─── Staff Members Table ─── */}
-      <div className="overflow-x-auto border border-stone-200 bg-white shadow-xs">
+      <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white shadow-xs">
         <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-600">
+          <thead className="bg-stone-50/80 text-[11px] font-bold uppercase tracking-wider text-stone-500 border-b border-stone-200">
             <tr>
-              <th scope="col" className="px-4 py-3">Staff Member</th>
-              <th scope="col" className="px-4 py-3">Phone</th>
-              <th scope="col" className="px-4 py-3">Bound Institution Desk</th>
-              <th scope="col" className="px-4 py-3">Status</th>
-              <th scope="col" className="px-4 py-3">Created</th>
-              <th scope="col" className="px-4 py-3 text-right">Actions</th>
+              <th scope="col" className="px-5 py-3.5">Staff Member</th>
+              <th scope="col" className="px-4 py-3.5">Contact Phone</th>
+              <th scope="col" className="px-4 py-3.5">Assigned Desk</th>
+              <th scope="col" className="px-4 py-3.5">Status</th>
+              <th scope="col" className="px-4 py-3.5">Registered</th>
+              <th scope="col" className="px-5 py-3.5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading && staffList.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-stone-500">
-                  Loading staff accounts...
-                </td>
-              </tr>
+              <SkeletonTable rows={5} columns={6} />
             ) : staffList.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-stone-500">
-                  No staff members match the selected filters.
+                <td colSpan={6} className="p-0">
+                  <EmptyState
+                    icon="users"
+                    title={search ? "No matching staff accounts" : "No staff members registered"}
+                    description={
+                      search
+                        ? `No staff match "${search}". Try searching for another name, email, or telephone number.`
+                        : "Create a staff member account to assign them to an institution's VIP service desk."
+                    }
+                    action={
+                      search ? (
+                        <button
+                          type="button"
+                          onClick={() => setSearch("")}
+                          className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 shadow-xs"
+                        >
+                          Clear search
+                        </button>
+                      ) : (
+                        <Button type="button" onClick={openCreateModal}>
+                          + Add First Staff Member
+                        </Button>
+                      )
+                    }
+                  />
                 </td>
               </tr>
             ) : (
               staffList.map((staff) => {
                 const inst = staff.institution;
-                const instName = inst?.name?.en || inst?.name || inst?.code || "Unassigned";
+                const instName = getInstitutionDisplayName(inst);
 
                 return (
-                  <tr key={staff.id} className="border-t border-stone-200 hover:bg-stone-50/50">
-                    <td className="px-4 py-4">
-                      <p className="font-bold text-stone-900">{staff.name}</p>
-                      <p className="text-xs text-stone-500">{staff.email}</p>
+                  <tr key={staff.id} className="border-t border-stone-100 hover:bg-stone-50/60 transition-colors">
+                    {/* Staff Name & Avatar */}
+                    <td className="px-5 py-3.5 align-middle">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-bold text-xs shadow-2xs">
+                          {(staff.name || "S").slice(0, 1).toUpperCase()}
+                        </span>
+                        <div>
+                          <p className="font-bold text-stone-900 leading-snug">{staff.name}</p>
+                          <p className="text-xs text-stone-500">{staff.email}</p>
+                        </div>
+                      </div>
                     </td>
 
-                    <td className="px-4 py-4 text-xs text-stone-700">
-                      {staff.phone || "—"}
+                    {/* Phone */}
+                    <td className="px-4 py-3.5 align-middle text-xs text-stone-700">
+                      {staff.phone ? (
+                        <a href={`tel:${staff.phone}`} className="inline-flex items-center gap-1 hover:underline">
+                          <span>📞</span> {staff.phone}
+                        </a>
+                      ) : (
+                        <span className="text-stone-400">—</span>
+                      )}
                     </td>
 
-                    <td className="px-4 py-4">
+                    {/* Assigned Desk */}
+                    <td className="px-4 py-3.5 align-middle text-xs">
                       <div className="flex items-center gap-2">
                         {inst?.code && (
-                          <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-900">
+                          <span className="font-mono text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
                             {inst.code}
                           </span>
                         )}
                         <span className="font-medium text-stone-800">{instName}</span>
                       </div>
                       {inst?.floorRoomNumber && (
-                        <p className="mt-0.5 text-[11px] text-stone-500">Counter: {inst.floorRoomNumber}</p>
+                        <p className="mt-0.5 text-[11px] text-stone-500">Desk / Counter: {inst.floorRoomNumber}</p>
                       )}
                     </td>
 
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          staff.isActive
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-stone-100 text-stone-600"
-                        }`}
-                      >
-                        {staff.isActive ? "Active" : "Deactivated"}
-                      </span>
+                    {/* Status */}
+                    <td className="px-4 py-3.5 align-middle">
+                      <Status active={staff.isActive} />
                     </td>
 
-                    <td className="px-4 py-4 whitespace-nowrap text-xs text-stone-500">
+                    {/* Created Date */}
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap text-xs text-stone-500">
                       {formatDate(staff.createdAt)}
                     </td>
 
-                    <td className="px-4 py-4 whitespace-nowrap text-right space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(staff)}
-                        className="rounded border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeletingStaff(staff)}
-                        className="rounded border border-red-200 bg-white px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
+                    {/* Actions */}
+                    <td className="px-5 py-3.5 align-middle text-right">
+                      <div className="inline-flex items-center gap-1.5 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(staff)}
+                          className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingStaff(staff)}
+                          className="rounded-lg border border-red-200/80 bg-red-50/60 p-1.5 text-xs text-red-600 hover:bg-red-100 shadow-2xs transition-all"
+                          title="Delete staff account"
+                        >
+                          🗑
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -373,16 +497,16 @@ export default function StaffManager({ institutions = [], currentUser }) {
 
       {/* ─── Add / Edit Staff Modal ─── */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-lg border border-stone-200 bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-              <h3 className="text-lg font-bold text-stone-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <h3 className="text-base font-bold text-stone-900">
                 {editingStaff ? `Edit Staff Member: ${editingStaff.name}` : "Create New Staff Member"}
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+                className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition-colors"
               >
                 ✕
               </button>
@@ -445,7 +569,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
                   <option value="">Select an institution...</option>
                   {institutions.map((inst) => (
                     <option key={inst.id} value={inst.id}>
-                      {inst.code} — {inst.name?.en || inst.name || inst.code}
+                      {inst.code} — {getInstitutionDisplayName(inst)}
                     </option>
                   ))}
                 </select>

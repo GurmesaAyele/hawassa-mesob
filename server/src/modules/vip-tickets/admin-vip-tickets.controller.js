@@ -128,7 +128,7 @@ export function formatAdminTicket(ticket, staffInstitutionId = null) {
       name,
       estimatedFee: s.estimatedFee ?? null,
       processingDays: s.processingDays ?? null,
-      status: serializeStatus(ts.serviceProcessingStatus || ticket.serviceProcessingStatus || "PENDING"),
+      status: serializeStatus(ts.serviceProcessingStatus || "PENDING"),
       servedAt: ts.servedAt instanceof Date ? ts.servedAt.toISOString() : ts.servedAt || null,
       completedAt: ts.completedAt instanceof Date ? ts.completedAt.toISOString() : ts.completedAt || null,
       servedById: ts.servedById || null,

@@ -210,24 +210,22 @@ const VIPTicket = () => {
     setIsSubmitting(true);
     
     try {
-      // Create VIP application for the first service
-      // NOTE: Backend expects single serviceId, but we allow multiple selections
-      // Solution: Create application for first service, include all in purpose
-      const primaryService = selectedServices[0];
-      const allServiceNames = selectedServices.map(s => s.title || s.name).join(', ');
+      const serviceIds = selectedServices.map(s => s.id);
+      const allServiceNames = selectedServices.map(s => (typeof s.title === 'string' ? s.title : s.title?.en || s.name || 'Service')).join(', ');
       
       const requestBody = {
         citizenName: formData.citizenName.trim(),
         citizenPhone: formData.citizenPhone.trim(),
-        email: formData.citizenEmail.trim(), // ✅ Add email field required by backend
-        serviceId: primaryService.id,
+        email: formData.citizenEmail.trim(),
+        serviceIds: serviceIds,              // Send ALL selected service IDs
+        serviceId: serviceIds[0],            // Keep for backwards compatibility
         purpose: formData.purpose.trim() || `VIP Service Request: ${allServiceNames}`
       };
 
       console.log('=== VIP APPLICATION REQUEST ===');
       console.log('URL:', `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VIP_TICKETS}`);
       console.log('Body:', requestBody);
-      console.log('Service details:', primaryService);
+      console.log('Selected service count:', selectedServices.length, 'IDs:', serviceIds);
 
       const response = await fetch(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VIP_TICKETS}`,
