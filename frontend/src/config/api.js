@@ -3,13 +3,13 @@ export const getApiBaseUrl = () => {
   // If running in browser environment
   if (typeof window !== 'undefined') {
     const currentHostname = window.location.hostname;
-    
+
     // 1. Desktop local development (localhost or 127.0.0.1)
     if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
       const devUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
       return devUrl.replace(/\/+$/, '');
     }
-    
+
     // 2. Mobile LAN access (testing via local network IP e.g. 192.168.x.x, 10.x.x.x)
     if (/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(currentHostname)) {
       return `http://${currentHostname}:5000`;
@@ -35,30 +35,30 @@ export const getApiBaseUrl = () => {
 
 export const API_CONFIG = {
   BASE_URL: getApiBaseUrl(),
-  
+
   // Endpoints
   ENDPOINTS: {
     // Expected response format: Array of institution objects
     // [{ id, name, logo?, description?, bgColor?, services?: [{ id, name, description?, duration?, cost?, requirements? }] }]
     INSTITUTIONS: '/api/institutions',
-    
+
     // Expected response format: Array of news objects
     // [{ id, title, content, date, image?, author? }]
     NEWS: '/api/news',
-    
+
     // Expected response format: Array of video objects
     // [{ id, title, youtubeUrl, description?, thumbnail?, date? }]
     VIDEOS: '/api/videos',
-    
+
     // Expected response format: Array of announcement objects
     // [{ id, title, content, date, priority?, type? }]
     ANNOUNCEMENTS: '/api/announcements',
-    
+
     SERVICES: '/api/services',
     CHATBOT: '/api/chat', // Chatbot API (now uses proxy)
     CONTACT: '/api/contact',
     MAP: '/api/map', // Map data endpoint
-    
+
     // VIP Ticket Endpoints (per API integration guide)
     VIP_TICKETS: '/api/vip-tickets',
     VIP_DASHBOARD: '/api/vip-dashboard',
