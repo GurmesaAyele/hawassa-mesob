@@ -37,7 +37,6 @@ export const getApiBaseUrl = () => {
   // Fallback for SSR or build: Production uses Render API, else localhost
   return import.meta.env.PROD ? PRODUCTION_API_URL : 'http://localhost:5000';
 };
-};
 
 export const API_CONFIG = {
   BASE_URL: getApiBaseUrl(),
