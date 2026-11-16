@@ -313,8 +313,10 @@ const VIPPaymentCallback = () => {
 
     const width = 800;
     const servicesCount = displayServices.length || 1;
-    const servicesHeight = Math.min(servicesCount * 70, 350);
-    const height = 1150 + servicesHeight;
+    const serviceSlotHeight = 76;
+    const servicesTotalHeight = servicesCount * serviceSlotHeight;
+    const citizenExtra = displayCitizenName ? 65 : 0;
+    const height = 1140 + servicesTotalHeight + citizenExtra;
 
     canvas.width = width;
     canvas.height = height;
@@ -443,13 +445,28 @@ const VIPPaymentCallback = () => {
         ctx.textAlign = 'center';
         ctx.fillText('✓', 88, currentY + 37);
 
-        // Service title
+        // Service title & institution name
         ctx.textAlign = 'left';
         ctx.fillStyle = '#0F172A';
-        ctx.font = '700 22px sans-serif';
         const title = resolveLocalizedValue(s.title, language) || resolveLocalizedValue(s.name, language) || 'VIP Service';
-        const truncated = title.length > 40 ? title.slice(0, 38) + '...' : title;
-        ctx.fillText(truncated, 120, currentY + 38);
+        const providerName = s.provider?.name
+          ? resolveLocalizedValue(s.provider.name, language)
+          : (s.institutionName ? resolveLocalizedValue(s.institutionName, language) : '');
+
+        if (providerName) {
+          ctx.font = '700 20px sans-serif';
+          const truncated = title.length > 38 ? title.slice(0, 36) + '...' : title;
+          ctx.fillText(truncated, 120, currentY + 27);
+
+          ctx.fillStyle = '#92400E';
+          ctx.font = '600 15px sans-serif';
+          const truncInst = providerName.length > 44 ? providerName.slice(0, 42) + '...' : providerName;
+          ctx.fillText(truncInst, 120, currentY + 49);
+        } else {
+          ctx.font = '700 22px sans-serif';
+          const truncated = title.length > 40 ? title.slice(0, 38) + '...' : title;
+          ctx.fillText(truncated, 120, currentY + 38);
+        }
 
         currentY += 62;
       });
@@ -957,7 +974,7 @@ const VIPPaymentCallback = () => {
                       </div>
 
                       {displayServices.length > 0 ? (
-                        <div className="space-y-1 max-h-24 sm:max-h-28 overflow-y-auto pr-1">
+                        <div className="space-y-1.5">
                           {displayServices.map((service, idx) => {
                             const serviceTitle = resolveLocalizedValue(service.title, language) ||
                                                  resolveLocalizedValue(service.name, language) ||

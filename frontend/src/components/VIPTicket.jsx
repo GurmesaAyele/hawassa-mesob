@@ -1230,13 +1230,41 @@ const VIPTicket = () => {
         {/* ================= STEP 4: SUCCESS TICKET VIEW (COMPACT, MODERN & ZOOMABLE) ================= */}
         {step === 4 && paymentStatus && paymentStatus.isConfirmed && (
           <div className="max-w-xl mx-auto py-10 px-4 text-center animate-fadeIn">
-            <div className="w-12 h-12 rounded-full mx-auto mb-2.5 flex items-center justify-center bg-gradient-to-tr from-[#CB9D2A] to-[#E6CA65] shadow-lg shadow-[#CB9D2A]/25">
+            {/* Print Stylesheet for clean modal ticket printing */}
+            <style>{`
+              @media print {
+                body * {
+                  visibility: hidden !important;
+                }
+                #vip-modal-ticket-pass, #vip-modal-ticket-pass * {
+                  visibility: visible !important;
+                }
+                #vip-modal-ticket-pass {
+                  position: absolute !important;
+                  left: 50% !important;
+                  top: 20px !important;
+                  transform: translateX(-50%) !important;
+                  width: 100% !important;
+                  max-width: 360px !important;
+                  margin: 0 auto !important;
+                  box-shadow: none !important;
+                  border: 2px solid #CB9D2A !important;
+                  background: #ffffff !important;
+                  color: #000000 !important;
+                }
+                .no-print {
+                  display: none !important;
+                }
+              }
+            `}</style>
+
+            <div className="w-12 h-12 rounded-full mx-auto mb-2.5 flex items-center justify-center bg-gradient-to-tr from-[#CB9D2A] to-[#E6CA65] shadow-lg shadow-[#CB9D2A]/25 no-print">
               <svg className="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">{t.paymentSuccess}</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{t.ticketIssued}</p>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1 no-print">{t.paymentSuccess}</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 no-print">{t.ticketIssued}</p>
 
             {/* Zoom Controls */}
             <div className="flex items-center justify-center gap-2 mb-4 no-print select-none">
@@ -1290,6 +1318,7 @@ const VIPTicket = () => {
             {/* Compact White VIP Ticket Pass matching physical pass styling */}
             <div className="w-full flex justify-center items-start overflow-visible transition-all duration-200 mb-6">
               <div
+                id="vip-modal-ticket-pass"
                 style={{
                   transform: `scale(${ticketZoom})`,
                   transformOrigin: 'top center',
@@ -1357,7 +1386,7 @@ const VIPTicket = () => {
                         </span>
                       )}
                     </p>
-                    <div className="space-y-1 max-h-24 sm:max-h-28 overflow-y-auto pr-1">
+                    <div className="space-y-1.5">
                       {finalTicketServices.map((service, idx) => (
                         <div key={service.id || idx} className="bg-amber-50/70 border border-amber-200/70 rounded-lg p-1.5 text-xs flex items-center gap-2">
                           <span className="w-3.5 h-3.5 rounded-full bg-[#CB9D2A] text-white flex items-center justify-center text-[8px] font-black flex-shrink-0">
@@ -1411,7 +1440,7 @@ const VIPTicket = () => {
               </div>
             </div>
 
-            <div className="flex gap-2.5 max-w-[340px] sm:max-w-[360px] mx-auto">
+            <div className="flex gap-2.5 max-w-[340px] sm:max-w-[360px] mx-auto no-print">
               <button
                 onClick={() => window.print()}
                 className="flex-1 py-2.5 rounded-xl font-bold border-2 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-xs sm:text-sm"
