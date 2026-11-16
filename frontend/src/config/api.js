@@ -1,36 +1,42 @@
+// Production deployed endpoints
+export const PRODUCTION_API_URL = 'https://hawassa-mesob-api.onrender.com';
+export const PRODUCTION_CLIENT_URL = 'https://hawassa-mesob.vercel.app';
+
 // Resolve API base URL with mobile/LAN, reverse-proxy, and environment support
 export const getApiBaseUrl = () => {
-  // If running in browser environment
-  if (typeof window !== 'undefined') {
+  // 1. Prefer explicit environment variable if set (strip any trailing slashes)
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '');
+  }
+
+  // 2. Client-side browser hostname detection
+  if (typeof window !== 'undefined' && window.location) {
     const currentHostname = window.location.hostname;
 
-    // 1. Desktop local development (localhost or 127.0.0.1)
+    // Desktop local development (localhost or 127.0.0.1)
     if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
-      const devUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      return devUrl.replace(/\/+$/, '');
+      return 'http://localhost:5000';
     }
 
-    // 2. Mobile LAN access (testing via local network IP e.g. 192.168.x.x, 10.x.x.x)
-    if (/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(currentHostname)) {
+    // Mobile/LAN local network testing (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    if (/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(currentHostname)) {
       return `http://${currentHostname}:5000`;
     }
 
-    // 3. Deployed production (e.g. Vercel):
-    // If VITE_DIRECT_API is set to 'true', use the explicit backend URL directly
-    if (import.meta.env.VITE_DIRECT_API === 'true') {
-      const explicitUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://hawassa-mesob-api.onrender.com';
-      return explicitUrl.replace(/\/+$/, '');
+    // Deployed production environment (e.g. Vercel)
+    if (
+      currentHostname === 'hawassa-mesob.vercel.app' ||
+      currentHostname.endsWith('.vercel.app') ||
+      import.meta.env.PROD
+    ) {
+      return PRODUCTION_API_URL;
     }
-
-    // By default on deployed environments, use empty string "" so requests use relative paths
-    // (/api/..., /uploads/...) and are reverse-proxied by Vercel directly to Render.
-    // This completely eliminates CORS errors, mixed-content warnings, and trailing-slash issues.
-    return '';
   }
 
-  // Fallback for SSR or build-time evaluation
-  const fallback = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
-  return fallback.replace(/\/+$/, '');
+  // Fallback for SSR or build: Production uses Render API, else localhost
+  return import.meta.env.PROD ? PRODUCTION_API_URL : 'http://localhost:5000';
+};
 };
 
 export const API_CONFIG = {

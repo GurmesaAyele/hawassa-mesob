@@ -36,6 +36,7 @@ const defaultOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:3000",
+  "https://hawassa-mesob.vercel.app",
 ];
 
 const envOrigins = process.env.CORS_ORIGIN
@@ -48,7 +49,10 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow non-browser clients (curl, mobile apps, server-to-server) without Origin header
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (
+      allowedOrigins.includes(origin) ||
+      /^https:\/\/hawassa-mesob(-[a-zA-Z0-9_-]+)?\.vercel\.app$/.test(origin)
+    ) {
       return callback(null, true);
     }
     // In development or local testing, permit private LAN IPv4 origins if requested
