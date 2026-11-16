@@ -1,68 +1,64 @@
-// Production deployed endpoints
-export const PRODUCTION_API_URL = 'https://hawassa-mesob-api.onrender.com';
-export const PRODUCTION_CLIENT_URL = 'https://hawassa-mesob.vercel.app';
-
-// Resolve API base URL with mobile/LAN, Vercel, and local development support
-const getApiBaseUrl = () => {
-  // 1. Prefer explicit environment variable if set (strip any trailing slashes)
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '');
-  }
-  
-  // 2. Client-side browser hostname detection
-  if (typeof window !== 'undefined' && window.location) {
+// Resolve API base URL with mobile/LAN, reverse-proxy, and environment support
+export const getApiBaseUrl = () => {
+  // If running in browser environment
+  if (typeof window !== 'undefined') {
     const currentHostname = window.location.hostname;
-    
-    // When running on Vercel deployment or production build, route to Render API
-    if (
-      currentHostname === 'hawassa-mesob.vercel.app' ||
-      currentHostname.endsWith('.vercel.app') ||
-      import.meta.env.PROD
-    ) {
-      return PRODUCTION_API_URL;
-    }
-    
-    // Desktop local development
+
+    // 1. Desktop local development (localhost or 127.0.0.1)
     if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
-      return 'http://localhost:5000';
+      const devUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      return devUrl.replace(/\/+$/, '');
     }
-    
-    // Mobile/LAN local network access (e.g. 192.168.x.x, 10.x.x.x)
-    if (/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(currentHostname)) {
+
+    // 2. Mobile LAN access (testing via local network IP e.g. 192.168.x.x, 10.x.x.x)
+    if (/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(currentHostname)) {
       return `http://${currentHostname}:5000`;
     }
+
+    // 3. Deployed production (e.g. Vercel):
+    // If VITE_DIRECT_API is set to 'true', use the explicit backend URL directly
+    if (import.meta.env.VITE_DIRECT_API === 'true') {
+      const explicitUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://hawassa-mesob-api.onrender.com';
+      return explicitUrl.replace(/\/+$/, '');
+    }
+
+    // By default on deployed environments, use empty string "" so requests use relative paths
+    // (/api/..., /uploads/...) and are reverse-proxied by Vercel directly to Render.
+    // This completely eliminates CORS errors, mixed-content warnings, and trailing-slash issues.
+    return '';
   }
-  
-  // Fallback: Production mode defaults to Render API, otherwise localhost
-  return import.meta.env.PROD ? PRODUCTION_API_URL : 'http://localhost:5000';
+
+  // Fallback for SSR or build-time evaluation
+  const fallback = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
+  return fallback.replace(/\/+$/, '');
 };
 
 export const API_CONFIG = {
   BASE_URL: getApiBaseUrl(),
-  
+
   // Endpoints
   ENDPOINTS: {
     // Expected response format: Array of institution objects
     // [{ id, name, logo?, description?, bgColor?, services?: [{ id, name, description?, duration?, cost?, requirements? }] }]
     INSTITUTIONS: '/api/institutions',
-    
+
     // Expected response format: Array of news objects
     // [{ id, title, content, date, image?, author? }]
     NEWS: '/api/news',
-    
+
     // Expected response format: Array of video objects
     // [{ id, title, youtubeUrl, description?, thumbnail?, date? }]
     VIDEOS: '/api/videos',
-    
+
     // Expected response format: Array of announcement objects
     // [{ id, title, content, date, priority?, type? }]
     ANNOUNCEMENTS: '/api/announcements',
-    
+
     SERVICES: '/api/services',
     CHATBOT: '/api/chat', // Chatbot API (now uses proxy)
     CONTACT: '/api/contact',
     MAP: '/api/map', // Map data endpoint
-    
+
     // VIP Ticket Endpoints (per API integration guide)
     VIP_TICKETS: '/api/vip-tickets',
     VIP_DASHBOARD: '/api/vip-dashboard',
@@ -120,7 +116,9 @@ export const buildUrl = (endpoint) => {
   if (endpoint.startsWith('http')) {
     return endpoint;
   }
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
+  const base = (API_CONFIG.BASE_URL || '').replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${base}${cleanEndpoint}`;
 };
 
 // Helper function for API calls with error handling and locale support

@@ -1231,7 +1231,7 @@ const Home = () => {
       {/* Motion Section - Outside container for full width */}
       <section className="w-full h-[300px] bg-gray-100 dark:bg-[#0F172A] flex items-center justify-center overflow-hidden transition-colors">
         <iframe 
-          src="/src/assets/mesob-motion-loop (1).html"
+          src="/mesob-motion-loop.html"
           className="w-full h-full border-0"
           title="Mesob Motion"
           style={{ pointerEvents: 'none' }}
