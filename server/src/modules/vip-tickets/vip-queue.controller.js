@@ -14,6 +14,7 @@ import {
   arePhoneNumbersMatching,
   normalizePhoneNumber,
 } from "./vip-tickets.controller.js";
+import { broadcastQueueUpdate } from "../vip-dashboard/realtime.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -450,6 +451,14 @@ export async function completeVipService(ticketIdOrCode, txOrPrisma = prisma) {
     },
   });
 
+  try {
+    broadcastQueueUpdate({
+      type: "SERVICE_COMPLETED",
+      ticketId: updated.id,
+      ticketCode: updated.ticketCode,
+    });
+  } catch {}
+
   return {
     ticket: updated,
     durationMinutes,
@@ -885,7 +894,15 @@ export async function reserveCapacity(req, res) {
     }
 
     if (result.alreadyConfirmed) {
-      return res.status(200).json({
+      try {
+      broadcastQueueUpdate({
+        type: "TICKET_CHECKED_IN",
+        ticketCode: updated.ticketCode,
+        queueNumber,
+      });
+    } catch {}
+
+    return res.status(200).json({
         success: true,
         alreadyConfirmed: true,
         message: result.message,
@@ -897,7 +914,15 @@ export async function reserveCapacity(req, res) {
     }
 
     if (result.alreadyReserved) {
-      return res.status(200).json({
+      try {
+      broadcastQueueUpdate({
+        type: "TICKET_CHECKED_IN",
+        ticketCode: updated.ticketCode,
+        queueNumber,
+      });
+    } catch {}
+
+    return res.status(200).json({
         success: true,
         alreadyReserved: true,
         message: `An active VIP capacity reservation is already held for this application. Holds expire in ${result.reservation.expiresInSeconds} seconds.`,
@@ -1181,6 +1206,14 @@ export async function enqueueVipTicket(req, res) {
       positionAhead,
       "QUEUED"
     );
+
+    try {
+      broadcastQueueUpdate({
+        type: "TICKET_CHECKED_IN",
+        ticketCode: updated.ticketCode,
+        queueNumber,
+      });
+    } catch {}
 
     return res.status(200).json({
       success: true,

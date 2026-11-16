@@ -10,6 +10,7 @@ import StaffManager from "../components/admin/StaffManager";
 import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { SkeletonMetricsGrid } from "../components/admin/AdminSkeleton";
 import { adminApi } from "../services/adminApi";
+import { API_CONFIG } from "../config/api";
 import "./AdminDashboard.css";
 
 const ADMIN_ROLES = new Set(["OPERATOR", "SUPER_ADMIN", "STAFF"]);
@@ -233,6 +234,33 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!currentUser || currentUser.role === "STAFF") return;
     refreshData();
+
+    // 1. Live SSE stream listener for real-time overview updates
+    let eventSource = null;
+    try {
+      const streamUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VIP_DASHBOARD}/stream`;
+      eventSource = new EventSource(streamUrl);
+      eventSource.addEventListener("queue_update", () => {
+        refreshData();
+      });
+    } catch (err) {
+      console.warn("[Admin Dashboard] SSE error:", err);
+    }
+
+    // 2. High-frequency background sync (every 5 seconds)
+    const interval = setInterval(refreshData, 5000);
+
+    // 3. Tab visibility sync
+    const handleVisibilityChange = () => {
+      if (!document.hidden) refreshData();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (eventSource) eventSource.close();
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [currentUser, refreshData]);
 
   useEffect(() => {

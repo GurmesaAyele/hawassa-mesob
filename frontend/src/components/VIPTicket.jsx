@@ -53,6 +53,21 @@ const VIPTicket = () => {
     return () => window.removeEventListener('languageChange', handleLanguageChange);
   }, []);
 
+  // Listen for openVipTicket events from public dashboard or buttons
+  useEffect(() => {
+    const handleOpenVip = (event) => {
+      setIsOpen(true);
+      if (event.detail?.service) {
+        setSelectedServices((prev) => {
+          const exists = prev.find((s) => s.id === event.detail.service.id);
+          return exists ? prev : [...prev, event.detail.service];
+        });
+      }
+    };
+    window.addEventListener('openVipTicket', handleOpenVip);
+    return () => window.removeEventListener('openVipTicket', handleOpenVip);
+  }, []);
+
   // Fetch institutions when modal opens
   useEffect(() => {
     if (isOpen && institutions.length === 0) {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminApi } from "../../services/adminApi";
+import { API_CONFIG } from "../../config/api";
 import { EmptyState } from "./AdminFields";
 import { Skeleton, SkeletonVipTable, SkeletonText } from "./AdminSkeleton";
 
@@ -69,8 +70,8 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
     });
   }, [tickets, searchQuery]);
 
-  const fetchTickets = useCallback(async () => {
-    setLoading(true);
+  const fetchTickets = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const params = {
@@ -91,14 +92,43 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
         setTotalCount(response?.meta?.total || (response?.data || []).length);
       }
     } catch (err) {
-      setError(err.message || "Failed to load VIP tickets.");
+      if (!silent) setError(err.message || "Failed to load VIP tickets.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [filter, institutionFilter, isSuperAdmin]);
 
   useEffect(() => {
-    fetchTickets();
+    fetchTickets(false);
+
+    // 1. Live SSE listener for real-time ticket creation & status updates
+    let eventSource = null;
+    try {
+      const streamUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VIP_DASHBOARD}/stream`;
+      eventSource = new EventSource(streamUrl);
+      eventSource.addEventListener("queue_update", () => {
+        fetchTickets(true);
+      });
+    } catch (err) {
+      console.warn("[Admin VIP Tickets] SSE stream error:", err);
+    }
+
+    // 2. High-frequency background polling (every 4s) to guarantee fresh data
+    const pollInterval = setInterval(() => {
+      fetchTickets(true);
+    }, 4000);
+
+    // 3. Tab visibility sync
+    const handleVisibilityChange = () => {
+      if (!document.hidden) fetchTickets(true);
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (eventSource) eventSource.close();
+      clearInterval(pollInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [fetchTickets]);
 
   const handleUpdateStatus = async (ticketId, nextStatus, serviceId, uniqueKey) => {

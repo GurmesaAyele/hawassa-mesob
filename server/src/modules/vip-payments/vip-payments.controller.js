@@ -4,6 +4,7 @@ import {
   getPaymentStatus,
 } from "./vip-payments.service.js";
 import { verifyChapaWebhookSignature } from "./chapa.client.js";
+import { broadcastQueueUpdate } from "../vip-dashboard/realtime.js";
 
 /**
  * POST /api/vip-payments/initialize
@@ -75,6 +76,15 @@ export async function verifyPaymentHandler(req, res) {
     }
 
     const result = await verifyVipPayment(rawRef.trim());
+
+    if (result.success) {
+      try {
+        broadcastQueueUpdate({
+          type: "PAYMENT_CONFIRMED",
+          reference: rawRef.trim(),
+        });
+      } catch {}
+    }
 
     return res.status(result.status || 200).json({
       success: result.success || false,
@@ -184,7 +194,16 @@ export async function webhookHandler(req, res) {
 
     if (!reference) {
       // Acknowledge receipt to stop retries if body is malformed
-      return res.status(200).json({
+      if (verifyResult.success) {
+      try {
+        broadcastQueueUpdate({
+          type: "PAYMENT_CONFIRMED",
+          reference: String(reference).trim(),
+        });
+      } catch {}
+    }
+
+    return res.status(200).json({
         received: true,
         message: "No transaction reference in webhook body; ignored.",
       });
@@ -199,6 +218,15 @@ export async function webhookHandler(req, res) {
       return res.status(502).json({
         error: "Transient verification error. Provider retry expected.",
       });
+    }
+
+    if (verifyResult.success) {
+      try {
+        broadcastQueueUpdate({
+          type: "PAYMENT_CONFIRMED",
+          reference: String(reference).trim(),
+        });
+      } catch {}
     }
 
     return res.status(200).json({

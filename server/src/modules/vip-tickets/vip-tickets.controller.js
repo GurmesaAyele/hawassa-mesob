@@ -6,6 +6,7 @@ import {
   calculateVipApplicationFee,
   VIP_CONFIG,
 } from "../institutions/vip.config.js";
+import { broadcastQueueUpdate } from "../vip-dashboard/realtime.js";
 
 /**
  * Dedicated Rate Limiter for Application Tracking.
@@ -534,6 +535,17 @@ export async function submitVipApplication(req, res) {
     });
 
     const responseData = formatVipApplication(createdTicket, orderedServices);
+
+    // Notify all public TV displays and admin dashboards immediately in real-time
+    try {
+      broadcastQueueUpdate({
+        type: "TICKET_CREATED",
+        ticketId: createdTicket.id,
+        ticketCode: createdTicket.ticketCode,
+      });
+    } catch (notifyErr) {
+      console.warn("[vip-tickets] broadcastQueueUpdate notice:", notifyErr.message);
+    }
 
     return res.status(201).json({
       success: true,

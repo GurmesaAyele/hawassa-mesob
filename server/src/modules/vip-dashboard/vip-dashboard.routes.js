@@ -3,6 +3,7 @@ import {
   getPublicVipDashboard,
   getPublicVipStats,
 } from "./vip-dashboard.controller.js";
+import { handleSseStream } from "./realtime.js";
 
 const router = express.Router();
 
@@ -33,6 +34,10 @@ function setDashboardCacheHeaders(req, res, next) {
   }
   next();
 }
+
+// ─── Real-time Server-Sent Events (SSE) Stream ────────────────────────────────
+// GET /api/vip-dashboard/stream - Push notifications on any ticket/queue mutation
+router.get("/stream", handleSseStream);
 
 // ─── Public Centralized VIP Dashboard Endpoints ───────────────────────────────
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminApi } from "../../services/adminApi";
+import { API_CONFIG } from "../../config/api";
 import { Button, FIELD_CLASS, Field, EmptyState, Status } from "./AdminFields";
 import { Skeleton, SkeletonTable } from "./AdminSkeleton";
 import ConfirmationDialog from "./ConfirmationDialog";
@@ -51,8 +52,8 @@ export default function StaffManager({ institutions = [], currentUser }) {
   const [deletingStaff, setDeletingStaff] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
-  const fetchStaff = useCallback(async () => {
-    setLoading(true);
+  const fetchStaff = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const params = {
@@ -66,14 +67,35 @@ export default function StaffManager({ institutions = [], currentUser }) {
       setStaffList(res?.data || []);
       setTotalCount(res?.meta?.total || (res?.data || []).length);
     } catch (err) {
-      setError(err.message || "Failed to load staff accounts.");
+      if (!silent) setError(err.message || "Failed to load staff accounts.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [search, institutionFilter, statusFilter]);
 
   useEffect(() => {
-    fetchStaff();
+    fetchStaff(false);
+
+    // Live SSE listener for real-time staff changes
+    let eventSource = null;
+    try {
+      const streamUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VIP_DASHBOARD}/stream`;
+      eventSource = new EventSource(streamUrl);
+      eventSource.addEventListener("queue_update", () => {
+        fetchStaff(true);
+      });
+    } catch (err) {
+      console.warn("[StaffManager] SSE stream error:", err);
+    }
+
+    const interval = setInterval(() => {
+      fetchStaff(true);
+    }, 5000);
+
+    return () => {
+      if (eventSource) eventSource.close();
+      clearInterval(interval);
+    };
   }, [fetchStaff]);
 
   const openCreateModal = () => {

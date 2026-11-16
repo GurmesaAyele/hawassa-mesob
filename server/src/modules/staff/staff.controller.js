@@ -1,5 +1,6 @@
 import prisma from "../../config/db.js";
 import { hashPassword } from "../../utils/auth.js";
+import { broadcastQueueUpdate } from "../vip-dashboard/realtime.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -121,6 +122,13 @@ export async function createStaffMember(req, res) {
         },
       },
     });
+
+    try {
+      broadcastQueueUpdate({
+        type: "STAFF_CREATED",
+        staffId: staffMember.id,
+      });
+    } catch {}
 
     return res.status(201).json({
       success: true,
@@ -359,6 +367,13 @@ export async function updateStaffMember(req, res) {
       },
     });
 
+    try {
+      broadcastQueueUpdate({
+        type: "STAFF_UPDATED",
+        staffId: updated.id,
+      });
+    } catch {}
+
     return res.json({
       success: true,
       message: "Staff member updated successfully.",
@@ -394,6 +409,13 @@ export async function deleteStaffMember(req, res) {
     await prisma.users.delete({
       where: { id },
     });
+
+    try {
+      broadcastQueueUpdate({
+        type: "STAFF_DELETED",
+        staffId: existingStaff.id,
+      });
+    } catch {}
 
     return res.json({
       success: true,

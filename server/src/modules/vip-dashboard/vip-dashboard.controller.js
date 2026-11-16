@@ -28,6 +28,38 @@ function localizeArray(arr, locale = "en") {
   );
 }
 
+const HUMAN_OFFICER_TITLES = {
+  ETHIO_POST: "Postal Service Officer",
+  HAWASSA_LAND: "Land Admin Officer",
+  HAWASSA_REVENUE: "Revenue & Tax Officer",
+  HAWASSA_TRADE: "Trade & Industry Officer",
+  ICS: "Immigration Desk Officer",
+  JUSTICE_DEPT: "Justice & Legal Officer",
+  LABOR_AND_SKILLS: "Labor & Skills Officer",
+  SIDAMA_BANK: "Sidama Bank Officer",
+  URBAN_DEV_CONSTRUCTION: "Urban Development Officer",
+  EEU: "Electric Utility Officer",
+  NATIONAL_ID_PROGRAM: "National ID Officer",
+  ETHIO_TELECOM: "Telecom Services Officer",
+  CBE: "Commercial Banking Officer",
+};
+
+function formatCleanStaffName(rawNameOrCode) {
+  if (!rawNameOrCode) return "Desk Officer";
+  const str = String(rawNameOrCode).trim();
+  const code = str.replace(/\s+Desk\s+Officer$/i, "").trim().toUpperCase();
+  if (HUMAN_OFFICER_TITLES[code]) {
+    return HUMAN_OFFICER_TITLES[code];
+  }
+  if (!str.includes("_")) {
+    return str;
+  }
+  return str
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function resolveLocale(req) {
   const loc = req.query?.locale || "en";
   return ALLOWED_LOCALES.includes(loc) ? loc : "en";
@@ -60,30 +92,114 @@ export async function getPublicVipDashboard(req, res) {
     const metrics = await getTodayCapacityMetrics(prisma);
     const progress = await getQueueProgressStatus(metrics, prisma);
 
-    // 2. Fetch currently serving & next in queue tickets (Strictly anonymized display numbers only)
-    const [servingTicket, nextTicket] = await Promise.all([
-      prisma.vip_tickets.findFirst({
+    // 2. Fetch currently serving & upcoming queued tickets (Strictly anonymized display numbers & desk info)
+    const [servingTickets, queuedTickets] = await Promise.all([
+      prisma.vip_tickets.findMany({
         where: {
           queueDate: { gte: metrics.startOfDay, lte: metrics.endOfDay },
           status: "SERVING",
         },
         orderBy: { queueNumber: "asc" },
+        take: 4,
         select: {
           queueNumber: true,
           servedAt: true,
+          purpose: true,
+          services: {
+            select: {
+              title: true,
+              provider: {
+                select: {
+                  code: true,
+                  name: true,
+                  floorRoomNumber: true,
+                },
+              },
+            },
+          },
+          ticket_services: {
+            take: 1,
+            select: {
+              service: {
+                select: {
+                  title: true,
+                  provider: {
+                    select: {
+                      code: true,
+                      name: true,
+                      floorRoomNumber: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       }),
-      prisma.vip_tickets.findFirst({
+      prisma.vip_tickets.findMany({
         where: {
           queueDate: { gte: metrics.startOfDay, lte: metrics.endOfDay },
           status: "QUEUED",
         },
         orderBy: { queueNumber: "asc" },
+        take: 8,
         select: {
           queueNumber: true,
+          checkedInAt: true,
+          purpose: true,
+          services: {
+            select: {
+              title: true,
+              provider: {
+                select: {
+                  code: true,
+                  name: true,
+                  floorRoomNumber: true,
+                },
+              },
+            },
+          },
+          ticket_services: {
+            take: 1,
+            select: {
+              service: {
+                select: {
+                  title: true,
+                  provider: {
+                    select: {
+                      code: true,
+                      name: true,
+                      floorRoomNumber: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       }),
     ]);
+
+    const formatQueueItem = (t, defaultStatus = "QUEUED") => {
+      if (!t) return null;
+      const s = t.ticket_services?.[0]?.service || t.services;
+      const provider = s?.provider;
+      const title = s ? localize(s.title, locale) : t.purpose || "VIP Priority Service";
+      const instName = provider ? localize(provider.name, locale) : null;
+      return {
+        queueNumber: t.queueNumber,
+        queueDisplay: `VIP-${String(t.queueNumber).padStart(3, "0")}`,
+        serviceTitle: title,
+        institutionName: instName,
+        floorRoomNumber: provider?.floorRoomNumber || null,
+        counterDisplay: provider?.floorRoomNumber ? `Desk ${provider.floorRoomNumber}` : "Main Service Hall",
+        servedAt: t.servedAt || null,
+        status: defaultStatus,
+      };
+    };
+
+    const servingTicket = servingTickets[0] || null;
+    const nextTicket = queuedTickets[0] || null;
 
     // 3. Empirical waiting-time calculation
     const { waitingTime, waitingTimeInfo } = await calculateEmpiricalWaitingTime(
@@ -117,8 +233,8 @@ export async function getPublicVipDashboard(req, res) {
       totalTickets += g._count.id;
     }
 
-    // 5. Active institutions and their VIP services (Public catalog)
-    const [institutions, rawServices] = await Promise.all([
+    // 5. Active institutions, services, staff officers, and ticket services
+    const [institutions, rawServices, staffUsers, activeTicketServices, pendingVipTickets] = await Promise.all([
       prisma.serviceProvider.findMany({
         where: { isActive: true },
         select: {
@@ -163,7 +279,232 @@ export async function getPublicVipDashboard(req, res) {
         },
         orderBy: [{ provider: { code: "asc" } }, { createdAt: "asc" }],
       }),
+      prisma.users.findMany({
+        where: { role: { in: ["STAFF", "OPERATOR"] }, isActive: true },
+        include: {
+          institution: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              icon: true,
+              floorRoomNumber: true,
+            },
+          },
+        },
+        orderBy: { name: "asc" },
+      }),
+      prisma.vip_ticket_services.findMany({
+        where: {
+          serviceProcessingStatus: { in: ["PENDING", "IN_PROGRESS", "COMPLETED"] },
+        },
+        include: {
+          ticket: {
+            select: {
+              id: true,
+              ticketCode: true,
+              queueNumber: true,
+              status: true,
+              createdAt: true,
+            },
+          },
+          service: {
+            include: {
+              provider: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                  floorRoomNumber: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.vip_tickets.findMany({
+        where: {
+          serviceProcessingStatus: "PENDING",
+        },
+        select: {
+          id: true,
+          serviceId: true,
+          services: {
+            select: {
+              providerId: true,
+            },
+          },
+        },
+      }),
     ]);
+
+    const nowMs = Date.now();
+
+    // Map each staff member into a live public desk counter
+    const staffDeskCounters = staffUsers.map((staff, idx) => {
+      const assignedServices = activeTicketServices.filter(
+        (ts) => ts.servedById === staff.id || (staff.institutionId && ts.service?.providerId === staff.institutionId)
+      );
+
+      // Unique pending tickets requested for this staff/institution
+      const pendingTicketIds = new Set();
+      for (const ts of assignedServices) {
+        if (ts.serviceProcessingStatus === "PENDING" && ts.ticketId) {
+          pendingTicketIds.add(ts.ticketId);
+        }
+      }
+      if (staff.institutionId) {
+        for (const vt of pendingVipTickets) {
+          if (vt.services?.providerId === staff.institutionId) {
+            pendingTicketIds.add(vt.id);
+          }
+        }
+      }
+      const pendingCount = pendingTicketIds.size;
+
+      // In-progress active tickets
+      const inProgressList = assignedServices.filter((ts) => {
+        if (ts.serviceProcessingStatus !== "IN_PROGRESS") return false;
+        if (!ts.servedAt) return true;
+        const ageHours = (nowMs - new Date(ts.servedAt).getTime()) / (1000 * 60 * 60);
+        return ageHours <= 8;
+      });
+      const completedList = assignedServices.filter((ts) => ts.serviceProcessingStatus === "COMPLETED");
+
+      const activeTs = inProgressList[0] || null;
+      const servedAt = activeTs?.servedAt || null;
+      const rawElapsed = servedAt
+        ? Math.max(1, Math.round((nowMs - new Date(servedAt).getTime()) / 60000))
+        : 0;
+      const elapsedMinutes = Math.min(rawElapsed, 120);
+
+      let totalCompletedMins = 0;
+      let validCompletedCount = 0;
+      let lastProceedMinutes = null;
+
+      for (const cs of completedList) {
+        if (cs.servedAt && cs.completedAt) {
+          const dur = Math.max(1, Math.round((new Date(cs.completedAt).getTime() - new Date(cs.servedAt).getTime()) / 60000));
+          if (dur <= 180) {
+            totalCompletedMins += dur;
+            validCompletedCount += 1;
+            if (lastProceedMinutes === null) {
+              lastProceedMinutes = dur;
+            }
+          }
+        }
+      }
+
+      const avgDuration = validCompletedCount > 0 ? Math.round(totalCompletedMins / validCompletedCount) : (lastProceedMinutes || 8);
+      const deskNum = String(idx + 1).padStart(2, "0");
+      const instName = staff.institution ? localize(staff.institution.name, locale) : "MESOB Center";
+      const roomNum = staff.institution?.floorRoomNumber || `Counter ${deskNum}`;
+
+      const staffInstServices = staff.institutionId
+        ? rawServices.filter((s) => s.provider?.id === staff.institutionId)
+        : [];
+      const defaultStaffService = staffInstServices[0]
+        ? localize(staffInstServices[0].title, locale)
+        : (staff.institution ? `${localize(staff.institution.name, locale)} Desk` : "Executive Service Desk");
+
+      const activeServiceTitle = activeTs?.service
+        ? localize(activeTs.service.title, locale)
+        : defaultStaffService;
+
+      return {
+        id: staff.id,
+        deskId: `Desk ${deskNum}`,
+        deskLabel: `Desk ${deskNum} • ${roomNum}`,
+        staffName: staff.name,
+        staffRole: staff.role === "OPERATOR" ? "Queue Operator" : "Staff Officer",
+        institutionId: staff.institutionId,
+        institutionCode: staff.institution?.code || "MESOB",
+        institutionName: instName,
+        serviceTitle: activeServiceTitle,
+        roomNumber: roomNum,
+        status: inProgressList.length > 0 ? "SERVING" : "AVAILABLE",
+        totalServingCount: inProgressList.length,
+        pendingCount: pendingCount,
+        number: pendingCount, // Directly maps to the TV 'Number' column
+        servedAt: servedAt ? servedAt.toISOString() : null,
+        elapsedMinutes: elapsedMinutes,
+        completedTodayCount: completedList.length,
+        averageDurationMinutes: avgDuration,
+        lastProceedMinutes: lastProceedMinutes || avgDuration,
+      };
+    });
+
+    // Also include remaining institutions that don't have dedicated staff accounts yet
+    const coveredInstitutionIds = new Set(staffUsers.map((s) => s.institutionId).filter(Boolean));
+    const unassignedInstitutions = institutions.filter((inst) => !coveredInstitutionIds.has(inst.id));
+
+    let deskCounterIndex = staffDeskCounters.length + 1;
+    const additionalInstitutionDesks = unassignedInstitutions.map((inst) => {
+      const deskNum = String(deskCounterIndex++).padStart(2, "0");
+      const instServices = activeTicketServices.filter((ts) => ts.service?.providerId === inst.id);
+
+      const pendingTicketIds = new Set();
+      for (const ts of instServices) {
+        if (ts.serviceProcessingStatus === "PENDING" && ts.ticketId) {
+          pendingTicketIds.add(ts.ticketId);
+        }
+      }
+      for (const vt of pendingVipTickets) {
+        if (vt.services?.providerId === inst.id) {
+          pendingTicketIds.add(vt.id);
+        }
+      }
+      const pendingCount = pendingTicketIds.size;
+
+      const inProgressList = instServices.filter((ts) => {
+        if (ts.serviceProcessingStatus !== "IN_PROGRESS") return false;
+        if (!ts.servedAt) return true;
+        const ageHours = (nowMs - new Date(ts.servedAt).getTime()) / (1000 * 60 * 60);
+        return ageHours <= 8;
+      });
+      const completedList = instServices.filter((ts) => ts.serviceProcessingStatus === "COMPLETED");
+
+      const activeTs = inProgressList[0] || null;
+      const servedAt = activeTs?.servedAt || null;
+      const rawElapsed = servedAt ? Math.max(1, Math.round((nowMs - new Date(servedAt).getTime()) / 60000)) : 0;
+      const elapsedMinutes = Math.min(rawElapsed, 120);
+
+      const cleanInstName = localize(inst.name, locale);
+      const instServicesList = rawServices.filter((s) => s.provider?.id === inst.id);
+      const defaultInstService = instServicesList[0]
+        ? localize(instServicesList[0].title, locale)
+        : `${cleanInstName} Counter`;
+
+      const activeServiceTitle = activeTs?.service
+        ? localize(activeTs.service.title, locale)
+        : defaultInstService;
+
+      return {
+        id: `desk-${inst.id}`,
+        deskId: `Desk ${deskNum}`,
+        deskLabel: `Desk ${deskNum} • ${inst.floorRoomNumber || `Counter ${deskNum}`}`,
+        staffName: formatCleanStaffName(inst.code),
+        staffRole: "Staff Officer",
+        institutionId: inst.id,
+        institutionCode: inst.code,
+        institutionName: cleanInstName,
+        serviceTitle: activeServiceTitle,
+        roomNumber: inst.floorRoomNumber || `Counter ${deskNum}`,
+        status: inProgressList.length > 0 ? "SERVING" : "AVAILABLE",
+        totalServingCount: inProgressList.length,
+        pendingCount: pendingCount,
+        number: pendingCount, // Directly maps to the TV 'Number' column
+        servedAt: servedAt ? servedAt.toISOString() : null,
+        elapsedMinutes: elapsedMinutes,
+        completedTodayCount: completedList.length,
+        averageDurationMinutes: 8,
+        lastProceedMinutes: 8,
+      };
+    });
+
+    const allDeskCounters = [...staffDeskCounters, ...additionalInstitutionDesks];
+    const totalServingAcrossAllDesks = allDeskCounters.reduce((acc, d) => acc + d.totalServingCount, 0);
 
     // Format institutions (Localized, public safe)
     const formattedInstitutions = institutions.map((inst) => ({
@@ -217,26 +558,17 @@ export async function getPublicVipDashboard(req, res) {
           statusMessage: !workingDay.isWorkingDay
             ? `Center is closed today: ${workingDay.reason}.`
             : !hoursCheck.isOpen
-            ? hoursCheck.reason
-            : !metrics.isCapacityAvailable
-            ? `Center has reached maximum daily VIP capacity (${metrics.dailyCapacity} customers).`
-            : "Center is open and accepting VIP priority customers.",
+              ? hoursCheck.reason
+              : !metrics.isCapacityAvailable
+                ? `Center has reached maximum daily VIP capacity (${metrics.dailyCapacity} customers).`
+                : "Center is open and accepting VIP priority customers.",
         },
         queue: {
           waiting: metrics.waitingCount,
-          currentlyServing: servingTicket
-            ? {
-                queueNumber: servingTicket.queueNumber,
-                queueDisplay: `VIP-${String(servingTicket.queueNumber).padStart(3, "0")}`,
-                servedAt: servingTicket.servedAt,
-              }
-            : null,
-          nextInQueue: nextTicket
-            ? {
-                queueNumber: nextTicket.queueNumber,
-                queueDisplay: `VIP-${String(nextTicket.queueNumber).padStart(3, "0")}`,
-              }
-            : null,
+          currentlyServing: formatQueueItem(servingTicket, "SERVING"),
+          currentlyServingList: servingTickets.map((t) => formatQueueItem(t, "SERVING")),
+          nextInQueue: formatQueueItem(nextTicket, "NEXT"),
+          upcomingQueue: queuedTickets.map((t, idx) => formatQueueItem(t, idx === 0 ? "NEXT" : "WAITING")),
           completedToday: metrics.completedCount,
           activeReservations: metrics.activeReservationsCount,
           estimatedWaitingTime: waitingTime,
@@ -259,6 +591,10 @@ export async function getPublicVipDashboard(req, res) {
           queuedTickets: statusCounts.QUEUED,
           servingTickets: statusCounts.SERVING,
         },
+        staffCounters: allDeskCounters,
+        deskCounters: allDeskCounters,
+        activeServingCountersCount: allDeskCounters.filter((d) => d.status === "SERVING").length,
+        totalServingTicketsCount: totalServingAcrossAllDesks,
         institutions: formattedInstitutions,
         services: formattedServices,
         lastUpdated: new Date().toISOString(),

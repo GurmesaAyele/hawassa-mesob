@@ -47,6 +47,9 @@ export const API_CONFIG = {
     
     // VIP Ticket Endpoints (per API integration guide)
     VIP_TICKETS: '/api/vip-tickets',
+    VIP_DASHBOARD: '/api/vip-dashboard',
+    VIP_DASHBOARD_STATS: '/api/vip-dashboard/stats',
+    VIP_TRACK: '/api/vip-tickets/track',
     VIP_PAYMENTS_INITIALIZE: '/api/vip-payments/initialize',
     VIP_PAYMENTS_STATUS: '/api/vip-payments/status',
     VIP_PAYMENTS_VERIFY: '/api/vip-payments/verify',

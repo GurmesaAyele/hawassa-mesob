@@ -26,7 +26,8 @@ const Navbar = () => {
       aboutUs: 'About Us',
       news: 'News',
       videos: 'Videos',
-      announcements: 'Announcements'
+      announcements: 'Announcements',
+      vipLive: 'Live Queue'
     },
     Amharic: {
       home: 'ዋና ገጽ',
@@ -38,7 +39,8 @@ const Navbar = () => {
       aboutUs: 'ስለ እኛ',
       news: 'ዜና',
       videos: 'ቪዲዮዎች',
-      announcements: 'ማስታወቂያዎች'
+      announcements: 'ማስታወቂያዎች',
+      vipLive: 'የቀጥታ ሰልፍ'
     },
     Sidama: {
       home: 'Umi Qoola',
@@ -50,7 +52,8 @@ const Navbar = () => {
       aboutUs: 'Nooni Mashala',
       news: 'Odoosu',
       videos: 'Videyo',
-      announcements: 'Beekisuute'
+      announcements: 'Beekisuute',
+      vipLive: 'Imaalu Kiiro'
     }
   };
 
@@ -230,6 +233,16 @@ const Navbar = () => {
               className="text-white px-2 xl:px-3 py-2 text-sm xl:text-base font-medium hover:bg-white/5 transition-colors whitespace-nowrap"
             >
               {t.serviceCatalogue}
+            </button>
+            <button 
+              onClick={() => handleNavigation('/vip-dashboard')}
+              className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs xl:text-sm font-bold bg-[#CB9D2A] text-white hover:bg-[#b8892a] hover:scale-105 transition-all shadow-md ml-1"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </span>
+              <span>{t.vipLive || 'Live Queue'}</span>
             </button>
             
             {/* About Dropdown */}
@@ -499,6 +512,19 @@ const Navbar = () => {
               className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium"
             >
               {t.serviceCatalogue}
+            </button>
+            <button 
+              onClick={() => handleNavigation('/vip-dashboard')}
+              className="w-full flex items-center justify-between px-4 py-3 bg-[#CB9D2A]/10 text-[#CB9D2A] hover:bg-[#CB9D2A]/20 rounded-lg transition-colors font-bold"
+            >
+              <span className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>{t.vipLive || 'Live VIP Queue'}</span>
+              </span>
+              <span className="text-xs bg-[#CB9D2A] text-white px-2 py-0.5 rounded-full font-semibold">LIVE</span>
             </button>
 
             {/* About Section in Mobile Menu */}

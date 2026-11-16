@@ -1,5 +1,6 @@
 import prisma from "../../config/db.js";
 import crypto from "crypto";
+import { broadcastQueueUpdate } from "../vip-dashboard/realtime.js";
 
 // Allowed service-processing status transitions
 const STATUS_DB_TO_CLIENT = {
@@ -583,6 +584,17 @@ export async function updateVipTicketServiceStatus(req, res) {
       where: { id: ticket.id },
       include: getAdminTicketIncludes(),
     });
+
+    // Instantly notify public TV screens, staff counters, and admin dashboards
+    try {
+      broadcastQueueUpdate({
+        type: "TICKET_STATUS_UPDATED",
+        ticketId: ticket.id,
+        status: serializeStatus(targetDbStatus),
+      });
+    } catch (notifyErr) {
+      console.warn("[admin-vip-tickets] broadcastQueueUpdate notice:", notifyErr.message);
+    }
 
     return res.status(200).json({
       success: true,

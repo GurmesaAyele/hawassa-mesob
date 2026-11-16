@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Chatbot from '../components/Chatbot';
 import VIPTicket from '../components/VIPTicket';
@@ -257,7 +258,10 @@ const Home = () => {
       supportTitle: 'Citizen Support',
       supportDesc: '24/7 assistance available',
       processingTitle: 'Quick Processing',
-      processingDesc: 'Fast and efficient service'
+      processingDesc: 'Fast and efficient service',
+      vipQueueTitle: 'Live VIP Telemetry',
+      vipQueueDesc: 'Live queue counters, wait estimates & instant fast-track booking',
+      vipQueueBtn: 'View Live Queue →'
     },
     Amharic: {
       // TODO: Add Amharic translations below
@@ -273,7 +277,10 @@ const Home = () => {
       supportTitle: 'የዜጋ ድጋፍ', // Add translation here
       supportDesc: '24/7 ድጋፍ ይገኛል', // Add translation here
       processingTitle: 'ፈጣን አገልግሎት', // Add translation here
-      processingDesc: 'ፈጣን እና ቀልጣፋ አገልግሎት በአንድ ቦታ' // Add translation here
+      processingDesc: 'ፈጣን እና ቀልጣፋ አገልግሎት በአንድ ቦታ', // Add translation here
+      vipQueueTitle: 'የቀጥታ ቪአይፒ ወረፋ መከታተያ',
+      vipQueueDesc: 'የቀጥታ ወረፋ ሁኔታ፣ የሚጠበቅበት ጊዜ እና ፈጣን ምዝገባ',
+      vipQueueBtn: 'የቀጥታ ወረፋ ይመልከቱ →'
     },
     Sidama: {
       // TODO: Add Sidama translations below
@@ -289,7 +296,10 @@ const Home = () => {
       supportTitle: 'Citizen Support', // Add translation here
       supportDesc: '24/7 assistance available', // Add translation here
       processingTitle: 'Quick Processing', // Add translation here
-      processingDesc: 'Fast and efficient service' // Add translation here
+      processingDesc: 'Fast and efficient service', // Add translation here
+      vipQueueTitle: 'Suwisa VIP Qeele Keeraanchimma',
+      vipQueueDesc: 'Hasaambanni qeele, agarraanni yanna nna qoleno suwisa kassi fushsha',
+      vipQueueBtn: 'Suwisa Qeele La\'e →'
     }
   };
 
@@ -957,6 +967,35 @@ const Home = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Live VIP Queue Telemetry Card */}
+                <Link
+                  to="/vip-dashboard"
+                  className="block p-5 rounded-xl transition-all duration-200 hover:translate-x-1 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-[#2e2013] dark:to-[#221812] border border-amber-300/70 dark:border-amber-600/50 shadow-sm hover:shadow group"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-lg bg-[#b45309] text-white flex items-center justify-center shadow">
+                      <span className="relative flex h-3.5 w-3.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-white"></span>
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-[19px] font-semibold text-gray-900 dark:text-[#F8FAFC] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                          {st.vipQueueTitle}
+                        </h3>
+                        <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                          Live
+                        </span>
+                      </div>
+                      <p className="text-[15px] text-gray-600 dark:text-[#CBD5E1] mb-2">{st.vipQueueDesc}</p>
+                      <span className="inline-flex items-center text-sm font-semibold text-amber-700 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
+                        {st.vipQueueBtn}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
