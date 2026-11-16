@@ -701,7 +701,7 @@ const Home = () => {
             />
           ))}
           {/* Dark Overlay */}
-          <div className="absolute inset-0 bg-[#3d5a99]/70"></div>
+          <div className="absolute inset-0 bg-black/65"></div>
         </div>
 
         <div className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center">

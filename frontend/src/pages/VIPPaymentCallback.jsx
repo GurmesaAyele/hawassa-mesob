@@ -13,6 +13,7 @@ const VIPPaymentCallback = () => {
   const [supplementaryServices, setSupplementaryServices] = useState([]);
   const [citizenInfo, setCitizenInfo] = useState({ name: '', phone: '' });
   const [copiedToast, setCopiedToast] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const maxPollingAttempts = 20; // 60 seconds (3 seconds × 20)
   const navigate = useNavigate();
@@ -304,7 +305,301 @@ const VIPPaymentCallback = () => {
     navigate('/');
   };
 
-  const handleDownloadPdf = () => {
+  const generateAndDownloadTicket = async () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const width = 800;
+    const servicesCount = displayServices.length || 1;
+    const servicesHeight = Math.min(servicesCount * 70, 350);
+    const height = 1150 + servicesHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const drawRoundedRect = (c, x, y, w, h, r) => {
+      c.beginPath();
+      if (c.roundRect) {
+        c.roundRect(x, y, w, h, r);
+      } else {
+        c.moveTo(x + r, y);
+        c.lineTo(x + w - r, y);
+        c.quadraticCurveTo(x + w, y, x + w, y + r);
+        c.lineTo(x + w, y + h - r);
+        c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        c.lineTo(x + r, y + h);
+        c.quadraticCurveTo(x, y + h, x, y + h - r);
+        c.lineTo(x, y + r);
+        c.quadraticCurveTo(x, y, x + r, y);
+      }
+    };
+
+    // Card background - pure white
+    ctx.fillStyle = '#FFFFFF';
+    drawRoundedRect(ctx, 0, 0, width, height, 44);
+    ctx.fill();
+
+    // Gold outer border
+    ctx.strokeStyle = '#CB9D2A';
+    ctx.lineWidth = 6;
+    drawRoundedRect(ctx, 3, 3, width - 6, height - 6, 42);
+    ctx.stroke();
+
+    // VIP TICKET title
+    ctx.fillStyle = '#B8860B';
+    ctx.font = '900 46px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('VIP TICKET', 52, 90);
+
+    // CONFIRMED status badge
+    ctx.fillStyle = '#ECFDF5';
+    drawRoundedRect(ctx, width - 240, 48, 188, 52, 26);
+    ctx.fill();
+    ctx.strokeStyle = '#34D399';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.fillStyle = '#047857';
+    ctx.font = '800 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('CONFIRMED', width - 146, 82);
+
+    // Application Reference
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '700 20px sans-serif';
+    ctx.fillText('APPLICATION REFERENCE', 52, 160);
+
+    const refText = resolveLocalizedValue(paymentData.applicationReference || paymentData.ticketCode || searchParams.get('reference'), language) || 'VIP-MESOB';
+    ctx.fillStyle = '#0F172A';
+    ctx.font = '800 36px monospace';
+    ctx.fillText(refText, 52, 205);
+
+    // Amount & Payment Method
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '700 20px sans-serif';
+    ctx.fillText('AMOUNT', 52, 268);
+    ctx.fillText('PAYMENT METHOD', 440, 268);
+
+    ctx.fillStyle = '#0F172A';
+    ctx.font = '800 32px sans-serif';
+    ctx.fillText(`${paymentData.amount || 1000} ${paymentData.currency || 'ETB'}`, 52, 310);
+    ctx.fillText(`${resolveLocalizedValue(paymentData.paymentMethod || 'Test', language)}`, 440, 310);
+
+    let currentY = 360;
+
+    // Citizen Name (if present)
+    if (displayCitizenName) {
+      ctx.strokeStyle = '#F1F5F9';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(52, currentY - 15);
+      ctx.lineTo(width - 52, currentY - 15);
+      ctx.stroke();
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '700 20px sans-serif';
+      ctx.fillText('CITIZEN NAME', 52, currentY + 16);
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '700 26px sans-serif';
+      ctx.fillText(resolveLocalizedValue(displayCitizenName, language), 240, currentY + 16);
+      currentY += 56;
+    }
+
+    // Divider
+    ctx.strokeStyle = '#F1F5F9';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(52, currentY);
+    ctx.lineTo(width - 52, currentY);
+    ctx.stroke();
+    currentY += 36;
+
+    // Selected Services Label
+    ctx.fillStyle = '#64748B';
+    ctx.font = '800 22px sans-serif';
+    ctx.fillText(`SELECTED SERVICES (${displayServices.length || 1})`, 52, currentY);
+    currentY += 22;
+
+    // Render each service
+    if (displayServices.length > 0) {
+      displayServices.forEach((s) => {
+        currentY += 14;
+        ctx.fillStyle = '#FFFBEB';
+        drawRoundedRect(ctx, 52, currentY, width - 104, 62, 16);
+        ctx.fill();
+        ctx.strokeStyle = '#FDE68A';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Gold check circle
+        ctx.fillStyle = '#CB9D2A';
+        ctx.beginPath();
+        ctx.arc(88, currentY + 31, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '800 18px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✓', 88, currentY + 37);
+
+        // Service title
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#0F172A';
+        ctx.font = '700 22px sans-serif';
+        const title = resolveLocalizedValue(s.title, language) || resolveLocalizedValue(s.name, language) || 'VIP Service';
+        const truncated = title.length > 40 ? title.slice(0, 38) + '...' : title;
+        ctx.fillText(truncated, 120, currentY + 38);
+
+        currentY += 62;
+      });
+    } else {
+      currentY += 14;
+      ctx.fillStyle = '#FFFBEB';
+      drawRoundedRect(ctx, 52, currentY, width - 104, 54, 16);
+      ctx.fill();
+      ctx.fillStyle = '#92400E';
+      ctx.font = '700 20px sans-serif';
+      ctx.fillText('✦ Fast-track VIP Service & Priority Queue Access', 74, currentY + 34);
+      currentY += 54;
+    }
+
+    currentY += 40;
+
+    // Perforation divider with side notches
+    const notchY = currentY;
+    // Left notch
+    ctx.fillStyle = '#1E293B';
+    ctx.beginPath();
+    ctx.arc(0, notchY, 34, -Math.PI / 2, Math.PI / 2);
+    ctx.fill();
+    ctx.strokeStyle = '#CB9D2A';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+
+    // Right notch
+    ctx.beginPath();
+    ctx.arc(width, notchY, 34, Math.PI / 2, -Math.PI / 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Perforation dots
+    ctx.fillStyle = '#E2E8F0';
+    for (let x = 68; x <= width - 68; x += 30) {
+      ctx.beginPath();
+      ctx.arc(x, notchY, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    currentY += 52;
+
+    // Digital Ticket Title
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '800 32px sans-serif';
+    ctx.fillText('Your Digital VIP Ticket', width / 2, currentY);
+    currentY += 25;
+
+    // Load QR Image
+    if (qrCodeSrc) {
+      try {
+        const qrImg = await new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          const tId = setTimeout(() => resolve(null), 1500);
+          img.onload = () => { clearTimeout(tId); resolve(img); };
+          img.onerror = () => { clearTimeout(tId); resolve(null); };
+          img.src = qrCodeSrc;
+        });
+
+        if (qrImg) {
+          const qrSize = 320;
+          const qrX = (width - qrSize) / 2;
+          const qrY = currentY + 15;
+
+          // QR container box
+          ctx.fillStyle = '#FFFFFF';
+          drawRoundedRect(ctx, qrX - 16, qrY - 16, qrSize + 32, qrSize + 32, 22);
+          ctx.fill();
+          ctx.strokeStyle = '#F1F5F9';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Gold corner brackets
+          const bl = 28;
+          const x1 = qrX - 8;
+          const x2 = qrX + qrSize + 8;
+          const y1 = qrY - 8;
+          const y2 = qrY + qrSize + 8;
+
+          ctx.strokeStyle = '#CB9D2A';
+          ctx.lineWidth = 6;
+          ctx.lineCap = 'round';
+
+          // ┌
+          ctx.beginPath();
+          ctx.moveTo(x1, y1 + bl); ctx.lineTo(x1, y1); ctx.lineTo(x1 + bl, y1); ctx.stroke();
+          // ┐
+          ctx.beginPath();
+          ctx.moveTo(x2 - bl, y1); ctx.lineTo(x2, y1); ctx.lineTo(x2, y1 + bl); ctx.stroke();
+          // └
+          ctx.beginPath();
+          ctx.moveTo(x1, y2 - bl); ctx.lineTo(x1, y2); ctx.lineTo(x1 + bl, y2); ctx.stroke();
+          // ┘
+          ctx.beginPath();
+          ctx.moveTo(x2 - bl, y2); ctx.lineTo(x2, y2); ctx.lineTo(x2, y2 - bl); ctx.stroke();
+
+          ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+          currentY = qrY + qrSize + 48;
+        } else {
+          currentY += 100;
+        }
+      } catch (err) {
+        console.warn('QR draw skipped:', err);
+        currentY += 100;
+      }
+    }
+
+    // Check-in text
+    ctx.fillStyle = '#64748B';
+    ctx.font = '600 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Please check in at Hawassa MESOB Center to join the priority queue', width / 2, currentY);
+
+    // Footer note
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '700 18px sans-serif';
+    ctx.fillText('Hawassa MESOB Center • Priority Pass', width / 2, currentY + 36);
+
+    // Convert canvas to Blob and download
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const blobUrl = URL.createObjectURL(blob);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.href = blobUrl;
+      downloadAnchor.download = `VIP-Ticket-${refText}.png`;
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      document.body.removeChild(downloadAnchor);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
+    }, 'image/png');
+  };
+
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      await generateAndDownloadTicket();
+    } catch (e) {
+      console.error('Download ticket error:', e);
+    } finally {
+      setIsDownloading(false);
+      // Automatically prompt print dialog so user can also print directly
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }
+  };
+
+  const handlePrint = () => {
     window.print();
   };
 
@@ -363,6 +658,8 @@ const VIPPaymentCallback = () => {
       servicesCount: 'services',
       citizenName: 'Citizen Name',
       downloadPdf: 'Download PDF',
+      downloading: 'Downloading...',
+      printTicket: 'Print',
       sharePass: 'Share Pass',
       passCopied: 'Pass link copied to clipboard!',
       fastTrackQueue: 'Priority Fast-Track Queue Pass'
@@ -391,6 +688,8 @@ const VIPPaymentCallback = () => {
       servicesCount: 'አገልግሎቶች',
       citizenName: 'የዜጋው ስም',
       downloadPdf: 'ፒዲኤፍ አውርድ',
+      downloading: 'በማውረድ ላይ...',
+      printTicket: 'አትም',
       sharePass: 'ትኬቱን አጋራ',
       passCopied: 'የትኬት አገናኝ ተቀድቷል!',
       fastTrackQueue: 'የቅድሚያ ፈጣን ወረፋ ትኬት'
@@ -419,6 +718,8 @@ const VIPPaymentCallback = () => {
       servicesCount: 'owaante',
       citizenName: 'Teessaancho Su’ma',
       downloadPdf: 'PDF Buusi',
+      downloading: 'Buusanni...',
+      printTicket: 'Attami',
       sharePass: 'Tikete Qoodi',
       passCopied: 'Tikete linke koppinammooni!',
       fastTrackQueue: 'Priority Fast-Track Tikete'
@@ -676,21 +977,37 @@ const VIPPaymentCallback = () => {
                     </span>
                   </p>
 
-                  {/* Bottom Action Buttons (Side by Side) */}
-                  <div className="flex gap-3 no-print">
+                  {/* Bottom Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-2.5 no-print">
                     <button
                       onClick={handleDownloadPdf}
-                      className="flex-1 py-3 px-3 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98]"
+                      disabled={isDownloading}
+                      className="flex-1 py-3 px-3 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] disabled:opacity-75"
+                    >
+                      {isDownloading ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-400 border-t-transparent" />
+                      ) : (
+                        <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                      )}
+                      <span>{isDownloading ? t.downloading : t.downloadPdf}</span>
+                    </button>
+
+                    <button
+                      onClick={handlePrint}
+                      className="py-3 px-3 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98]"
+                      title="Print ticket pass"
                     >
                       <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                       </svg>
-                      <span>{t.downloadPdf}</span>
+                      <span>{t.printTicket}</span>
                     </button>
 
                     <button
                       onClick={handleSharePass}
-                      className="flex-1 py-3 px-3 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98]"
+                      className="py-3 px-3 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98]"
                     >
                       <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
