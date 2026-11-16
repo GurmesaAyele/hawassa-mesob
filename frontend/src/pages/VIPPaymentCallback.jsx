@@ -14,6 +14,7 @@ const VIPPaymentCallback = () => {
   const [citizenInfo, setCitizenInfo] = useState({ name: '', phone: '' });
   const [copiedToast, setCopiedToast] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   const maxPollingAttempts = 20; // 60 seconds (3 seconds × 20)
   const navigate = useNavigate();
@@ -728,12 +729,34 @@ const VIPPaymentCallback = () => {
 
   const t = translations[language] || translations.English;
 
-  // Resolve services to display
-  const displayServices = (paymentData?.services && paymentData.services.length > 0)
-    ? paymentData.services
-    : (supplementaryServices && supplementaryServices.length > 0)
-      ? supplementaryServices
-      : [];
+  // Resolve services to display - aggregates paymentData, supplementaryServices, and localStorage
+  const displayServices = (() => {
+    const list = [];
+    const seen = new Set();
+    const add = (s) => {
+      if (!s) return;
+      const id = s.id || (typeof s === 'string' ? s : null);
+      const title = resolveLocalizedValue(s.title, language) || resolveLocalizedValue(s.name, language) || (typeof s === 'string' ? s : '');
+      const key = id || title;
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        list.push(s);
+      }
+    };
+    if (Array.isArray(paymentData?.services)) {
+      paymentData.services.forEach(add);
+    }
+    if (Array.isArray(supplementaryServices)) {
+      supplementaryServices.forEach(add);
+    }
+    try {
+      const stored = JSON.parse(localStorage.getItem('vip_selected_services') || '[]');
+      if (Array.isArray(stored)) {
+        stored.forEach(add);
+      }
+    } catch (e) {}
+    return list;
+  })();
 
   const displayCitizenName = paymentData?.citizenName || citizenInfo.name || '';
 
@@ -760,7 +783,7 @@ const VIPPaymentCallback = () => {
             top: 20px !important;
             transform: translateX(-50%) !important;
             width: 100% !important;
-            max-width: 420px !important;
+            max-width: 360px !important;
             margin: 0 auto !important;
             box-shadow: none !important;
             border: 2px solid #CB9D2A !important;
@@ -793,235 +816,282 @@ const VIPPaymentCallback = () => {
           {status === 'success' && paymentData && (
             <div className="w-full flex flex-col items-center">
               {/* Header outside the card */}
-              <div className="text-center mb-6 no-print">
-                <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center bg-gradient-to-tr from-[#CB9D2A] to-[#E6CA65] shadow-lg shadow-[#CB9D2A]/25">
+              <div className="text-center mb-5 no-print">
+                <div className="w-12 h-12 rounded-full mx-auto mb-2.5 flex items-center justify-center bg-gradient-to-tr from-[#CB9D2A] to-[#E6CA65] shadow-lg shadow-[#CB9D2A]/25">
                   <svg className="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{t.success}</h2>
-                <p className="text-slate-400 text-sm sm:text-base mt-1">{t.successDesc}</p>
+                <p className="text-slate-400 text-sm mt-1">{t.successDesc}</p>
               </div>
 
-              {/* VIP Ticket Card (WHITE background, elegant design matching the reference image) */}
-              <div
-                id="vip-ticket-card"
-                className="relative w-full max-w-[420px] bg-white rounded-[26px] border-2 border-[#CB9D2A] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] overflow-hidden text-slate-900 transition-all duration-300"
-              >
-                {/* Top Section */}
-                <div className="p-6 sm:p-7 pb-4">
-                  {/* VIP TICKET & CONFIRMED Status Badge */}
-                  <div className="flex items-center justify-between">
-                    <h1 className="text-2xl sm:text-3xl font-black tracking-wider text-[#B8860B] drop-shadow-sm font-sans uppercase">
-                      {t.vipTicket}
-                    </h1>
-                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-400/80 font-bold text-xs px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                      {t.confirmed}
-                    </span>
-                  </div>
+              {/* Zoom In & Out Toolbar */}
+              <div className="flex items-center justify-center gap-2 mb-4 no-print select-none">
+                <div className="inline-flex items-center bg-slate-800/90 backdrop-blur-md border border-slate-700/80 rounded-full px-3 py-1 shadow-lg text-white text-xs gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setZoom(prev => Math.max(0.65, Number((prev - 0.1).toFixed(1))))}
+                    className="p-1 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white"
+                    title="Zoom Out"
+                    aria-label="Zoom Out"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
+                    </svg>
+                  </button>
 
-                  {/* Application Reference */}
-                  <div className="mt-5 text-left">
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
-                      {t.applicationRef}
-                    </p>
-                    <p className="text-xl sm:text-2xl font-mono font-extrabold text-slate-900 tracking-tight break-all select-all">
-                      {resolveLocalizedValue(paymentData.applicationReference || paymentData.ticketCode || searchParams.get('reference'), language)}
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setZoom(1)}
+                    className="px-2 py-0.5 font-mono font-bold text-[11px] text-[#CB9D2A] hover:bg-white/10 rounded transition-colors"
+                    title="Reset to 100%"
+                  >
+                    {Math.round(zoom * 100)}%
+                  </button>
 
-                  {/* Amount & Payment Method */}
-                  <div className="grid grid-cols-2 gap-4 mt-4 pt-1 text-left">
-                    <div>
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
-                        {t.amount}
+                  <button
+                    type="button"
+                    onClick={() => setZoom(prev => Math.min(1.4, Number((prev + 0.1).toFixed(1))))}
+                    className="p-1 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white"
+                    title="Zoom In"
+                    aria-label="Zoom In"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+
+                  <div className="h-3 w-px bg-slate-600/70 mx-0.5"></div>
+
+                  <button
+                    type="button"
+                    onClick={() => setZoom(1)}
+                    className="text-[10px] font-semibold text-slate-400 hover:text-white transition-colors"
+                    title="Reset Zoom"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              {/* VIP Ticket Card Container with Zoom Scale */}
+              <div className="w-full flex justify-center items-start overflow-visible transition-all duration-200">
+                <div
+                  id="vip-ticket-card"
+                  style={{
+                    transform: `scale(${zoom})`,
+                    transformOrigin: 'top center',
+                    transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                  className="relative w-full max-w-[340px] sm:max-w-[360px] bg-white rounded-3xl border-2 border-[#CB9D2A] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] overflow-hidden text-slate-900 mx-auto transition-all"
+                >
+                  {/* Top Section */}
+                  <div className="p-4 sm:p-5 pb-2.5">
+                    {/* VIP TICKET & CONFIRMED Status Badge */}
+                    <div className="flex items-center justify-between">
+                      <h1 className="text-xl sm:text-2xl font-black tracking-wider text-[#B8860B] drop-shadow-sm font-sans uppercase">
+                        {t.vipTicket}
+                      </h1>
+                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-400/80 font-bold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                        {t.confirmed}
+                      </span>
+                    </div>
+
+                    {/* Application Reference */}
+                    <div className="mt-3.5 text-left">
+                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                        {t.applicationRef}
                       </p>
-                      <p className="text-base sm:text-lg font-extrabold text-slate-900">
-                        {paymentData.amount || 1000} {paymentData.currency || 'ETB'}
+                      <p className="text-base sm:text-lg font-mono font-extrabold text-slate-900 tracking-tight break-all select-all">
+                        {resolveLocalizedValue(paymentData.applicationReference || paymentData.ticketCode || searchParams.get('reference'), language)}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
-                        {t.paymentMethod}
-                      </p>
-                      <p className="text-base sm:text-lg font-extrabold text-slate-900 capitalize">
-                        {resolveLocalizedValue(paymentData.paymentMethod || 'Test', language)}
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Citizen Name (if present) */}
-                  {displayCitizenName && (
-                    <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-left">
-                      <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                        {t.citizenName}
-                      </span>
-                      <span className="text-sm font-bold text-slate-800">
-                        {resolveLocalizedValue(displayCitizenName, language)}
-                      </span>
+                    {/* Amount & Payment Method */}
+                    <div className="grid grid-cols-2 gap-3 mt-3 pt-1 text-left">
+                      <div>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                          {t.amount}
+                        </p>
+                        <p className="text-xs sm:text-sm font-extrabold text-slate-900">
+                          {paymentData.amount || 1000} {paymentData.currency || 'ETB'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                          {t.paymentMethod}
+                        </p>
+                        <p className="text-xs sm:text-sm font-extrabold text-slate-900 capitalize truncate">
+                          {resolveLocalizedValue(paymentData.paymentMethod || 'Chapa', language)}
+                        </p>
+                      </div>
                     </div>
-                  )}
 
-                  {/* Selected Services Section (KEY USER REQUIREMENT) */}
-                  <div className="mt-4 pt-3 border-t border-gray-100 text-left">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 text-[#CB9D2A]" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        {t.selectedServices}
-                      </span>
-                      {displayServices.length > 0 && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-                          {displayServices.length} {t.servicesCount}
+                    {/* Citizen Name (if present) */}
+                    {displayCitizenName && (
+                      <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between text-left">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                          {t.citizenName}
                         </span>
-                      )}
-                    </div>
+                        <span className="text-xs font-bold text-slate-800 truncate ml-2">
+                          {resolveLocalizedValue(displayCitizenName, language)}
+                        </span>
+                      </div>
+                    )}
 
-                    {displayServices.length > 0 ? (
-                      <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                        {displayServices.map((service, idx) => {
-                          const serviceTitle = resolveLocalizedValue(service.title, language) ||
-                                               resolveLocalizedValue(service.name, language) ||
-                                               'VIP Service';
-                          const providerName = service.provider?.name
-                            ? resolveLocalizedValue(service.provider.name, language)
-                            : '';
-                          const floorRoom = service.provider?.floorRoomNumber
-                            ? resolveLocalizedValue(service.provider.floorRoomNumber, language)
-                            : '';
+                    {/* Selected Services Section - Shows ALL services from all institutions */}
+                    <div className="mt-3 pt-2.5 border-t border-gray-100 text-left">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                          <svg className="w-3 h-3 text-[#CB9D2A]" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          {t.selectedServices}
+                        </span>
+                        {displayServices.length > 0 && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">
+                            {displayServices.length} {t.servicesCount}
+                          </span>
+                        )}
+                      </div>
 
-                          return (
-                            <div
-                              key={service.id || idx}
-                              className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-2.5 flex items-start gap-2.5 transition-colors hover:bg-amber-50"
-                            >
-                              <span className="w-5 h-5 rounded-full bg-[#CB9D2A] text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">
-                                ✓
-                              </span>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
-                                  {serviceTitle}
-                                </p>
-                                {providerName && (
-                                  <p className="text-[11px] text-gray-500 font-medium truncate mt-0.5">
-                                    {providerName}
-                                    {floorRoom && (
-                                      <span className="text-amber-700 ml-1.5 font-semibold">
-                                        • {floorRoom}
-                                      </span>
-                                    )}
+                      {displayServices.length > 0 ? (
+                        <div className="space-y-1 max-h-24 sm:max-h-28 overflow-y-auto pr-1">
+                          {displayServices.map((service, idx) => {
+                            const serviceTitle = resolveLocalizedValue(service.title, language) ||
+                                                 resolveLocalizedValue(service.name, language) ||
+                                                 'VIP Service';
+                            const providerName = service.provider?.name
+                              ? resolveLocalizedValue(service.provider.name, language)
+                              : (service.institutionName ? resolveLocalizedValue(service.institutionName, language) : '');
+                            const floorRoom = service.provider?.floorRoomNumber
+                              ? resolveLocalizedValue(service.provider.floorRoomNumber, language)
+                              : '';
+
+                            return (
+                              <div
+                                key={service.id || idx}
+                                className="bg-amber-50/70 border border-amber-200/80 rounded-lg p-1.5 flex items-center gap-2 text-left"
+                              >
+                                <span className="w-3.5 h-3.5 rounded-full bg-[#CB9D2A] text-white flex items-center justify-center text-[8px] font-black flex-shrink-0">
+                                  ✓
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-[11px] sm:text-xs font-bold text-slate-900 leading-tight truncate">
+                                    {serviceTitle}
                                   </p>
-                                )}
+                                  {providerName && (
+                                    <p className="text-[9px] text-amber-800/90 font-semibold truncate">
+                                      {providerName}
+                                      {floorRoom && <span className="ml-1 text-slate-500">• {floorRoom}</span>}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-2.5 text-xs text-amber-900 flex items-center gap-2">
-                        <span className="text-[#CB9D2A] font-bold">✦</span>
-                        <span>{t.fastTrackQueue}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Perforated Divider with Cutout Notches */}
-                <div className="relative py-2 flex items-center justify-center my-0 select-none">
-                  {/* Left Notch */}
-                  <div className="absolute -left-3.5 w-7 h-7 bg-[#1E293B] rounded-full border-r-2 border-[#CB9D2A] -translate-y-1/2 top-1/2 z-10 shadow-inner"></div>
-
-                  {/* Perforation Dots */}
-                  <div className="w-full flex items-center justify-between px-6 overflow-hidden">
-                    {Array.from({ length: 22 }).map((_, i) => (
-                      <span key={i} className="w-2 h-2 rounded-full bg-gray-200 inline-block flex-shrink-0 mx-0.5"></span>
-                    ))}
-                  </div>
-
-                  {/* Right Notch */}
-                  <div className="absolute -right-3.5 w-7 h-7 bg-[#1E293B] rounded-full border-l-2 border-[#CB9D2A] -translate-y-1/2 top-1/2 z-10 shadow-inner"></div>
-                </div>
-
-                {/* Bottom Section */}
-                <div className="p-6 sm:p-7 pt-4 bg-white text-center">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-800 tracking-wide mb-3">
-                    {t.digitalTicket}
-                  </h3>
-
-                  {/* QR Code Container with 4 Corner Scanner Brackets */}
-                  <div className="relative inline-block mx-auto p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
-                    <span className="absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-[#CB9D2A] rounded-tl-sm pointer-events-none"></span>
-                    <span className="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-[#CB9D2A] rounded-tr-sm pointer-events-none"></span>
-                    <span className="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-[#CB9D2A] rounded-bl-sm pointer-events-none"></span>
-                    <span className="absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-[#CB9D2A] rounded-br-sm pointer-events-none"></span>
-
-                    {qrCodeSrc ? (
-                      <img
-                        src={qrCodeSrc}
-                        alt="VIP Ticket QR Code"
-                        className="w-40 h-40 sm:w-48 sm:h-48 object-contain mx-auto"
-                      />
-                    ) : (
-                      <div className="w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 text-xs">
-                        QR Code
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Check-in Instructions */}
-                  <p className="text-xs text-gray-500 leading-relaxed max-w-[280px] mx-auto mt-4 mb-5 flex items-center justify-center gap-1.5">
-                    <span>{t.checkInInstructions}</span>
-                    <span className="w-4 h-4 rounded-full border border-gray-400 text-gray-500 text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                      i
-                    </span>
-                  </p>
-
-                  {/* Bottom Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2.5 no-print">
-                    <button
-                      onClick={handleDownloadPdf}
-                      disabled={isDownloading}
-                      className="flex-1 py-3 px-3 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] disabled:opacity-75"
-                    >
-                      {isDownloading ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-400 border-t-transparent" />
+                            );
+                          })}
+                        </div>
                       ) : (
-                        <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
+                        <div className="bg-amber-50/60 border border-amber-200/60 rounded-lg p-1.5 text-[11px] text-amber-900 flex items-center gap-1.5">
+                          <span className="text-[#CB9D2A] font-bold">✦</span>
+                          <span>{t.fastTrackQueue}</span>
+                        </div>
                       )}
-                      <span>{isDownloading ? t.downloading : t.downloadPdf}</span>
-                    </button>
-
-                    <button
-                      onClick={handlePrint}
-                      className="py-3 px-3 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98]"
-                      title="Print ticket pass"
-                    >
-                      <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                      </svg>
-                      <span>{t.printTicket}</span>
-                    </button>
-
-                    <button
-                      onClick={handleSharePass}
-                      className="py-3 px-3 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98]"
-                    >
-                      <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                      </svg>
-                      <span>{t.sharePass}</span>
-                    </button>
+                    </div>
                   </div>
 
-                  {/* Copy Link Feedback Toast */}
-                  {copiedToast && (
-                    <div className="mt-2 text-xs text-emerald-600 font-semibold no-print">
-                      {t.passCopied}
+                  {/* Perforated Divider with Cutout Notches */}
+                  <div className="relative py-1 flex items-center justify-center my-0 select-none">
+                    <div className="absolute -left-3 w-6 h-6 bg-[#1E293B] rounded-full border-r-2 border-[#CB9D2A] -translate-y-1/2 top-1/2 z-10 shadow-inner"></div>
+                    <div className="w-full flex items-center justify-between px-5 overflow-hidden">
+                      {Array.from({ length: 20 }).map((_, i) => (
+                        <span key={i} className="w-1.5 h-1.5 rounded-full bg-gray-200 inline-block flex-shrink-0 mx-0.5"></span>
+                      ))}
                     </div>
-                  )}
+                    <div className="absolute -right-3 w-6 h-6 bg-[#1E293B] rounded-full border-l-2 border-[#CB9D2A] -translate-y-1/2 top-1/2 z-10 shadow-inner"></div>
+                  </div>
+
+                  {/* Bottom Section */}
+                  <div className="p-4 sm:p-5 pt-2.5 bg-white text-center">
+                    <p className="text-xs font-bold text-slate-800 mb-2">
+                      {t.digitalTicket}
+                    </p>
+
+                    {/* QR Code Container with 4 Corner Scanner Brackets */}
+                    <div className="relative inline-block mx-auto p-3 bg-white rounded-xl shadow-sm border border-gray-100">
+                      <span className="absolute top-1.5 left-1.5 w-4 h-4 border-t-2 border-l-2 border-[#CB9D2A] rounded-tl-sm pointer-events-none"></span>
+                      <span className="absolute top-1.5 right-1.5 w-4 h-4 border-t-2 border-r-2 border-[#CB9D2A] rounded-tr-sm pointer-events-none"></span>
+                      <span className="absolute bottom-1.5 left-1.5 w-4 h-4 border-b-2 border-l-2 border-[#CB9D2A] rounded-bl-sm pointer-events-none"></span>
+                      <span className="absolute bottom-1.5 right-1.5 w-4 h-4 border-b-2 border-r-2 border-[#CB9D2A] rounded-br-sm pointer-events-none"></span>
+
+                      {qrCodeSrc ? (
+                        <img
+                          src={qrCodeSrc}
+                          alt="VIP Ticket QR Code"
+                          className="w-28 h-28 sm:w-32 sm:h-32 object-contain mx-auto"
+                        />
+                      ) : (
+                        <div className="w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center bg-gray-50 rounded-lg text-gray-400 text-xs">
+                          QR Code
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Check-in Instructions */}
+                    <p className="text-[10px] text-gray-500 leading-tight max-w-[240px] mx-auto mt-2.5 mb-3.5 flex items-center justify-center gap-1">
+                      <span>{t.checkInInstructions}</span>
+                      <span className="w-3.5 h-3.5 rounded-full border border-gray-400 text-gray-500 text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+                        i
+                      </span>
+                    </p>
+
+                    {/* Bottom Action Buttons */}
+                    <div className="flex flex-row gap-2 no-print">
+                      <button
+                        onClick={handleDownloadPdf}
+                        disabled={isDownloading}
+                        className="flex-1 py-2 px-2.5 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs transition-all duration-200 flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg active:scale-[0.98] disabled:opacity-75"
+                      >
+                        {isDownloading ? (
+                          <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-amber-400 border-t-transparent" />
+                        ) : (
+                          <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                        )}
+                        <span>{isDownloading ? t.downloading : t.downloadPdf}</span>
+                      </button>
+
+                      <button
+                        onClick={handlePrint}
+                        className="py-2 px-2.5 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs transition-all duration-200 flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg active:scale-[0.98]"
+                        title="Print ticket pass"
+                      >
+                        <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span>{t.printTicket}</span>
+                      </button>
+
+                      <button
+                        onClick={handleSharePass}
+                        className="py-2 px-2.5 rounded-xl font-bold bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs transition-all duration-200 flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg active:scale-[0.98]"
+                      >
+                        <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                        <span>{t.sharePass}</span>
+                      </button>
+                    </div>
+
+                    {/* Copy Link Feedback Toast */}
+                    {copiedToast && (
+                      <div className="mt-2 text-xs text-emerald-600 font-semibold no-print">
+                        {t.passCopied}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

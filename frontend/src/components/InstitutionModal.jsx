@@ -138,7 +138,11 @@ const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, s
                   return (
                     <div
                       key={service.id}
-                      onClick={() => onServiceToggle(service)}
+                      onClick={() => onServiceToggle({
+                        ...service,
+                        institutionName: service.institutionName || institution.name,
+                        institutionId: service.institutionId || institution.id
+                      })}
                       className={`cursor-pointer rounded-xl p-4 sm:p-5 transition-all duration-200 border-2 flex items-center justify-between gap-4 select-none ${
                         selected
                           ? 'bg-amber-500/10 border-[#CB9D2A] dark:bg-[#CB9D2A]/15 shadow-sm'

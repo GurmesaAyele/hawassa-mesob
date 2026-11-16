@@ -5,25 +5,65 @@ import InstitutionCard from './InstitutionCard';
 import InstitutionModal from './InstitutionModal';
 
 const VIPTicket = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  // Restore flow state from sessionStorage / localStorage so page refresh doesn't lose step or services
+  const [isOpen, setIsOpen] = useState(() => {
+    try {
+      return sessionStorage.getItem('vip_flow_is_open') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
   const [language, setLanguage] = useState('English');
-  const [step, setStep] = useState(1); // 1: Institutions & Services, 2: Full Screen Form, 3: Payment Polling, 4: Success Ticket
-  const [isServicesMinimized, setIsServicesMinimized] = useState(false);
+  const [step, setStep] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('vip_flow_step');
+      const num = parseInt(saved, 10);
+      return num >= 1 && num <= 4 ? num : 1;
+    } catch (e) {
+      return 1;
+    }
+  });
+  const [isServicesMinimized, setIsServicesMinimized] = useState(() => {
+    try {
+      return sessionStorage.getItem('vip_flow_services_minimized') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+  const [ticketZoom, setTicketZoom] = useState(1);
 
   // Institutions & Services
   const [institutions, setInstitutions] = useState([]);
   const [institutionsLoading, setInstitutionsLoading] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState(null);
-  const [selectedServices, setSelectedServices] = useState([]);
+  const [selectedServices, setSelectedServices] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('vip_flow_selected_services') || localStorage.getItem('vip_selected_services');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
   const [showInstitutionModal, setShowInstitutionModal] = useState(false);
 
   // Form Data
-  const [formData, setFormData] = useState({
-    citizenName: '',
-    citizenPhone: '',
-    citizenEmail: '',
-    serviceId: '',
-    purpose: ''
+  const [formData, setFormData] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('vip_flow_form_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch (e) {}
+    return {
+      citizenName: localStorage.getItem('vip_citizen_name') || '',
+      citizenPhone: localStorage.getItem('vip_citizen_phone') || '',
+      citizenEmail: '',
+      serviceId: '',
+      purpose: ''
+    };
   });
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +92,28 @@ const VIPTicket = () => {
     window.addEventListener('languageChange', handleLanguageChange);
     return () => window.removeEventListener('languageChange', handleLanguageChange);
   }, []);
+
+  // Save flow state across browser refreshes so user never loses their page or selected services
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('vip_flow_is_open', isOpen ? 'true' : 'false');
+      sessionStorage.setItem('vip_flow_step', step.toString());
+      sessionStorage.setItem('vip_flow_services_minimized', isServicesMinimized ? 'true' : 'false');
+      sessionStorage.setItem('vip_flow_selected_services', JSON.stringify(selectedServices));
+      sessionStorage.setItem('vip_flow_form_data', JSON.stringify(formData));
+      if (selectedServices.length > 0) {
+        localStorage.setItem('vip_selected_services', JSON.stringify(selectedServices));
+      }
+      if (formData.citizenName) {
+        localStorage.setItem('vip_citizen_name', formData.citizenName);
+      }
+      if (formData.citizenPhone) {
+        localStorage.setItem('vip_citizen_phone', formData.citizenPhone);
+      }
+    } catch (e) {
+      console.warn('Failed to sync VIP flow state to storage:', e);
+    }
+  }, [isOpen, step, isServicesMinimized, selectedServices, formData]);
 
   // Fetch institutions when modal opens
   useEffect(() => {
@@ -124,7 +186,12 @@ const VIPTicket = () => {
       if (exists) {
         return prev.filter(s => s.id !== service.id);
       } else {
-        return [...prev, service];
+        const enriched = {
+          ...service,
+          institutionName: service.institutionName || selectedInstitution?.name || 'MESOB Institution',
+          institutionId: service.institutionId || selectedInstitution?.id
+        };
+        return [...prev, enriched];
       }
     });
   };
@@ -204,6 +271,7 @@ const VIPTicket = () => {
 
     try {
       const primaryService = selectedServices[0];
+      const serviceIds = selectedServices.map(s => s.id);
       const allServiceNames = selectedServices
         .map(s => resolveLocalizedValue(s.title, language) || resolveLocalizedValue(s.name, language) || 'Service')
         .join(', ');
@@ -212,6 +280,7 @@ const VIPTicket = () => {
         citizenName: formData.citizenName.trim(),
         citizenPhone: formData.citizenPhone.trim(),
         email: formData.citizenEmail.trim(),
+        serviceIds: serviceIds, // Send all selected services so backend links each one!
         serviceId: primaryService.id,
         purpose: formData.purpose.trim() || `VIP Service Request: ${allServiceNames}`
       };
@@ -237,6 +306,19 @@ const VIPTicket = () => {
         throw new Error('Server returned invalid response. Please contact support.');
       }
 
+      // Handle duplicate application gracefully
+      if (response.status === 409 && result?.data?.reference) {
+        const reference = result.data.reference;
+        console.log('Existing active VIP application found:', reference);
+        setApplicationReference(reference);
+        localStorage.setItem('vip_application_reference', reference);
+        if (selectedServices && selectedServices.length > 0) {
+          localStorage.setItem('vip_selected_services', JSON.stringify(selectedServices));
+        }
+        await initializePayment(reference);
+        return;
+      }
+
       if (!response.ok) {
         const errorMsg = result.error || result.message || `Server error (${response.status})`;
         throw new Error(errorMsg);
@@ -244,7 +326,7 @@ const VIPTicket = () => {
 
       if (result.success && result.data) {
         const reference = result.data.reference;
-        console.log('✅ VIP application created:', reference);
+        console.log('✅ VIP application created successfully:', reference);
 
         setApplicationReference(reference);
         setApplicationData(result.data);
@@ -362,6 +444,13 @@ const VIPTicket = () => {
 
   const handleClose = () => {
     setIsOpen(false);
+    try {
+      sessionStorage.removeItem('vip_flow_is_open');
+      sessionStorage.removeItem('vip_flow_step');
+      sessionStorage.removeItem('vip_flow_services_minimized');
+      sessionStorage.removeItem('vip_flow_selected_services');
+      sessionStorage.removeItem('vip_flow_form_data');
+    } catch (e) {}
     setTimeout(() => {
       setStep(1);
       setSelectedServices([]);
@@ -517,6 +606,35 @@ const VIPTicket = () => {
   };
 
   const t = translations[language] || translations.English;
+
+  // Resolve all ticket services for Step 4
+  const finalTicketServices = (() => {
+    const list = [];
+    const seen = new Set();
+    const add = (s) => {
+      if (!s) return;
+      const id = s.id || (typeof s === 'string' ? s : null);
+      const title = resolveLocalizedValue(s.title, language) || resolveLocalizedValue(s.name, language) || (typeof s === 'string' ? s : '');
+      const key = id || title;
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        list.push(s);
+      }
+    };
+    if (Array.isArray(paymentStatus?.services)) {
+      paymentStatus.services.forEach(add);
+    }
+    if (Array.isArray(selectedServices)) {
+      selectedServices.forEach(add);
+    }
+    try {
+      const stored = JSON.parse(localStorage.getItem('vip_selected_services') || '[]');
+      if (Array.isArray(stored)) {
+        stored.forEach(add);
+      }
+    } catch (e) {}
+    return list;
+  })();
 
   // Floating VIP launcher button when modal is closed
   if (!isOpen) {
@@ -993,7 +1111,7 @@ const VIPTicket = () => {
                                     {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
                                   </p>
                                   {service.institutionName && (
-                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                                    <p className="text-[11px] text-amber-800/90 dark:text-amber-400/90 font-semibold truncate">
                                       {resolveLocalizedValue(service.institutionName, language)}
                                     </p>
                                   )}
@@ -1109,133 +1227,200 @@ const VIPTicket = () => {
           </div>
         )}
 
-        {/* ================= STEP 4: SUCCESS TICKET VIEW ================= */}
+        {/* ================= STEP 4: SUCCESS TICKET VIEW (COMPACT, MODERN & ZOOMABLE) ================= */}
         {step === 4 && paymentStatus && paymentStatus.isConfirmed && (
-          <div className="max-w-xl mx-auto py-12 px-4 text-center animate-fadeIn">
-            <div className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center bg-gradient-to-tr from-[#CB9D2A] to-[#E6CA65] shadow-lg shadow-[#CB9D2A]/25">
-              <svg className="w-7 h-7 text-slate-900" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+          <div className="max-w-xl mx-auto py-10 px-4 text-center animate-fadeIn">
+            <div className="w-12 h-12 rounded-full mx-auto mb-2.5 flex items-center justify-center bg-gradient-to-tr from-[#CB9D2A] to-[#E6CA65] shadow-lg shadow-[#CB9D2A]/25">
+              <svg className="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">{t.paymentSuccess}</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{t.ticketIssued}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{t.ticketIssued}</p>
 
-            {/* White VIP Ticket Pass matching physical pass styling */}
-            <div className="relative w-full max-w-[390px] mx-auto bg-white rounded-3xl border-2 border-[#CB9D2A] shadow-2xl overflow-hidden text-slate-900 mb-6 text-left">
-              {/* Top Section */}
-              <div className="p-5 pb-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xl font-black tracking-wider text-[#B8860B] font-sans uppercase">
-                    VIP TICKET
-                  </span>
-                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-400 font-bold text-[11px] px-3 py-0.5 rounded-full uppercase tracking-wider">
-                    CONFIRMED
-                  </span>
-                </div>
+            {/* Zoom Controls */}
+            <div className="flex items-center justify-center gap-2 mb-4 no-print select-none">
+              <div className="inline-flex items-center bg-slate-800/90 backdrop-blur-md border border-slate-700/80 rounded-full px-3 py-1 shadow-lg text-white text-xs gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTicketZoom(prev => Math.max(0.65, Number((prev - 0.1).toFixed(1))))}
+                  className="p-1 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white"
+                  title="Zoom Out"
+                  aria-label="Zoom Out"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
+                  </svg>
+                </button>
 
-                <div className="mt-4">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
-                    {t.applicationReference}
-                  </p>
-                  <p className="text-lg font-mono font-extrabold text-slate-900 tracking-tight break-all">
-                    {paymentStatus.applicationReference}
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setTicketZoom(1)}
+                  className="px-2 py-0.5 font-mono font-bold text-[11px] text-[#CB9D2A] hover:bg-white/10 rounded transition-colors"
+                  title="Reset to 100%"
+                >
+                  {Math.round(ticketZoom * 100)}%
+                </button>
 
-                <div className="grid grid-cols-2 gap-3 mt-3 pt-1">
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
-                      Amount
-                    </p>
-                    <p className="text-sm font-extrabold text-slate-900">
-                      {paymentStatus.amount || 1000} {paymentStatus.currency || 'ETB'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
-                      Payment Method
-                    </p>
-                    <p className="text-sm font-extrabold text-slate-900 capitalize">
-                      {paymentStatus.paymentMethod || 'Chapa'}
-                    </p>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setTicketZoom(prev => Math.min(1.4, Number((prev + 0.1).toFixed(1))))}
+                  className="p-1 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white"
+                  title="Zoom In"
+                  aria-label="Zoom In"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
 
-                {formData.citizenName && (
-                  <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      {t.citizenName}
-                    </span>
-                    <span className="text-xs font-bold text-slate-800">
-                      {formData.citizenName}
-                    </span>
-                  </div>
-                )}
+                <div className="h-3 w-px bg-slate-600/70 mx-0.5"></div>
 
-                {/* Selected Services */}
-                <div className="mt-3 pt-2.5 border-t border-gray-100">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                    <span>{t.selectedServices}</span>
-                    {selectedServices.length > 0 && (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-bold">
-                        {selectedServices.length}
-                      </span>
-                    )}
-                  </p>
-                  <div className="space-y-1 max-h-28 overflow-y-auto pr-1">
-                    {selectedServices.map((service, idx) => (
-                      <div key={service.id || idx} className="bg-amber-50/70 border border-amber-200/70 rounded-lg p-2 text-xs flex items-center gap-2">
-                        <span className="text-[#CB9D2A] font-bold">✓</span>
-                        <span className="font-bold text-slate-900 truncate">
-                          {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Perforation Divider with Notches */}
-              <div className="relative py-2 flex items-center justify-center select-none">
-                <div className="absolute -left-3.5 w-7 h-7 bg-gray-50 dark:bg-[#0F1419] rounded-full border-r-2 border-[#CB9D2A] -translate-y-1/2 top-1/2"></div>
-                <div className="w-full flex items-center justify-between px-5 overflow-hidden">
-                  {Array.from({ length: 20 }).map((_, i) => (
-                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-gray-200 inline-block flex-shrink-0 mx-0.5"></span>
-                  ))}
-                </div>
-                <div className="absolute -right-3.5 w-7 h-7 bg-gray-50 dark:bg-[#0F1419] rounded-full border-l-2 border-[#CB9D2A] -translate-y-1/2 top-1/2"></div>
-              </div>
-
-              {/* Bottom Section with QR code */}
-              <div className="p-5 pt-3 bg-white text-center">
-                <p className="text-xs font-bold text-slate-800 mb-2">Your Digital VIP Ticket</p>
-                <div className="relative inline-block p-3 bg-white rounded-xl border border-gray-100">
-                  <span className="absolute top-1.5 left-1.5 w-4 h-4 border-t-2 border-l-2 border-[#CB9D2A] rounded-tl-sm pointer-events-none"></span>
-                  <span className="absolute top-1.5 right-1.5 w-4 h-4 border-t-2 border-r-2 border-[#CB9D2A] rounded-tr-sm pointer-events-none"></span>
-                  <span className="absolute bottom-1.5 left-1.5 w-4 h-4 border-b-2 border-l-2 border-[#CB9D2A] rounded-bl-sm pointer-events-none"></span>
-                  <span className="absolute bottom-1.5 right-1.5 w-4 h-4 border-b-2 border-r-2 border-[#CB9D2A] rounded-br-sm pointer-events-none"></span>
-                  <img
-                    src={paymentStatus.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(paymentStatus.applicationReference)}`}
-                    alt="VIP Ticket QR Code"
-                    className="w-32 h-32 object-contain mx-auto"
-                  />
-                </div>
-                <p className="text-[11px] text-gray-500 mt-2 mb-1 max-w-[240px] mx-auto leading-tight">
-                  {t.checkInInstructions}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setTicketZoom(1)}
+                  className="text-[10px] font-semibold text-slate-400 hover:text-white transition-colors"
+                  title="Reset Zoom"
+                >
+                  Reset
+                </button>
               </div>
             </div>
 
-            <div className="flex gap-3 max-w-[390px] mx-auto">
+            {/* Compact White VIP Ticket Pass matching physical pass styling */}
+            <div className="w-full flex justify-center items-start overflow-visible transition-all duration-200 mb-6">
+              <div
+                style={{
+                  transform: `scale(${ticketZoom})`,
+                  transformOrigin: 'top center',
+                  transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+                className="relative w-full max-w-[340px] sm:max-w-[360px] mx-auto bg-white rounded-3xl border-2 border-[#CB9D2A] shadow-2xl overflow-hidden text-slate-900 text-left transition-all"
+              >
+                {/* Top Section */}
+                <div className="p-4 sm:p-5 pb-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl sm:text-2xl font-black tracking-wider text-[#B8860B] font-sans uppercase">
+                      VIP TICKET
+                    </span>
+                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-400 font-bold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      CONFIRMED
+                    </span>
+                  </div>
+
+                  <div className="mt-3.5">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                      {t.applicationReference}
+                    </p>
+                    <p className="text-base sm:text-lg font-mono font-extrabold text-slate-900 tracking-tight break-all">
+                      {paymentStatus.applicationReference}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mt-3 pt-1">
+                    <div>
+                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                        Amount
+                      </p>
+                      <p className="text-xs sm:text-sm font-extrabold text-slate-900">
+                        {paymentStatus.amount || 1000} {paymentStatus.currency || 'ETB'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                        Payment Method
+                      </p>
+                      <p className="text-xs sm:text-sm font-extrabold text-slate-900 capitalize truncate">
+                        {paymentStatus.paymentMethod || 'Chapa'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {formData.citizenName && (
+                    <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                        {t.citizenName}
+                      </span>
+                      <span className="text-xs font-bold text-slate-800 truncate ml-2">
+                        {formData.citizenName}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Selected Services from all institutions */}
+                  <div className="mt-3 pt-2.5 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                      <span>{t.selectedServices}</span>
+                      {finalTicketServices.length > 0 && (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-bold">
+                          {finalTicketServices.length}
+                        </span>
+                      )}
+                    </p>
+                    <div className="space-y-1 max-h-24 sm:max-h-28 overflow-y-auto pr-1">
+                      {finalTicketServices.map((service, idx) => (
+                        <div key={service.id || idx} className="bg-amber-50/70 border border-amber-200/70 rounded-lg p-1.5 text-xs flex items-center gap-2">
+                          <span className="w-3.5 h-3.5 rounded-full bg-[#CB9D2A] text-white flex items-center justify-center text-[8px] font-black flex-shrink-0">
+                            ✓
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] sm:text-xs font-bold text-slate-900 truncate">
+                              {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
+                            </p>
+                            {service.institutionName && (
+                              <p className="text-[9px] text-amber-800/90 font-semibold truncate">
+                                {resolveLocalizedValue(service.institutionName, language)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Perforation Divider with Notches */}
+                <div className="relative py-1 flex items-center justify-center select-none">
+                  <div className="absolute -left-3 w-6 h-6 bg-gray-50 dark:bg-[#0F1419] rounded-full border-r-2 border-[#CB9D2A] -translate-y-1/2 top-1/2"></div>
+                  <div className="w-full flex items-center justify-between px-5 overflow-hidden">
+                    {Array.from({ length: 20 }).map((_, i) => (
+                      <span key={i} className="w-1.5 h-1.5 rounded-full bg-gray-200 inline-block flex-shrink-0 mx-0.5"></span>
+                    ))}
+                  </div>
+                  <div className="absolute -right-3 w-6 h-6 bg-gray-50 dark:bg-[#0F1419] rounded-full border-l-2 border-[#CB9D2A] -translate-y-1/2 top-1/2"></div>
+                </div>
+
+                {/* Bottom Section with QR code */}
+                <div className="p-4 sm:p-5 pt-2.5 bg-white text-center">
+                  <p className="text-xs font-bold text-slate-800 mb-1.5">Your Digital VIP Ticket</p>
+                  <div className="relative inline-block p-2.5 bg-white rounded-xl border border-gray-100">
+                    <span className="absolute top-1.5 left-1.5 w-4 h-4 border-t-2 border-l-2 border-[#CB9D2A] rounded-tl-sm pointer-events-none"></span>
+                    <span className="absolute top-1.5 right-1.5 w-4 h-4 border-t-2 border-r-2 border-[#CB9D2A] rounded-tr-sm pointer-events-none"></span>
+                    <span className="absolute bottom-1.5 left-1.5 w-4 h-4 border-b-2 border-l-2 border-[#CB9D2A] rounded-bl-sm pointer-events-none"></span>
+                    <span className="absolute bottom-1.5 right-1.5 w-4 h-4 border-b-2 border-r-2 border-[#CB9D2A] rounded-br-sm pointer-events-none"></span>
+                    <img
+                      src={paymentStatus.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(paymentStatus.applicationReference)}`}
+                      alt="VIP Ticket QR Code"
+                      className="w-28 h-28 sm:w-32 sm:h-32 object-contain mx-auto"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-2 mb-1 max-w-[220px] mx-auto leading-tight">
+                    {t.checkInInstructions}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 max-w-[340px] sm:max-w-[360px] mx-auto">
               <button
                 onClick={() => window.print()}
-                className="flex-1 py-3 rounded-xl font-bold border-2 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm"
+                className="flex-1 py-2.5 rounded-xl font-bold border-2 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-xs sm:text-sm"
               >
                 Print Pass
               </button>
               <button
                 onClick={handleClose}
-                className="flex-1 py-3 rounded-xl font-extrabold text-slate-900 bg-gradient-to-tr from-[#B8860B] to-[#CB9D2A] hover:opacity-95 transition-all text-sm"
+                className="flex-1 py-2.5 rounded-xl font-extrabold text-slate-900 bg-gradient-to-tr from-[#B8860B] to-[#CB9D2A] hover:opacity-95 transition-all text-xs sm:text-sm"
               >
                 {t.done}
               </button>
