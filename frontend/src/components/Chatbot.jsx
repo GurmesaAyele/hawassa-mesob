@@ -1,18 +1,71 @@
 import { useState, useRef, useEffect } from 'react';
-import { API_CONFIG } from '../config/api';
+import { API_CONFIG, getLocaleCode } from '../config/api';
+
+const CHAT_UI_TEXT = {
+  English: {
+    title: 'Hawassa-MESOB Assistant',
+    online: 'Online',
+    welcome: 'Hello! How can I help you today? You can ask me about city services, institutions, or any information.',
+    placeholder: 'Type your message...',
+    error: 'Sorry, I encountered an error connecting to the server. Please try again.',
+  },
+  Amharic: {
+    title: 'የሀዋሳ-መሶብ ረዳት',
+    online: 'መስመር ላይ',
+    welcome: 'ሰላም! ዛሬ እንዴት ልረዳዎ እችላለሁ? ስለ ከተማው አገልግሎቶች፣ ተቋማት ወይም ማንኛውንም መረጃ መጠየቅ ይችላሉ።',
+    placeholder: 'ጥያቄዎን እዚህ ይፃፉ...',
+    error: 'ይቅርታ፣ ከአገልጋዩ ጋር መገናኘት አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
+  },
+  Sidama: {
+    title: "Hawassa-MESOOBE Kaa'laancho",
+    online: 'Loosaho no',
+    welcome: "Keero! Techo ma garinni kaa'lo'ne? Katamu agurubba, biirubba woy mayi mashalaqqeno xa'ma dandiitinanni.",
+    placeholder: "Xa'mokki koye borreessi...",
+    error: "Konnira so'ro kalaqantu. Mageeshshi yanna gedensaanni marroote wo'naalle.",
+  },
+};
+
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'English');
+
+  const ui = CHAT_UI_TEXT[language] || CHAT_UI_TEXT.English;
+
   const [messages, setMessages] = useState([
     {
       type: 'bot',
-      text: 'Hello! How can I help you today? You can ask me about city services, institutions, or any information.',
+      text: (CHAT_UI_TEXT[localStorage.getItem('language') || 'English'] || CHAT_UI_TEXT.English).welcome,
       timestamp: new Date()
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Sync with global language switcher
+  useEffect(() => {
+    const handleLanguageChange = (event) => {
+      const nextLang = event.detail;
+      if (nextLang && CHAT_UI_TEXT[nextLang]) {
+        setLanguage(nextLang);
+        // If the user hasn't chatted yet (only initial welcome bot message), update greeting
+        setMessages((prev) => {
+          if (prev.length === 1 && prev[0].type === 'bot') {
+            return [{
+              type: 'bot',
+              text: CHAT_UI_TEXT[nextLang].welcome,
+              timestamp: new Date()
+            }];
+          }
+          return prev;
+        });
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+    return () => window.removeEventListener('languageChange', handleLanguageChange);
+  }, []);
 
   // Function to format markdown-style text to readable format
   const formatMessageText = (text) => {
@@ -53,6 +106,7 @@ const Chatbot = () => {
     setIsTyping(true);
 
     try {
+      const currentLocale = getLocaleCode(language);
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/chat`, {
         method: 'POST',
         headers: {
@@ -60,6 +114,7 @@ const Chatbot = () => {
         },
         body: JSON.stringify({
           message: currentMessage,
+          locale: currentLocale,
         }),
       });
 
@@ -85,7 +140,7 @@ const Chatbot = () => {
       console.error('Error sending message:', error);
       const errorMessage = {
         type: 'bot',
-        text: 'Sorry, I encountered an error connecting to the server. Please try again.',
+        text: ui.error,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -124,8 +179,8 @@ const Chatbot = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-lg">H-MESOB Assistant</h3>
-                <p className="text-xs text-white/80">Online</p>
+                <h3 className="font-bold text-lg">{ui.title}</h3>
+                <p className="text-xs text-white/80">{ui.online}</p>
               </div>
             </div>
           </div>
@@ -173,7 +228,7 @@ const Chatbot = () => {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type your message..."
+                placeholder={ui.placeholder}
                 className="flex-1 px-4 py-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#294491] text-sm"
               />
               <button

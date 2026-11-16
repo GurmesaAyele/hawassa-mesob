@@ -10,6 +10,14 @@ export const FALLBACK_FAQS = [
     },
   },
   {
+    keywords: ["passport", "passports", "ፓስፖርት", "paaspoorte", "paasporte", "apply for passport"],
+    answer: {
+      en: "At Hawassa MESOB Center, our **Immigration and Citizenship Service (ICS)** desk handles **Ethiopian Origin IDs (Yellow Cards)**, **Visa Applications**, and **Work Permits**.\n\n**For New Ethiopian Passports:**\n1. Initial ordinary passport applications and renewals are submitted online via the official portal: **ethiopianpassportservices.gov.et**\n2. **National ID (Fayda) Requirement**: You must have a Fayda National ID to apply for a passport. You can enroll for your Fayda ID for **free (0 ETB)** right here at Hawassa MESOB Center (Counter 03).\n3. Document delivery and verification are supported via our on-site Ethiopian Postal Service desk.\n\nIs there anything else you would like to know?",
+      am: "በሀዋሳ መሶብ ማዕከል የሚገኘው **የኢሚግሬሽንና ዜግነት አገልግሎት (ICS)** ጠረጴዛ **የትውልደ ኢትዮጵያውያን መታወቂያ (ቢጫ ካርድ)**፣ **የቪዛ ማመልከቻ** እና **የስራ ፈቃድ** አገልግሎቶችን ይሰጣል።\n\n**አዲስ የኢትዮጵያ ፓስፖርት ለማውጣት ወይም ለማደስ፦**\n1. ማመልከቻዎን በኢሚግሬሽን ይፋዊ ድረ-ገጽ (**ethiopianpassportservices.gov.et**) በመስመር ላይ ማስገባት አለብዎት።\n2. **የፋይዳ መታወቂያ መስፈርት**፦ ለፓስፖርት ማመልከቻ የፋይዳ ብሔራዊ መታወቂያ ቁጥር ግዴታ ነው። ፋይዳ መታወቂያዎን በሀዋሳ መሶብ ማዕከል (ጠረጴዛ 03) **በነፃ (0 ብር)** በአካል መመዝገብ ይችላሉ።\n3. የሰነድ አያያዝና ፖስታ አገልግሎቶችን በማዕከላችን በሚገኘው የኢትዮጵያ ፖስታ አገልግሎት ማግኘት ይችላሉ።\n\nሌላ ማወቅ የሚፈልጉት ነገር አለ?",
+      sid: "Hawaasa MESOOBE Bayicho afamanno **Imigreeshiinete fi Lamroomu Agurro (ICS)**: **Itiyoophiyu Dhalote Wolooma (Bicha Kaarde)**, **Viizate Huuccatto**, fi **Loosu Eegeera** callaho.\n\n**Haaro Paaspoorte Fushshi'rate:**\n1. Umi qara huuccatto imigreeshiinete webisayitetenni (**ethiopianpassportservices.gov.et**) aana eessinanni.\n2. **Fayda Wolooma Hasiissanno**: Paaspoorte fushshi'rate Daganna Fayda Wolooma hasiisanno. Fayda woloomakki Hawaasa MESOOBE Bayicho (Kaa'laano 03) **baatooshshu nookkiha (Free)** afi'ra dandiitinanni.\n3. Borro soorrate Postaho agurro maammarinke giddo afidhanno.\n\nWole afa hasidhinanniri no?",
+    },
+  },
+  {
     keywords: ["origin id", "yellow card", "ethiopian origin", "ቢጫ ካርድ", "የትውልደ ኢትዮጵያውያን መታወቂያ", "bicha kaarde"],
     answer: {
       en: "**Ethiopian Origin ID (Yellow Card)**\nProvider: Immigration and Citizenship Service (ICS)\nLocation: Hawassa MESOB Center\n\nKey Requirements:\n1. Completed application form\n2. Valid ordinary passport (valid > 6 months)\n3. Copy of entry visa & date stamp\n4. Machine-readable Ethiopian passport or authenticated birth certificate\n5. Parents' Ethiopian ID/passport (if parents are Ethiopian citizens)\n6. Recent passport-sized photograph\n\nFee: 300 USD (Regular) / 400 USD (Urgent)\nNote: In-person appearance is mandatory (proxy is not permitted). Daily penalty applies for late renewal.",
@@ -169,9 +177,9 @@ export function isOffTopicQuery(query) {
 }
 
 export const SCOPE_REFUSAL_MESSAGES = {
-  en: "I cannot help you with that. I am only able to assist with inquiries and services related to Hawassa MESOB Center.",
-  am: "ይቅርታ፣ በዚህ ጉዳይ ላይ ልረዳዎ አልችልም። እኔ አገልግሎት የምሰጠው ከሀዋሳ መሶብ ማዕከል ጋር በተያያዙ ጉዳዮች እና አገልግሎቶች ላይ ብቻ ነው።",
-  sid: "Konnira kaa'lahe didandeemmo. Ane kaa'lo Hawaasa MESOOBE Bayichi agurrote fi xa'mubba callaho.",
+  en: "I apologize, but I can only assist with public services and inquiries related to Hawassa MESOB Center. If you have questions about our institutions (such as National ID/Fayda, Trade licenses, Electricity, Banking, Revenues, or Immigration services), please feel free to ask!",
+  am: "ይቅርታ፣ እኔ መርዳት የምችለው ከሀዋሳ መሶብ ማዕከል የመንግስት አገልግሎቶች እና ተያያዥ ጉዳዮች ጋር ብቻ ነው። እንደ ፋይዳ መታወቂያ፣ የንግድ ፈቃድ፣ ኤሌክትሪክ፣ ባንክ፣ ገቢዎች ወይም የኢሚግሬሽን አገልግሎቶች ያሉ ጥያቄዎች ካሉዎት በደስታ ልረዳዎት እችላለሁ!",
+  sid: "Konnira so'rooto, ane kaa'la dandeemmo Hawaasa MESOOBE Bayichi gashshootu agurrubba fi xa'mubba callaho. Fayda wolooma, daldalu eegeera, elektirike woy gibiru daafira xa'mo nooheero dambalchoho kaa'lohe!",
 };
 
 const SPECIFIC_INQUIRY_PATTERNS = [
