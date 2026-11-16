@@ -65,6 +65,34 @@ export const getLocaleCode = (language) => {
   return localeMap[language] || 'en';
 };
 
+// Safe localization helper: extracts localized string from multilingual object or returns string as-is
+export const resolveLocalizedValue = (val, language = 'English') => {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'number') return String(val);
+  if (typeof val === 'object') {
+    const locale = getLocaleCode(language);
+    if (val[locale] && typeof val[locale] === 'string') {
+      return val[locale];
+    }
+    const langLower = String(language).toLowerCase();
+    if (val[langLower] && typeof val[langLower] === 'string') {
+      return val[langLower];
+    }
+    if (val.en && typeof val.en === 'string') return val.en;
+    if (val.am && typeof val.am === 'string') return val.am;
+    if (val.sid && typeof val.sid === 'string') return val.sid;
+
+    for (const key of Object.keys(val)) {
+      if (typeof val[key] === 'string' && val[key].trim()) {
+        return val[key];
+      }
+    }
+    return '';
+  }
+  return String(val);
+};
+
 // Helper function to build full URL
 export const buildUrl = (endpoint) => {
   // If endpoint is already a full URL, return as is

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import "./InstitutionLogo.css";
-import { API_CONFIG } from '../config/api';
+import { API_CONFIG, resolveLocalizedValue } from '../config/api';
 
 const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, selectedServices = [], onServiceToggle, onProceed }) => {
   const [expandedService, setExpandedService] = useState(null);
@@ -140,7 +140,7 @@ const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, s
                     className="w-full px-6 py-4 flex items-center justify-between transition-colors"
                   >
                     <h3 className="text-gray-900 dark:text-white font-semibold text-lg text-left">
-                      {service.title || service.name}
+                      {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
                     </h3>
                     <svg
                       className={`w-5 h-5 text-gray-900 dark:text-white transition-transform duration-200 flex-shrink-0 ml-4 ${
@@ -162,7 +162,7 @@ const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, s
                         <div>
                           <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold mb-2">{t.description}:</h4>
                           <p className="text-gray-800 dark:text-gray-300 text-sm leading-relaxed">
-                            {service.description}
+                            {resolveLocalizedValue(service.description, language)}
                           </p>
                         </div>
                       )}
@@ -174,7 +174,7 @@ const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, s
                           <ul className="list-disc list-inside space-y-1">
                             {(service.requirements || service.requiredDocuments).map((req, index) => (
                               <li key={index} className="text-gray-800 dark:text-gray-300 text-sm">
-                                {req}
+                                {resolveLocalizedValue(req, language)}
                               </li>
                             ))}
                           </ul>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API_CONFIG, buildUrl, getLocaleCode } from '../config/api';
+import { API_CONFIG, buildUrl, getLocaleCode, resolveLocalizedValue } from '../config/api';
 import Navbar from './Navbar';
 import InstitutionCard from './InstitutionCard';
 import InstitutionModal from './InstitutionModal';
@@ -8,7 +8,7 @@ const VIPTicket = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [language, setLanguage] = useState('English');
   const [step, setStep] = useState(1); // 1: Institutions, 2: Form, 3: Payment Callback, 4: Success
-  
+
   // Institutions & Services
   const [institutions, setInstitutions] = useState([]);
   const [institutionsLoading, setInstitutionsLoading] = useState(false);
@@ -16,7 +16,7 @@ const VIPTicket = () => {
   const [selectedServices, setSelectedServices] = useState([]);
   const [expandedInstitution, setExpandedInstitution] = useState(null);
   const [showInstitutionModal, setShowInstitutionModal] = useState(false);
-  
+
   // Form Data
   const [formData, setFormData] = useState({
     citizenName: '',
@@ -27,11 +27,11 @@ const VIPTicket = () => {
   });
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Application Data
   const [applicationReference, setApplicationReference] = useState(null);
   const [applicationData, setApplicationData] = useState(null);
-  
+
   // Payment Status
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [isPolling, setIsPolling] = useState(false);
@@ -43,7 +43,7 @@ const VIPTicket = () => {
     const handleLanguageChange = (event) => {
       setLanguage(event.detail);
     };
-    
+
     const savedLanguage = localStorage.getItem('language');
     if (savedLanguage) {
       setLanguage(savedLanguage);
@@ -75,11 +75,11 @@ const VIPTicket = () => {
       const response = await fetch(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.INSTITUTIONS}?locale=${locale}&includeServices=true`
       );
-      
+
       if (!response.ok) throw new Error('Failed to fetch institutions');
-      
+
       const data = await response.json();
-      
+
       // Handle different response structures
       let institutionsArray = [];
       if (Array.isArray(data)) {
@@ -89,7 +89,7 @@ const VIPTicket = () => {
       } else if (data.institutions && Array.isArray(data.institutions)) {
         institutionsArray = data.institutions;
       }
-      
+
       // Fetch services for each institution if not included
       const institutionsWithServices = await Promise.all(
         institutionsArray.map(async (inst) => {
@@ -109,7 +109,7 @@ const VIPTicket = () => {
           return inst;
         })
       );
-      
+
       setInstitutions(institutionsWithServices);
     } catch (err) {
       console.error('Error fetching institutions:', err);
@@ -128,7 +128,7 @@ const VIPTicket = () => {
     console.log('Service clicked:', service);
     console.log('Service ID:', service.id);
     console.log('Service structure:', JSON.stringify(service, null, 2));
-    
+
     setSelectedServices((prev) => {
       const exists = prev.find(s => s.id === service.id);
       if (exists) {
@@ -160,12 +160,12 @@ const VIPTicket = () => {
 
   const validateForm = () => {
     const errors = {};
-    
+
     // Validate citizen name
     if (!formData.citizenName.trim()) {
       errors.citizenName = 'Full name is required';
     }
-    
+
     // Validate Ethiopian phone number
     const phonePattern = /^(\+251|0)[79]\d{8}$/;
     if (!formData.citizenPhone.trim()) {
@@ -173,7 +173,7 @@ const VIPTicket = () => {
     } else if (!phonePattern.test(formData.citizenPhone)) {
       errors.citizenPhone = 'Invalid Ethiopian phone number (e.g., 0911223344)';
     }
-    
+
     // Validate email
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.citizenEmail.trim()) {
@@ -181,12 +181,12 @@ const VIPTicket = () => {
     } else if (!emailPattern.test(formData.citizenEmail)) {
       errors.citizenEmail = 'Invalid email address';
     }
-    
+
     // Validate service selection
     if (selectedServices.length === 0) {
       errors.serviceId = 'Please select at least one service';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -202,20 +202,20 @@ const VIPTicket = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Create VIP application for the first service
       // NOTE: Backend expects single serviceId, but we allow multiple selections
       // Solution: Create application for first service, include all in purpose
       const primaryService = selectedServices[0];
       const allServiceNames = selectedServices.map(s => s.title || s.name).join(', ');
-      
+
       const requestBody = {
         citizenName: formData.citizenName.trim(),
         citizenPhone: formData.citizenPhone.trim(),
@@ -260,7 +260,7 @@ const VIPTicket = () => {
           error: errorMsg,
           fullResponse: result
         });
-        
+
         // User-friendly error messages
         if (response.status === 400) {
           throw new Error(`Invalid request: ${errorMsg}`);
@@ -277,11 +277,20 @@ const VIPTicket = () => {
         // Save application reference and data
         const reference = result.data.reference;
         console.log('✅ VIP application created successfully:', reference);
-        
+
         setApplicationReference(reference);
         setApplicationData(result.data);
         localStorage.setItem('vip_application_reference', reference);
-        
+        if (selectedServices && selectedServices.length > 0) {
+          localStorage.setItem('vip_selected_services', JSON.stringify(selectedServices));
+        }
+        if (formData.citizenName) {
+          localStorage.setItem('vip_citizen_name', formData.citizenName);
+        }
+        if (formData.citizenPhone) {
+          localStorage.setItem('vip_citizen_phone', formData.citizenPhone);
+        }
+
         // Initialize payment
         await initializePayment(reference);
       } else {
@@ -290,10 +299,10 @@ const VIPTicket = () => {
       }
     } catch (error) {
       console.error('❌ Error creating VIP application:', error);
-      
+
       // User-friendly alert with more details
       let alertMessage = 'Failed to submit VIP application.\n\n';
-      
+
       if (error.message.includes('Failed to fetch')) {
         alertMessage += 'Cannot connect to server. Please check:\n';
         alertMessage += '- Internet connection\n';
@@ -302,7 +311,7 @@ const VIPTicket = () => {
       } else {
         alertMessage += 'Error: ' + error.message;
       }
-      
+
       alert(alertMessage);
     } finally {
       setIsSubmitting(false);
@@ -378,7 +387,7 @@ const VIPTicket = () => {
 
       if (result.success && result.data) {
         setPaymentStatus(result.data);
-        
+
         if (result.data.isConfirmed) {
           // Payment confirmed, show success
           setStep(4);
@@ -395,7 +404,7 @@ const VIPTicket = () => {
           }
         }
       }
-      
+
       return false; // Stop polling
     } catch (error) {
       console.error('Error checking payment status:', error);
@@ -412,19 +421,19 @@ const VIPTicket = () => {
     const pollInterval = setInterval(async () => {
       setPollingAttempts(prev => {
         const newAttempts = prev + 1;
-        
+
         if (newAttempts >= maxPollingAttempts) {
           clearInterval(pollInterval);
           setIsPolling(false);
           alert('Payment verification is taking longer than expected. Please check your payment status later.');
           return newAttempts;
         }
-        
+
         return newAttempts;
       });
 
       const shouldContinue = await checkPaymentStatus(reference);
-      
+
       if (!shouldContinue) {
         clearInterval(pollInterval);
       }
@@ -568,13 +577,13 @@ const VIPTicket = () => {
   };
 
   const t = translations[language] || translations.English;
-  
+
   // If modal is open in step 1 (institution selection), show as full page
   if (isOpen && step === 1) {
     return (
       <div className="fixed inset-0 z-50 bg-gray-50 dark:bg-[#0F1419] overflow-y-auto">
         <Navbar />
-        
+
         {/* Header Section */}
         <div className="pt-20 sm:pt-24 pb-8 sm:pb-10 md:pb-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#294491] to-[#CB9D2A]">
           <div className="max-w-7xl mx-auto">
@@ -583,8 +592,8 @@ const VIPTicket = () => {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">{t.title}</h1>
                 <p className="text-base sm:text-lg md:text-xl text-white/90">{t.selectInstitution}</p>
               </div>
-              <button 
-                onClick={handleClose} 
+              <button
+                onClick={handleClose}
                 className="p-2 sm:p-3 hover:bg-white/10 rounded-full transition-colors"
                 aria-label="Close"
               >
@@ -636,7 +645,7 @@ const VIPTicket = () => {
                           <svg className="w-4 h-4 text-[#CB9D2A]" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          {service.title || service.name}
+                          {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
                         </li>
                       ))}
                     </ul>
@@ -690,12 +699,11 @@ const VIPTicket = () => {
 
       {/* VIP Ticket Modal - For Steps 2, 3, 4 */}
       {isOpen && step !== 1 && (
-        <div 
-          className={`fixed z-50 bg-[#1E293B] transition-all duration-300 overflow-hidden ${
-            step === 1 
-              ? 'inset-0' 
+        <div
+          className={`fixed z-50 bg-[#1E293B] transition-all duration-300 overflow-hidden ${step === 1
+              ? 'inset-0'
               : 'bottom-24 left-6 w-[520px] max-h-[700px] rounded-2xl shadow-2xl'
-          }`}
+            }`}
         >
           {/* Header */}
           <div className="p-5 text-white flex items-center justify-between border-b border-gray-700" style={{ backgroundColor: '#CB9D2A' }}>
@@ -710,8 +718,8 @@ const VIPTicket = () => {
                 <p className="text-xs text-white/90">{t.subtitle}</p>
               </div>
             </div>
-            <button 
-              onClick={handleClose} 
+            <button
+              onClick={handleClose}
               className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
               aria-label="Close"
             >
@@ -761,12 +769,11 @@ const VIPTicket = () => {
                               )}
                             </div>
                           </div>
-                          <svg 
-                            className={`w-5 h-5 text-gray-400 transition-transform ${
-                              expandedInstitution === institution.id ? 'rotate-180' : ''
-                            }`} 
-                            fill="none" 
-                            stroke="currentColor" 
+                          <svg
+                            className={`w-5 h-5 text-gray-400 transition-transform ${expandedInstitution === institution.id ? 'rotate-180' : ''
+                              }`}
+                            fill="none"
+                            stroke="currentColor"
                             viewBox="0 0 24 24"
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -783,14 +790,13 @@ const VIPTicket = () => {
                                   <button
                                     key={service.id}
                                     onClick={() => toggleServiceSelection(service)}
-                                    className={`w-full px-4 py-3 rounded-lg text-left transition-all ${
-                                      isSelected
+                                    className={`w-full px-4 py-3 rounded-lg text-left transition-all ${isSelected
                                         ? 'bg-[#CB9D2A] text-white'
                                         : 'bg-[#1E293B] text-gray-300 hover:bg-[#3B4A5F]'
-                                    }`}
+                                      }`}
                                   >
                                     <div className="flex items-center justify-between">
-                                      <span className="font-medium">{service.title || service.name}</span>
+                                      <span className="font-medium">{resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}</span>
                                       {isSelected && (
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -799,7 +805,7 @@ const VIPTicket = () => {
                                     </div>
                                     {service.description && (
                                       <p className={`text-sm mt-1 ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>
-                                        {service.description}
+                                        {resolveLocalizedValue(service.description, language)}
                                       </p>
                                     )}
                                   </button>
@@ -827,7 +833,7 @@ const VIPTicket = () => {
                           key={service.id}
                           className="px-3 py-1 bg-[#CB9D2A] text-white text-sm rounded-full"
                         >
-                          {service.title || service.name}
+                          {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
                         </span>
                       ))}
                     </div>
@@ -847,7 +853,7 @@ const VIPTicket = () => {
             {step === 2 && (
               <div className="p-6">
                 <h4 className="text-xl font-bold text-white mb-4">{t.applicationForm}</h4>
-                
+
                 <form onSubmit={handleFormSubmit} className="space-y-4">
                   {/* Citizen Name */}
                   <div>
@@ -860,11 +866,10 @@ const VIPTicket = () => {
                       value={formData.citizenName}
                       onChange={handleInputChange}
                       placeholder={t.citizenNamePlaceholder}
-                      className={`w-full px-4 py-2.5 rounded-lg outline-none bg-[#2D3748] text-white border-2 transition-colors ${
-                        formErrors.citizenName 
-                          ? 'border-red-500' 
+                      className={`w-full px-4 py-2.5 rounded-lg outline-none bg-[#2D3748] text-white border-2 transition-colors ${formErrors.citizenName
+                          ? 'border-red-500'
                           : 'border-transparent focus:border-[#CB9D2A]'
-                      }`}
+                        }`}
                     />
                     {formErrors.citizenName && (
                       <p className="text-red-400 text-sm mt-1">{formErrors.citizenName}</p>
@@ -882,11 +887,10 @@ const VIPTicket = () => {
                       value={formData.citizenPhone}
                       onChange={handleInputChange}
                       placeholder={t.citizenPhonePlaceholder}
-                      className={`w-full px-4 py-2.5 rounded-lg outline-none bg-[#2D3748] text-white border-2 transition-colors ${
-                        formErrors.citizenPhone 
-                          ? 'border-red-500' 
+                      className={`w-full px-4 py-2.5 rounded-lg outline-none bg-[#2D3748] text-white border-2 transition-colors ${formErrors.citizenPhone
+                          ? 'border-red-500'
                           : 'border-transparent focus:border-[#CB9D2A]'
-                      }`}
+                        }`}
                     />
                     {formErrors.citizenPhone && (
                       <p className="text-red-400 text-sm mt-1">{formErrors.citizenPhone}</p>
@@ -904,11 +908,10 @@ const VIPTicket = () => {
                       value={formData.citizenEmail}
                       onChange={handleInputChange}
                       placeholder={t.citizenEmailPlaceholder}
-                      className={`w-full px-4 py-2.5 rounded-lg outline-none bg-[#2D3748] text-white border-2 transition-colors ${
-                        formErrors.citizenEmail 
-                          ? 'border-red-500' 
+                      className={`w-full px-4 py-2.5 rounded-lg outline-none bg-[#2D3748] text-white border-2 transition-colors ${formErrors.citizenEmail
+                          ? 'border-red-500'
                           : 'border-transparent focus:border-[#CB9D2A]'
-                      }`}
+                        }`}
                     />
                     {formErrors.citizenEmail && (
                       <p className="text-red-400 text-sm mt-1">{formErrors.citizenEmail}</p>
@@ -939,7 +942,7 @@ const VIPTicket = () => {
                           key={service.id}
                           className="px-3 py-1 bg-[#CB9D2A]/20 text-[#CB9D2A] text-sm rounded-full"
                         >
-                          {service.title || service.name}
+                          {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
                         </span>
                       ))}
                     </div>
@@ -991,7 +994,7 @@ const VIPTicket = () => {
                     Attempt {pollingAttempts} of {maxPollingAttempts}
                   </p>
                 )}
-                
+
                 {paymentStatus && paymentStatus.canRetry && (
                   <div className="mt-6">
                     <p className="text-red-400 mb-4">
@@ -1011,36 +1014,124 @@ const VIPTicket = () => {
 
             {/* Step 4: Success */}
             {step === 4 && paymentStatus && paymentStatus.isConfirmed && (
-              <div className="p-6 text-center py-8">
-                <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: '#CB9D2A' }}>
-                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              <div className="p-4 sm:p-6 text-center py-6">
+                <div className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center bg-gradient-to-tr from-[#CB9D2A] to-[#E6CA65] shadow-lg shadow-[#CB9D2A]/25">
+                  <svg className="w-7 h-7 text-slate-900" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h4 className="text-2xl font-bold text-white mb-2">{t.paymentSuccess}</h4>
-                <p className="text-gray-400 mb-6">{t.ticketIssued}</p>
-                
-                {/* Ticket Details */}
-                <div className="bg-gradient-to-r from-[#CB9D2A] to-[#B8965F] text-white rounded-lg p-6 mb-6">
-                  <p className="text-sm opacity-90 mb-2">VIP TICKET</p>
-                  <p className="text-2xl font-bold mb-1">{formData.citizenName}</p>
-                  <p className="text-sm opacity-90 mb-1">{formData.citizenPhone}</p>
-                  <div className="mt-4 pt-4 border-t border-white/30">
-                    <p className="text-xs font-semibold mb-1">{t.applicationReference}:</p>
-                    <p className="text-lg font-mono">{paymentStatus.applicationReference}</p>
-                  </div>
-                </div>
+                <h4 className="text-2xl font-extrabold text-white mb-1">{t.paymentSuccess}</h4>
+                <p className="text-gray-400 text-sm mb-6">{t.ticketIssued}</p>
 
-                {/* Check-in Instructions */}
-                <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4 mb-6">
-                  <p className="text-blue-200 text-sm">
-                    {t.checkInInstructions}
-                  </p>
+                {/* White VIP Ticket Card matching physical pass style */}
+                <div className="relative w-full max-w-[380px] mx-auto bg-white rounded-3xl border-2 border-[#CB9D2A] shadow-2xl overflow-hidden text-slate-900 mb-6">
+                  {/* Top Part */}
+                  <div className="p-5 pb-3 text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl font-black tracking-wider text-[#B8860B] font-sans uppercase">
+                        VIP TICKET
+                      </span>
+                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-400 font-bold text-[11px] px-3 py-0.5 rounded-full uppercase tracking-wider">
+                        CONFIRMED
+                      </span>
+                    </div>
+
+                    <div className="mt-4">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                        {t.applicationReference}
+                      </p>
+                      <p className="text-lg font-mono font-extrabold text-slate-900 tracking-tight break-all">
+                        {paymentStatus.applicationReference}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-3 pt-1">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                          Amount
+                        </p>
+                        <p className="text-sm font-extrabold text-slate-900">
+                          {paymentStatus.amount || 1000} {paymentStatus.currency || 'ETB'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                          Payment Method
+                        </p>
+                        <p className="text-sm font-extrabold text-slate-900 capitalize">
+                          {paymentStatus.paymentMethod || 'Chapa'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {formData.citizenName && (
+                      <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                          {t.citizenName}
+                        </span>
+                        <span className="text-xs font-bold text-slate-800">
+                          {formData.citizenName}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Selected Services */}
+                    <div className="mt-3 pt-2.5 border-t border-gray-100">
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                        <span>Selected Services</span>
+                        {selectedServices.length > 0 && (
+                          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-bold">
+                            {selectedServices.length}
+                          </span>
+                        )}
+                      </p>
+                      <div className="space-y-1 max-h-28 overflow-y-auto pr-1">
+                        {selectedServices.map((service, idx) => (
+                          <div key={service.id || idx} className="bg-amber-50/70 border border-amber-200/70 rounded-lg p-2 text-xs flex items-center gap-2">
+                            <span className="text-[#CB9D2A] font-bold">✓</span>
+                            <span className="font-bold text-slate-900 truncate">
+                              {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Perforation Divider with Notches */}
+                  <div className="relative py-2 flex items-center justify-center select-none">
+                    <div className="absolute -left-3.5 w-7 h-7 bg-[#2D3748] rounded-full border-r-2 border-[#CB9D2A] -translate-y-1/2 top-1/2"></div>
+                    <div className="w-full flex items-center justify-between px-5 overflow-hidden">
+                      {Array.from({ length: 20 }).map((_, i) => (
+                        <span key={i} className="w-1.5 h-1.5 rounded-full bg-gray-200 inline-block flex-shrink-0 mx-0.5"></span>
+                      ))}
+                    </div>
+                    <div className="absolute -right-3.5 w-7 h-7 bg-[#2D3748] rounded-full border-l-2 border-[#CB9D2A] -translate-y-1/2 top-1/2"></div>
+                  </div>
+
+                  {/* Bottom Part */}
+                  <div className="p-5 pt-3 bg-white text-center">
+                    <p className="text-xs font-bold text-slate-800 mb-2">Your Digital VIP Ticket</p>
+                    <div className="relative inline-block p-3 bg-white rounded-xl border border-gray-100">
+                      <span className="absolute top-1.5 left-1.5 w-4 h-4 border-t-2 border-l-2 border-[#CB9D2A] rounded-tl-sm pointer-events-none"></span>
+                      <span className="absolute top-1.5 right-1.5 w-4 h-4 border-t-2 border-r-2 border-[#CB9D2A] rounded-tr-sm pointer-events-none"></span>
+                      <span className="absolute bottom-1.5 left-1.5 w-4 h-4 border-b-2 border-l-2 border-[#CB9D2A] rounded-bl-sm pointer-events-none"></span>
+                      <span className="absolute bottom-1.5 right-1.5 w-4 h-4 border-b-2 border-r-2 border-[#CB9D2A] rounded-br-sm pointer-events-none"></span>
+                      <img
+                        src={paymentStatus.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(paymentStatus.applicationReference)}`}
+                        alt="VIP Ticket QR Code"
+                        className="w-32 h-32 object-contain mx-auto"
+                      />
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-2 mb-1 max-w-[240px] mx-auto leading-tight">
+                      {t.checkInInstructions}
+                    </p>
+                  </div>
                 </div>
 
                 <button
                   onClick={handleClose}
-                  className="w-full py-3 rounded-lg font-semibold text-white transition-all duration-200 hover:opacity-90"
+                  className="w-full py-3 rounded-lg font-semibold text-white transition-all duration-200 hover:opacity-90 text-sm sm:text-base"
                   style={{ backgroundColor: '#CB9D2A' }}
                 >
                   {t.done}

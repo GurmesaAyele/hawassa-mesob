@@ -83,6 +83,54 @@ export async function findTicketByReferenceOrId(referenceOrId) {
 }
 
 /**
+ * Extracts normalized services array from a ticket with join relations or legacy single relation
+ */
+export function extractTicketServices(ticket) {
+  if (!ticket) return [];
+  if (Array.isArray(ticket.ticket_services) && ticket.ticket_services.length > 0) {
+    return ticket.ticket_services
+      .map((ts) => ts.service)
+      .filter(Boolean)
+      .map((s) => ({
+        id: s.id,
+        title: s.title,
+        category: s.category || null,
+        estimatedFee: s.estimatedFee ?? null,
+        processingDays: s.processingDays ?? null,
+        provider: s.provider
+          ? {
+              id: s.provider.id,
+              name: s.provider.name,
+              code: s.provider.code,
+              floorRoomNumber: s.provider.floorRoomNumber,
+            }
+          : null,
+      }));
+  }
+  if (ticket.services) {
+    const s = ticket.services;
+    return [
+      {
+        id: s.id,
+        title: s.title,
+        category: s.category || null,
+        estimatedFee: s.estimatedFee ?? null,
+        processingDays: s.processingDays ?? null,
+        provider: s.provider
+          ? {
+              id: s.provider.id,
+              name: s.provider.name,
+              code: s.provider.code,
+              floorRoomNumber: s.provider.floorRoomNumber,
+            }
+          : null,
+      },
+    ];
+  }
+  return [];
+}
+
+/**
  * Database abstraction helper for vip_payments.
  * Ensures the service works smoothly whether Prisma Client model is regenerated
  * or accessed via raw queries prior to model generation.
@@ -780,6 +828,10 @@ export async function verifyVipPayment(reference) {
       currency: result.updatedPayment.currency,
       paymentMethod: result.updatedPayment.paymentMethod,
       verifiedAt: result.updatedPayment.verifiedAt,
+      citizenName: ticket?.citizenName || null,
+      citizenPhone: ticket?.citizenPhone || null,
+      email: ticket?.email || null,
+      services: extractTicketServices(ticket),
     },
   };
 }
@@ -809,9 +861,7 @@ export async function getPaymentStatus(reference) {
   let ticket = null;
 
   if (payment) {
-    ticket = await prisma.vip_tickets.findUnique({
-      where: { id: payment.ticketId },
-    });
+    ticket = await findTicketByReferenceOrId(payment.ticketId);
   } else {
     // Fallback: Check if reference is a VIP ticket code (VIP-XXXXXX-XXXX) or ticket ID
     ticket = await findTicketByReferenceOrId(clean);
@@ -869,7 +919,7 @@ export async function getPaymentStatus(reference) {
       const reloadedPayment = await paymentsDb.findByReference(merchantRef);
       if (reloadedPayment) {
         payment = reloadedPayment;
-        ticket = await prisma.vip_tickets.findUnique({ where: { id: payment.ticketId } });
+        ticket = await findTicketByReferenceOrId(payment.ticketId);
       }
     } else if (now - tracker.lastAttempt >= cooldownMs) {
       verificationAttempts.set(merchantRef, {
@@ -895,7 +945,7 @@ export async function getPaymentStatus(reference) {
       const refreshedPayment = await paymentsDb.findByReference(merchantRef);
       if (refreshedPayment) {
         payment = refreshedPayment;
-        ticket = await prisma.vip_tickets.findUnique({ where: { id: payment.ticketId } });
+        ticket = await findTicketByReferenceOrId(payment.ticketId);
         if (payment.status !== "PENDING") {
           verificationAttempts.delete(merchantRef);
         }
@@ -933,6 +983,10 @@ export async function getPaymentStatus(reference) {
       qrCodeUrl,
       errorMessage: payment ? payment.errorMessage : null,
       updatedAt: payment ? payment.updatedAt : ticket?.updatedAt,
+      citizenName: ticket ? ticket.citizenName : null,
+      citizenPhone: ticket ? ticket.citizenPhone : null,
+      email: ticket ? ticket.email : null,
+      services: extractTicketServices(ticket),
     },
   };
 }
