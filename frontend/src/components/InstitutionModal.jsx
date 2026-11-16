@@ -129,125 +129,171 @@ const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, s
                 <p className="text-gray-500 dark:text-gray-400 text-xl">{t.noServices}</p>
               </div>
             ) : (
-              institution.services.map((service) => (
-                <div
-                  key={service.id}
-                  className="bg-gray-100 dark:bg-[#334155] rounded-lg overflow-hidden transition-all duration-200 hover:bg-gray-200 dark:hover:bg-[#3d4f66]"
-                >
-                  {/* Accordion Header */}
-                  <button
-                    onClick={() => toggleService(service.id)}
-                    className="w-full px-6 py-4 flex items-center justify-between transition-colors"
-                  >
-                    <h3 className="text-gray-900 dark:text-white font-semibold text-lg text-left">
-                      {resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language)}
-                    </h3>
-                    <svg
-                      className={`w-5 h-5 text-gray-900 dark:text-white transition-transform duration-200 flex-shrink-0 ml-4 ${
-                        expandedService === service.id ? 'rotate-180' : ''
+              institution.services.map((service) => {
+                const selected = isServiceSelected(service.id);
+                const titleText = resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language);
+
+                // VIP Mode: Direct Selection without expanding dropdown details
+                if (isVIPMode) {
+                  return (
+                    <div
+                      key={service.id}
+                      onClick={() => onServiceToggle(service)}
+                      className={`cursor-pointer rounded-xl p-4 sm:p-5 transition-all duration-200 border-2 flex items-center justify-between gap-4 select-none ${
+                        selected
+                          ? 'bg-amber-500/10 border-[#CB9D2A] dark:bg-[#CB9D2A]/15 shadow-sm'
+                          : 'bg-gray-100 dark:bg-[#334155] border-transparent hover:border-[#CB9D2A]/50 hover:bg-gray-200 dark:hover:bg-[#3d4f66]'
                       }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {/* Expanded Service Details */}
-                  {expandedService === service.id && (
-                    <div className="px-6 py-5 bg-gray-50 dark:bg-[#2d3748] border-t border-gray-200 dark:border-gray-600 space-y-4">
-                      {/* Description */}
-                      {service.description && (
-                        <div>
-                          <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold mb-2">{t.description}:</h4>
-                          <p className="text-gray-800 dark:text-gray-300 text-sm leading-relaxed">
-                            {resolveLocalizedValue(service.description, language)}
-                          </p>
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        {/* Checkbox indicator */}
+                        <div
+                          className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${
+                            selected
+                              ? 'bg-[#CB9D2A] text-white shadow-sm'
+                              : 'border-2 border-gray-400 dark:border-gray-500 bg-white/20'
+                          }`}
+                        >
+                          {selected ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <span className="text-gray-400 text-xs font-bold">+</span>
+                          )}
                         </div>
-                      )}
 
-                      {/* Required Documents */}
-                      {(service.requirements || service.requiredDocuments) && (
-                        <div>
-                          <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold mb-2">{t.requiredDocuments}:</h4>
-                          <ul className="list-disc list-inside space-y-1">
-                            {(service.requirements || service.requiredDocuments).map((req, index) => (
-                              <li key={index} className="text-gray-800 dark:text-gray-300 text-sm">
-                                {resolveLocalizedValue(req, language)}
-                              </li>
-                            ))}
-                          </ul>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg leading-snug">
+                            {titleText}
+                          </h3>
+                          {(service.estimatedFee !== undefined && service.estimatedFee !== null) || service.processingDays ? (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                              {service.estimatedFee !== undefined && service.estimatedFee !== null && (
+                                <span>{service.estimatedFee === 0 ? t.free : `${service.estimatedFee} ETB`}</span>
+                              )}
+                              {service.processingDays ? (
+                                <span> • {service.processingDays} {service.processingDays === 1 ? t.day : t.days}</span>
+                              ) : null}
+                            </p>
+                          ) : null}
                         </div>
-                      )}
+                      </div>
 
-                      {/* Processing Time & Service Fee Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                        {/* Processing Time */}
-                        {(service.duration || service.processingDays !== null) && (
-                          <div className="bg-white dark:bg-[#1e293b] rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-2 mb-2">
-                              <svg className="w-5 h-5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold">{t.processingTime}</h4>
-                            </div>
-                            <p className="text-gray-900 dark:text-white text-lg font-bold">
-                              {service.duration || `${service.processingDays} ${service.processingDays === 1 ? t.day : t.days}`}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Service Fee */}
-                        {(service.cost || service.estimatedFee !== undefined) && (
-                          <div className="bg-white dark:bg-[#1e293b] rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-2 mb-2">
-                              <svg className="w-5 h-5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold">{t.serviceFee}</h4>
-                            </div>
-                            <p className="text-gray-900 dark:text-white text-lg font-bold">
-                              {service.cost || (service.estimatedFee === null || service.estimatedFee === 0 ? t.free : `${service.estimatedFee} ETB`)}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* VIP Selection Button */}
-                        {isVIPMode && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onServiceToggle(service);
-                            }}
-                            className={`w-full py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
-                              isServiceSelected(service.id)
-                                ? 'bg-[#CB9D2A] text-white hover:bg-[#b8892a]'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
-                            }`}
-                          >
-                            {isServiceSelected(service.id) ? (
-                              <>
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                                {t.selectedForVIP}
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                {t.selectForVIP}
-                              </>
-                            )}
-                          </button>
-                        )}
+                      {/* Selection pill */}
+                      <div className="flex-shrink-0">
+                        <span
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                            selected
+                              ? 'bg-[#CB9D2A] text-white shadow-sm'
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          {selected ? (
+                            <>
+                              <span>✓</span>
+                              <span>{t.selectedForVIP}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>+</span>
+                              <span>{t.selectForVIP}</span>
+                            </>
+                          )}
+                        </span>
                       </div>
                     </div>
-                  )}
-                </div>
-              ))
+                  );
+                }
+
+                // Standard Mode (Browsing): Accordion with full dropdown details
+                return (
+                  <div
+                    key={service.id}
+                    className="bg-gray-100 dark:bg-[#334155] rounded-lg overflow-hidden transition-all duration-200 hover:bg-gray-200 dark:hover:bg-[#3d4f66]"
+                  >
+                    {/* Accordion Header */}
+                    <button
+                      onClick={() => toggleService(service.id)}
+                      className="w-full px-6 py-4 flex items-center justify-between transition-colors"
+                    >
+                      <h3 className="text-gray-900 dark:text-white font-semibold text-lg text-left">
+                        {titleText}
+                      </h3>
+                      <svg
+                        className={`w-5 h-5 text-gray-900 dark:text-white transition-transform duration-200 flex-shrink-0 ml-4 ${
+                          expandedService === service.id ? 'rotate-180' : ''
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Expanded Service Details */}
+                    {expandedService === service.id && (
+                      <div className="px-6 py-5 bg-gray-50 dark:bg-[#2d3748] border-t border-gray-200 dark:border-gray-600 space-y-4">
+                        {/* Description */}
+                        {service.description && (
+                          <div>
+                            <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold mb-2">{t.description}:</h4>
+                            <p className="text-gray-800 dark:text-gray-300 text-sm leading-relaxed">
+                              {resolveLocalizedValue(service.description, language)}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Required Documents */}
+                        {(service.requirements || service.requiredDocuments) && (
+                          <div>
+                            <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold mb-2">{t.requiredDocuments}:</h4>
+                            <ul className="list-disc list-inside space-y-1">
+                              {(service.requirements || service.requiredDocuments).map((req, index) => (
+                                <li key={index} className="text-gray-800 dark:text-gray-300 text-sm">
+                                  {resolveLocalizedValue(req, language)}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Processing Time & Service Fee Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          {(service.duration || service.processingDays !== null) && (
+                            <div className="bg-white dark:bg-[#1e293b] rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center gap-2 mb-2">
+                                <svg className="w-5 h-5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold">{t.processingTime}</h4>
+                              </div>
+                              <p className="text-gray-900 dark:text-white text-lg font-bold">
+                                {service.duration || `${service.processingDays} ${service.processingDays === 1 ? t.day : t.days}`}
+                              </p>
+                            </div>
+                          )}
+
+                          {(service.cost || service.estimatedFee !== undefined) && (
+                            <div className="bg-white dark:bg-[#1e293b] rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center gap-2 mb-2">
+                                <svg className="w-5 h-5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <h4 className="text-gray-600 dark:text-gray-400 text-sm font-semibold">{t.serviceFee}</h4>
+                              </div>
+                              <p className="text-gray-900 dark:text-white text-lg font-bold">
+                                {service.cost || (service.estimatedFee === null || service.estimatedFee === 0 ? t.free : `${service.estimatedFee} ETB`)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
