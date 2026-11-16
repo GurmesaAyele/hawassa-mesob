@@ -524,7 +524,6 @@ export async function submitVipApplication(req, res) {
               id: crypto.randomUUID(),
               ticketId: ticket.id,
               serviceId: s.id,
-              serviceProcessingStatus: "PENDING",
               createdAt: now,
             },
           });

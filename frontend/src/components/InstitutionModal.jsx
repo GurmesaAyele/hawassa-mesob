@@ -4,6 +4,7 @@ import { API_CONFIG, resolveLocalizedValue } from '../config/api';
 
 const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, selectedServices = [], onServiceToggle, onProceed }) => {
   const [expandedService, setExpandedService] = useState(null);
+  const [serviceSearchQuery, setServiceSearchQuery] = useState('');
 
   if (!institution) return null;
 
@@ -119,6 +120,39 @@ const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, s
             </p>
           )}
 
+          {/* Search Bar - Identical to Hero Section */}
+          <div className="relative mb-6">
+            <input
+              type="text"
+              value={serviceSearchQuery}
+              onChange={(e) => setServiceSearchQuery(e.target.value)}
+              placeholder={
+                language === 'Amharic'
+                  ? `በ${institution.name} ውስጥ አገልግሎት ይፈልጉ...`
+                  : language === 'Sidama'
+                  ? `${institution.name} giddo oosate hasa...`
+                  : `Search services in ${institution.name}...`
+              }
+              className="w-full px-4 sm:px-6 py-3 sm:py-3.5 pr-12 rounded-full text-white placeholder-white/80 border-none focus:outline-none focus:ring-2 focus:ring-white/30 text-xs sm:text-sm shadow-md"
+              style={{ backgroundColor: '#294491' }}
+            />
+            {serviceSearchQuery ? (
+              <button
+                type="button"
+                onClick={() => setServiceSearchQuery('')}
+                className="absolute right-11 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-white/80 hover:text-white"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            ) : null}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 p-2">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+
           {/* Services Accordion List */}
           <div className="space-y-3">
             {!institution.services || institution.services.length === 0 ? (
@@ -128,8 +162,33 @@ const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, s
                 </svg>
                 <p className="text-gray-500 dark:text-gray-400 text-xl">{t.noServices}</p>
               </div>
-            ) : (
-              institution.services.map((service) => {
+            ) : (() => {
+              const trimmedQuery = serviceSearchQuery.trim().toLowerCase();
+              const displayedServices = institution.services.filter((service) => {
+                if (!trimmedQuery) return true;
+                const titleText = (resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language) || '').toLowerCase();
+                const descText = (resolveLocalizedValue(service.description, language) || '').toLowerCase();
+                return titleText.includes(trimmedQuery) || descText.includes(trimmedQuery);
+              });
+
+              if (displayedServices.length === 0) {
+                return (
+                  <div className="text-center py-12 bg-gray-50 dark:bg-[#0f172a] rounded-xl border border-gray-200 dark:border-gray-700">
+                    <p className="text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-300">
+                      No services found matching &ldquo;{serviceSearchQuery}&rdquo;
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setServiceSearchQuery('')}
+                      className="mt-2 text-xs font-bold text-[#CB9D2A] hover:underline"
+                    >
+                      Clear search
+                    </button>
+                  </div>
+                );
+              }
+
+              return displayedServices.map((service) => {
                 const selected = isServiceSelected(service.id);
                 const titleText = resolveLocalizedValue(service.title, language) || resolveLocalizedValue(service.name, language);
 
@@ -297,8 +356,8 @@ const InstitutionModal = ({ institution, onClose, language, isVIPMode = false, s
                     )}
                   </div>
                 );
-              })
-            )}
+              });
+            })()}
           </div>
         </div>
 

@@ -36,6 +36,7 @@ const VIPTicket = () => {
   const [institutions, setInstitutions] = useState([]);
   const [institutionsLoading, setInstitutionsLoading] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState(null);
+  const [vipSearchQuery, setVipSearchQuery] = useState('');
   const [selectedServices, setSelectedServices] = useState(() => {
     try {
       const saved = sessionStorage.getItem('vip_flow_selected_services') || localStorage.getItem('vip_selected_services');
@@ -529,7 +530,14 @@ const VIPTicket = () => {
       currency: 'ETB',
       allServicesCovered: 'Single 1,000 ETB flat fee covers all selected services',
       priorityQueueAccess: 'Priority queue access at Hawassa MESOB Center',
-      digitalQrPass: 'Instant digital ticket with QR pass'
+      digitalQrPass: 'Instant digital ticket with QR pass',
+      searchPlaceholder: 'Search for Services or Institutions...',
+      matchingServices: 'Matching Services',
+      matchingInstitutions: 'Matching Institutions',
+      noSearchResults: 'No services or institutions found matching',
+      clearSearch: 'Clear Search',
+      selectForVIP: 'Select for VIP',
+      selectedForVIP: 'Selected'
     },
     Amharic: {
       title: 'ቪአይፒ ትኬት አገልግሎት',
@@ -573,7 +581,14 @@ const VIPTicket = () => {
       currency: 'ብር',
       allServicesCovered: 'አንድ 1,000 ብር ክፍያ ሁሉንም የተመረጡ አገልግሎቶችን ያካትታል',
       priorityQueueAccess: 'በሀዋሳ መሶብ ማዕከል የቅድሚያ ወረፋ አገልግሎት',
-      digitalQrPass: 'ፈጣን የዲጂታል ትኬት ከQR ኮድ ጋር'
+      digitalQrPass: 'ፈጣን የዲጂታል ትኬት ከQR ኮድ ጋር',
+      searchPlaceholder: 'አገልግሎቶችን ወይም ተቋማትን ይፈልጉ...',
+      matchingServices: 'ተዛማጅ አገልግሎቶች',
+      matchingInstitutions: 'ተዛማጅ ተቋማት',
+      noSearchResults: 'ምንም ተዛማጅ አገልግሎቶች ወይም ተቋማት አልተገኙም',
+      clearSearch: 'ፍለጋ አጽዳ',
+      selectForVIP: 'ለቪአይፒ ይምረጡ',
+      selectedForVIP: 'ተመርጧል'
     },
     Sidama: {
       title: 'VIP Tiketi Oosate',
@@ -617,7 +632,14 @@ const VIPTicket = () => {
       currency: 'Birra',
       allServicesCovered: 'Mitte 1,000 Birra kaffaltii doorrame oosate baala kaffaltanno',
       priorityQueueAccess: 'Hawassa MESOB Center giddo priority queue horoonsi',
-      digitalQrPass: 'Afanshaano digital pass QR koodi ledo'
+      digitalQrPass: 'Afanshaano digital pass QR koodi ledo',
+      searchPlaceholder: 'Oosate woy Biiro Hasa...',
+      matchingServices: 'Xawaaqqanno Oosate',
+      matchingInstitutions: 'Xawaaqqanno Biiro',
+      noSearchResults: 'Hasaamboonniri oosate woy biiro di-afantino',
+      clearSearch: 'Hasa Qulqulleessi',
+      selectForVIP: 'VIP doorri',
+      selectedForVIP: 'Doorrame'
     }
   };
 
@@ -651,6 +673,43 @@ const VIPTicket = () => {
     } catch (e) {}
     return list;
   })();
+
+  // Filtered institutions and services for Step 1 VIP search
+  const trimmedSearch = vipSearchQuery.trim().toLowerCase();
+
+  const matchedInstitutions = trimmedSearch
+    ? institutions.filter((inst) => {
+        const name = (resolveLocalizedValue(inst.name, language) || inst.name || '').toLowerCase();
+        const desc = (resolveLocalizedValue(inst.description, language) || inst.description || '').toLowerCase();
+        const code = (inst.code || '').toLowerCase();
+        return name.includes(trimmedSearch) || desc.includes(trimmedSearch) || code.includes(trimmedSearch);
+      })
+    : institutions;
+
+  const matchedServices = [];
+  if (trimmedSearch) {
+    institutions.forEach((inst) => {
+      const instName = resolveLocalizedValue(inst.name, language) || inst.name || 'MESOB Institution';
+      (inst.services || []).forEach((srv) => {
+        const title = (
+          resolveLocalizedValue(srv.title, language) ||
+          resolveLocalizedValue(srv.name, language) ||
+          srv.title ||
+          srv.name ||
+          ''
+        ).toLowerCase();
+        const desc = (resolveLocalizedValue(srv.description, language) || srv.description || '').toLowerCase();
+        if (title.includes(trimmedSearch) || desc.includes(trimmedSearch) || instName.toLowerCase().includes(trimmedSearch)) {
+          matchedServices.push({
+            ...srv,
+            institutionName: instName,
+            institutionId: inst.id,
+            institutionLogo: inst.logo
+          });
+        }
+      });
+    });
+  }
 
   // Floating VIP launcher button when modal is closed
   if (!isOpen) {
@@ -795,16 +854,200 @@ const VIPTicket = () => {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 mb-8">
-                    {institutions.map((institution, index) => (
-                      <InstitutionCard
-                        key={institution.id}
-                        institution={institution}
-                        index={index}
-                        onClick={() => handleInstitutionClick(institution)}
+                  {/* Hero-styled Search Bar for VIP Institutions & Services */}
+                  <div className="max-w-2xl mx-auto mb-8 sm:mb-10">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={vipSearchQuery}
+                        onChange={(e) => setVipSearchQuery(e.target.value)}
+                        placeholder={t.searchPlaceholder || 'Search for Services or Institutions...'}
+                        className="w-full px-4 sm:px-6 md:px-8 py-3.5 sm:py-4 md:py-5 pr-14 sm:pr-16 rounded-full text-white placeholder-white/80 border-none focus:outline-none focus:ring-2 focus:ring-white/30 text-sm sm:text-base md:text-lg shadow-lg"
+                        style={{ backgroundColor: '#294491' }}
                       />
-                    ))}
+                      {vipSearchQuery ? (
+                        <button
+                          type="button"
+                          onClick={() => setVipSearchQuery('')}
+                          className="absolute right-12 sm:right-14 top-1/2 -translate-y-1/2 p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                          title="Clear Search"
+                        >
+                          ✕
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 md:p-3 rounded-full hover:bg-white/10 transition-colors"
+                        aria-label="Search"
+                      >
+                        <svg
+                          className="w-5 h-5 sm:w-5 h-5 md:w-6 h-6 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* If user is searching: display matched services and matched institutions */}
+                  {trimmedSearch ? (
+                    <div className="space-y-10 mb-8">
+                      {/* Matched Services Section */}
+                      {matchedServices.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-4">
+                            <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                              <span>⚡ {t.matchingServices || 'Matching Services'}</span>
+                              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#CB9D2A] text-slate-900">
+                                {matchedServices.length}
+                              </span>
+                            </h3>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {matchedServices.map((service) => {
+                              const selected = selectedServices.some((s) => s.id === service.id);
+                              const titleText =
+                                resolveLocalizedValue(service.title, language) ||
+                                resolveLocalizedValue(service.name, language) ||
+                                'Service';
+
+                              return (
+                                <div
+                                  key={`${service.institutionId || ''}-${service.id}`}
+                                  onClick={() => toggleServiceSelection(service)}
+                                  className={`cursor-pointer rounded-2xl p-4 sm:p-5 transition-all duration-200 border-2 flex flex-col justify-between select-none ${
+                                    selected
+                                      ? 'bg-amber-500/10 border-[#CB9D2A] dark:bg-[#CB9D2A]/15 shadow-md'
+                                      : 'bg-white dark:bg-[#1E293B] border-gray-200 dark:border-gray-700/80 hover:border-[#CB9D2A]/50 hover:shadow-md'
+                                  }`}
+                                >
+                                  <div>
+                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#294491]/10 dark:bg-white/10 text-[#294491] dark:text-white truncate max-w-[200px]">
+                                        {service.institutionName}
+                                      </span>
+                                      {service.processingDays ? (
+                                        <span className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">
+                                          {service.processingDays} {service.processingDays === 1 ? 'day' : 'days'}
+                                        </span>
+                                      ) : null}
+                                    </div>
+
+                                    <h4 className="font-extrabold text-base text-gray-900 dark:text-white leading-snug mb-1">
+                                      {titleText}
+                                    </h4>
+
+                                    {service.description && (
+                                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">
+                                        {resolveLocalizedValue(service.description, language)}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800 mt-2">
+                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                      {service.estimatedFee !== undefined && service.estimatedFee !== null
+                                        ? service.estimatedFee === 0
+                                          ? 'Free'
+                                          : `${service.estimatedFee} ETB`
+                                        : 'Standard Fee'}
+                                    </span>
+
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleServiceSelection(service);
+                                      }}
+                                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                        selected
+                                          ? 'bg-[#CB9D2A] text-slate-900 shadow-sm'
+                                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-[#CB9D2A] hover:text-slate-900'
+                                      }`}
+                                    >
+                                      {selected ? (
+                                        <>
+                                          <span>✓</span>
+                                          <span>{t.selectedForVIP || 'Selected'}</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <span>+</span>
+                                          <span>{t.selectForVIP || 'Select for VIP'}</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Matched Institutions Section */}
+                      {matchedInstitutions.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-4">
+                            <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                              <span>🏢 {t.matchingInstitutions || 'Matching Institutions'}</span>
+                              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#294491] text-white">
+                                {matchedInstitutions.length}
+                              </span>
+                            </h3>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 mb-8">
+                            {matchedInstitutions.map((institution, index) => (
+                              <InstitutionCard
+                                key={institution.id}
+                                institution={institution}
+                                index={index}
+                                onClick={() => handleInstitutionClick(institution)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* No Results Fallback */}
+                      {matchedServices.length === 0 && matchedInstitutions.length === 0 && (
+                        <div className="text-center py-16 px-4 bg-white dark:bg-[#1E293B] rounded-3xl border border-gray-200 dark:border-gray-800">
+                          <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 font-bold mb-3">
+                            {t.noSearchResults || 'No services or institutions found matching'} &ldquo;{vipSearchQuery}&rdquo;
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setVipSearchQuery('')}
+                            className="px-4 py-2 rounded-xl bg-[#294491] text-white font-bold text-xs sm:text-sm hover:opacity-90 transition-opacity"
+                          >
+                            {t.clearSearch || 'Clear Search'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Default: Show all institutions */
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 mb-8">
+                      {institutions.map((institution, index) => (
+                        <InstitutionCard
+                          key={institution.id}
+                          institution={institution}
+                          index={index}
+                          onClick={() => handleInstitutionClick(institution)}
+                        />
+                      ))}
+                    </div>
+                  )}
 
                   {/* Floating Selected Services Box in Step 1 */}
                   {selectedServices.length > 0 && (
