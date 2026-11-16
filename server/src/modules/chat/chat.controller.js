@@ -2,13 +2,47 @@ import { findFAQAnswer, searchServicesForContext, isOffTopicQuery, SCOPE_REFUSAL
 import { generateGeminiReply, buildSystemPrompt } from "./gemini.js";
 
 /**
+ * Detect the intended language from the message content and locale preference.
+ * - Ethiopic/Ge'ez script range [\u1200-\u137F] is definitively Amharic ('am').
+ * - Common Sidaamu Afoo keywords/markers identify Sidama ('sid').
+ * - Otherwise falls back to requestedLocale ('en', 'am', 'sid') or 'en'.
+ *
+ * @param {string} text - User message
+ * @param {string} requestedLocale - "en" | "am" | "sid"
+ * @returns {"en" | "am" | "sid"} Effective locale code
+ */
+export function detectLanguage(text, requestedLocale = "en") {
+  if (!text || typeof text !== "string") {
+    return ["am", "sid", "en"].includes(requestedLocale) ? requestedLocale : "en";
+  }
+
+  // 1. Detect Ge'ez / Ethiopic Unicode script range [\u1200-\u137F]
+  if (/[\u1200-\u137F]/.test(text)) {
+    return "am";
+  }
+
+  // 2. Detect common Sidaamu Afoo vocabulary/markers
+  const sidamaMarkers = /\b(keero|keer|dagi|daggini|agurro|agurrote|bayicho|xa'ma|xa'mubba|mittu|wole|ayirrado|hasiissanno|dandeemmo|dandiinanni|wolooma|loosanno|loosatenni|baankete|eegeera|kaarde|qusate|woxe|baatooshshu|fantooshshu)\b/i;
+  if (sidamaMarkers.test(text)) {
+    return "sid";
+  }
+
+  // 3. Fallback to valid requested locale, else 'en'
+  if (["am", "sid", "en"].includes(requestedLocale)) {
+    return requestedLocale;
+  }
+
+  return "en";
+}
+
+/**
  * POST /api/chat
  *
  * Request body:
  *   { "message": "How do I get a TIN number?", "locale": "en" }
  *
  * Response body:
- *   { "reply": "...", "tier": 2 | 3 | "scope-guard" | "context-fallback" | "scope-refusal" | "fallback" }
+ *   { "reply": "...", "tier": 2 | 3 | "scope-guard" | "context-fallback" | "scope-refusal" | "fallback", "locale": "en" | "am" | "sid" }
  */
 export async function handleChatMessage(req, res) {
   try {
@@ -73,31 +107,35 @@ export async function handleChatMessage(req, res) {
     }
 
     const trimmedMessage = sanitizedMessage;
+    // Auto-detect message language (e.g. Ge'ez script -> Amharic, Sidama keywords -> Sidama)
+    // Ensures response is always returned in the language the citizen asked in!
+    const effectiveLocale = detectLanguage(trimmedMessage, validLocale);
 
     // ─── TIER 1.5: Off-Topic Scope Guard ─────────────────
     if (isOffTopicQuery(trimmedMessage)) {
       return res.json({
-        reply: SCOPE_REFUSAL_MESSAGES[validLocale] || SCOPE_REFUSAL_MESSAGES.en,
+        reply: SCOPE_REFUSAL_MESSAGES[effectiveLocale] || SCOPE_REFUSAL_MESSAGES.en,
         tier: "scope-guard",
+        locale: effectiveLocale,
       });
     }
 
     // ─── TIER 2: Instant FAQ Lookup ──────────────────────
-    const faqAnswer = await findFAQAnswer(trimmedMessage, validLocale);
+    const faqAnswer = await findFAQAnswer(trimmedMessage, effectiveLocale);
     if (faqAnswer) {
-      return res.json({ reply: faqAnswer, tier: 2 });
+      return res.json({ reply: faqAnswer, tier: 2, locale: effectiveLocale });
     }
 
     // ─── TIER 2.5: Service Keyword & Institution Lookup ──
-    const serviceContext = await searchServicesForContext(trimmedMessage, validLocale);
+    const serviceContext = await searchServicesForContext(trimmedMessage, effectiveLocale);
 
     // ─── TIER 3: Gemini AI with Strict Scope Guard ───────
     if (process.env.GEMINI_API_KEY) {
-      const systemPrompt = buildSystemPrompt(validLocale, serviceContext);
+      const systemPrompt = buildSystemPrompt(effectiveLocale, serviceContext);
       const aiReply = await generateGeminiReply(trimmedMessage, systemPrompt);
 
       if (aiReply) {
-        return res.json({ reply: aiReply, tier: 3 });
+        return res.json({ reply: aiReply, tier: 3, locale: effectiveLocale });
       }
     }
 
@@ -110,23 +148,32 @@ export async function handleChatMessage(req, res) {
         sid: `Hawaasa MESOOBE Bayichi hasiisanno agurrote mashalaqqe:\n\n${firstSection}`,
       };
       return res.json({
-        reply: contextReply[validLocale] || contextReply.en,
+        reply: contextReply[effectiveLocale] || contextReply.en,
         tier: "context-fallback",
+        locale: effectiveLocale,
       });
     }
 
     // Scope refusal if query is completely outside Hawassa MESOB scope
     return res.json({
-      reply: SCOPE_REFUSAL_MESSAGES[validLocale] || SCOPE_REFUSAL_MESSAGES.en,
+      reply: SCOPE_REFUSAL_MESSAGES[effectiveLocale] || SCOPE_REFUSAL_MESSAGES.en,
       tier: "scope-refusal",
+      locale: effectiveLocale,
     });
   } catch (error) {
     console.error("Chat API error:", error);
+    const fallbackReplies = {
+      en: "Hawassa MESOB Center is open Monday to Friday 8:30 AM – 5:00 PM, and Saturday 8:30 AM – 12:30 PM. For urgent inquiries, visit our center near the Municipal Roundabout or call +251 46 220 1100.",
+      am: "የሀዋሳ መሶብ ማዕከል ከሰኞ እስከ አርብ ከጠዋቱ 2:30 እስከ 11:00፣ ቅዳሜ ከጠዋቱ 2:30 እስከ 6:30 ክፍት ነው። ለአስቸኳይ ጥያቄዎች በማዘጋጃ ቤት አደባባይ አጠገብ የሚገኘውን ማዕከላችንን ይጎብኙ ወይም በስልክ ቁጥር +251 46 220 1100 ይደውሉ።",
+      sid: "Hawaasa MESOOBE Bayichi Saniyoni – Arba'a sa'ate 2:30 – 11:00, Qidaame sa'ate 2:30 – 6:30 fa'nanno. Hasiissanno xa'mubbara Katamu Biiro roond-abaawtete mule daate woy bilbilunni +251 46 220 1100 xaaddate dandiitinanni.",
+    };
+    const errLocale = detectLanguage(req.body?.message, req.body?.locale);
     return res.status(500).json({
-      reply: "Hawassa MESOB Center is open Monday to Friday 8:30 AM – 5:00 PM, and Saturday 8:30 AM – 12:30 PM. For urgent inquiries, visit our center near the Municipal Roundabout or call +251 46 220 1100.",
+      reply: fallbackReplies[errLocale] || fallbackReplies.en,
       tier: "fallback",
+      locale: errLocale,
     });
   }
 }
 
-export default { handleChatMessage };
+export default { handleChatMessage, detectLanguage };
