@@ -1,22 +1,36 @@
-// Resolve API base URL with mobile/LAN support
-const getApiBaseUrl = () => {
-  // Prefer explicit environment variable
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+// Resolve API base URL with mobile/LAN, reverse-proxy, and environment support
+export const getApiBaseUrl = () => {
+  // If running in browser environment
+  if (typeof window !== 'undefined') {
+    const currentHostname = window.location.hostname;
+    
+    // 1. Desktop local development (localhost or 127.0.0.1)
+    if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
+      const devUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      return devUrl.replace(/\/+$/, '');
+    }
+    
+    // 2. Mobile LAN access (testing via local network IP e.g. 192.168.x.x, 10.x.x.x)
+    if (/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(currentHostname)) {
+      return `http://${currentHostname}:5000`;
+    }
+
+    // 3. Deployed production (e.g. Vercel):
+    // If VITE_DIRECT_API is set to 'true', use the explicit backend URL directly
+    if (import.meta.env.VITE_DIRECT_API === 'true') {
+      const explicitUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://hawassa-mesob-api.onrender.com';
+      return explicitUrl.replace(/\/+$/, '');
+    }
+
+    // By default on deployed environments, use empty string "" so requests use relative paths
+    // (/api/..., /uploads/...) and are reverse-proxied by Vercel directly to Render.
+    // This completely eliminates CORS errors, mixed-content warnings, and trailing-slash issues.
+    return '';
   }
-  
-  // For local development
-  // If accessed via IP address (e.g., from mobile on LAN), use same hostname for API
-  const currentHostname = window.location.hostname;
-  
-  // If localhost or 127.0.0.1, keep it (desktop development)
-  if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
-    return 'http://localhost:5000';
-  }
-  
-  // If accessed via IP or other hostname (mobile LAN access), use that hostname
-  // Assumes backend runs on port 5000 on the same machine
-  return `http://${currentHostname}:5000`;
+
+  // Fallback for SSR or build-time evaluation
+  const fallback = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
+  return fallback.replace(/\/+$/, '');
 };
 
 export const API_CONFIG = {
@@ -102,7 +116,9 @@ export const buildUrl = (endpoint) => {
   if (endpoint.startsWith('http')) {
     return endpoint;
   }
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
+  const base = (API_CONFIG.BASE_URL || '').replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${base}${cleanEndpoint}`;
 };
 
 // Helper function for API calls with error handling and locale support
