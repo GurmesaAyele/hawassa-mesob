@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminApi } from "../../services/adminApi";
 import { Button, FIELD_CLASS, Field } from "./AdminFields";
+import { SkeletonForm } from "./AdminSkeleton";
 
 function hoursToText(hours = []) {
   return hours.map((entry) => `${entry.days} | ${entry.hours}`).join("\n");
@@ -101,55 +102,81 @@ export default function SiteSettingsManager({ readOnly = false }) {
   }
 
   return (
-    <section className="admin-section" aria-labelledby="site-settings-heading">
-      <div className="mb-5">
-        <p className="text-sm text-stone-500">Public site information</p>
-        <h2 id="site-settings-heading" className="text-2xl font-bold text-stone-900">Location &amp; contact</h2>
+    <section className="space-y-4" aria-labelledby="site-settings-heading">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 id="site-settings-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
+            Location &amp; Public Information
+          </h2>
+          <p className="mt-1 text-xs text-stone-500">
+            Citizen contact details, operating hours, and interactive map coordinates.
+          </p>
+        </div>
       </div>
 
       {error && (
-        <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-900">
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-600 bg-red-50 p-3.5 text-xs text-red-900 rounded-r-lg">
           <p>{error}</p>
           <button type="button" onClick={load} className="font-semibold underline">Retry</button>
         </div>
       )}
-      {notice && <p role="status" className="mb-4 border-l-4 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
-      {readOnly && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">You have read-only access. A super admin can update these settings.</p>}
+      {notice && (
+        <p role="status" className="border-l-4 border-emerald-700 bg-emerald-50 p-3.5 text-xs text-emerald-900 rounded-r-lg">
+          {notice}
+        </p>
+      )}
+      {readOnly && (
+        <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-xs text-amber-900 rounded-r-lg">
+          You have read-only access. A super admin can update these settings.
+        </p>
+      )}
 
       {loading || !form ? (
-        <p role="status" className="border border-stone-200 bg-white px-4 py-8 text-center text-stone-500">Loading site settings...</p>
+        <SkeletonForm fields={6} />
       ) : (
-        <form onSubmit={submit} className="admin-form space-y-6 border border-stone-200 bg-white p-5 md:p-6">
-          <fieldset disabled={readOnly} className="space-y-6">
-          <fieldset className="space-y-4">
-            <legend className="mb-3 text-lg font-bold text-stone-900">Contact details</legend>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Address"><input className={FIELD_CLASS} value={form.address} onChange={(event) => update("address", event.target.value)} required /></Field>
-              <Field label="Plus code"><input className={FIELD_CLASS} value={form.plusCode} onChange={(event) => update("plusCode", event.target.value)} required /></Field>
-              <Field label="Phone number"><input className={FIELD_CLASS} type="tel" value={form.phone} onChange={(event) => update("phone", event.target.value)} required /></Field>
-              <Field label="Phone display format"><input className={FIELD_CLASS} type="tel" value={form.phoneDisplay} onChange={(event) => update("phoneDisplay", event.target.value)} required /></Field>
-              <Field label="Email"><input className={FIELD_CLASS} type="email" value={form.email} onChange={(event) => update("email", event.target.value)} required /></Field>
-              <Field label="Website"><input className={FIELD_CLASS} type="url" value={form.website} onChange={(event) => update("website", event.target.value)} required /></Field>
-            </div>
-            <Field label="Operating hours summary"><input className={FIELD_CLASS} value={form.operatingHours} onChange={(event) => update("operatingHours", event.target.value)} required /></Field>
-            <Field label="Detailed office hours (one per line: days | hours)">
-              <textarea className={FIELD_CLASS} rows="4" value={form.officeHoursDetailed} onChange={(event) => update("officeHoursDetailed", event.target.value)} required />
-            </Field>
+        <form onSubmit={submit} className="rounded-2xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-8">
+          <fieldset disabled={readOnly} className="space-y-8">
+            <fieldset className="space-y-4">
+              <div className="border-b border-stone-100 pb-2">
+                <legend className="text-base font-bold text-stone-900">Contact Details</legend>
+                <p className="text-xs text-stone-500">Official contact addresses displayed across the public portal</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Physical Address"><input className={FIELD_CLASS} value={form.address} onChange={(event) => update("address", event.target.value)} required /></Field>
+                <Field label="Plus Code"><input className={FIELD_CLASS} value={form.plusCode} onChange={(event) => update("plusCode", event.target.value)} required /></Field>
+                <Field label="Phone Number"><input className={FIELD_CLASS} type="tel" value={form.phone} onChange={(event) => update("phone", event.target.value)} required /></Field>
+                <Field label="Phone Display Format"><input className={FIELD_CLASS} type="tel" value={form.phoneDisplay} onChange={(event) => update("phoneDisplay", event.target.value)} required /></Field>
+                <Field label="Email Address"><input className={FIELD_CLASS} type="email" value={form.email} onChange={(event) => update("email", event.target.value)} required /></Field>
+                <Field label="Official Website"><input className={FIELD_CLASS} type="url" value={form.website} onChange={(event) => update("website", event.target.value)} required /></Field>
+              </div>
+              <Field label="Operating Hours Summary"><input className={FIELD_CLASS} value={form.operatingHours} onChange={(event) => update("operatingHours", event.target.value)} required /></Field>
+              <Field label="Detailed Office Hours (one per line: days | hours)">
+                <textarea className={FIELD_CLASS} rows="4" value={form.officeHoursDetailed} onChange={(event) => update("officeHoursDetailed", event.target.value)} required />
+              </Field>
+            </fieldset>
+
+            <fieldset className="space-y-4 border-t border-stone-100 pt-6">
+              <div className="border-b border-stone-100 pb-2">
+                <legend className="text-base font-bold text-stone-900">Map &amp; Geolocation</legend>
+                <p className="text-xs text-stone-500">Google Maps embed and GPS pin placement for citizen navigation</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Place Name"><input className={FIELD_CLASS} value={form.placeName} onChange={(event) => update("placeName", event.target.value)} required /></Field>
+                <Field label="Google Maps Place URL"><input className={FIELD_CLASS} type="url" value={form.googleMapsUrl} onChange={(event) => update("googleMapsUrl", event.target.value)} required /></Field>
+                <Field label="Latitude"><input className={FIELD_CLASS} type="number" min="-90" max="90" step="any" value={form.latitude} onChange={(event) => update("latitude", event.target.value)} required /></Field>
+                <Field label="Longitude"><input className={FIELD_CLASS} type="number" min="-180" max="180" step="any" value={form.longitude} onChange={(event) => update("longitude", event.target.value)} required /></Field>
+              </div>
+              <Field label="Google Maps Embed URL"><input className={FIELD_CLASS} type="url" value={form.embedUrl} onChange={(event) => update("embedUrl", event.target.value)} required /></Field>
+            </fieldset>
           </fieldset>
 
-          <fieldset className="space-y-4 border-t border-stone-200 pt-5">
-            <legend className="mb-3 text-lg font-bold text-stone-900">Map location</legend>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Place name"><input className={FIELD_CLASS} value={form.placeName} onChange={(event) => update("placeName", event.target.value)} required /></Field>
-              <Field label="Google Maps place URL"><input className={FIELD_CLASS} type="url" value={form.googleMapsUrl} onChange={(event) => update("googleMapsUrl", event.target.value)} required /></Field>
-              <Field label="Latitude"><input className={FIELD_CLASS} type="number" min="-90" max="90" step="any" value={form.latitude} onChange={(event) => update("latitude", event.target.value)} required /></Field>
-              <Field label="Longitude"><input className={FIELD_CLASS} type="number" min="-180" max="180" step="any" value={form.longitude} onChange={(event) => update("longitude", event.target.value)} required /></Field>
+          {!readOnly && (
+            <div className="border-t border-stone-100 pt-5 flex items-center justify-end">
+              <Button type="submit" disabled={saving} className="rounded-xl px-5">
+                {saving ? "Saving Changes..." : "Save Public Settings"}
+              </Button>
             </div>
-            <Field label="Google Maps embed URL"><input className={FIELD_CLASS} type="url" value={form.embedUrl} onChange={(event) => update("embedUrl", event.target.value)} required /></Field>
-          </fieldset>
-
-          </fieldset>
-          {!readOnly && <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save contact and map settings"}</Button>}
+          )}
         </form>
       )}
     </section>

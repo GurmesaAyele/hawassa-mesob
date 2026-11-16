@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { adminApi } from "../../services/adminApi";
-import { Button, FIELD_CLASS, Field, LocalizedFields } from "./AdminFields";
+import { Button, FIELD_CLASS, Field, LocalizedFields, EmptyState } from "./AdminFields";
+import { SkeletonTable } from "./AdminSkeleton";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 const CONTENT_TYPES = [
@@ -283,38 +284,71 @@ export default function HomeContentManager({ readOnly = false }) {
   const categoryLabel = CONTENT_TYPES.find(([id]) => id === category)?.[1];
 
   return (
-    <section className="admin-section" aria-labelledby="home-content-heading">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <section className="space-y-4" aria-labelledby="home-content-heading">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-stone-500">Homepage publishing</p>
-          <h2 id="home-content-heading" className="text-2xl font-bold text-stone-900">Home content</h2>
+          <div className="flex items-center gap-2.5">
+            <h2 id="home-content-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
+              Portal Content &amp; Media
+            </h2>
+            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+              {items.length}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-stone-500">
+            Publish public announcements, news articles, and embedded video briefings.
+          </p>
         </div>
-        {!readOnly && !editing && <Button onClick={() => setEditing({})}>Add {category === "videos" ? "video" : category === "news" ? "news" : "announcement"}</Button>}
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="inline-flex rounded-xl border border-stone-200 bg-stone-100 p-0.5 text-xs shadow-2xs" role="tablist">
+            {CONTENT_TYPES.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={category === id}
+                onClick={() => { setCategory(id); setEditing(null); setNotice(""); }}
+                className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${
+                  category === id
+                    ? "bg-white text-emerald-950 shadow-xs font-bold"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                {label} ({records[id].length})
+              </button>
+            ))}
+          </div>
+
+          {!readOnly && !editing && (
+            <Button
+              onClick={() => setEditing({})}
+              className="rounded-xl shadow-xs flex items-center gap-1.5"
+            >
+              <span className="text-base leading-none">+</span>
+              <span>Add {category === "videos" ? "Video" : category === "news" ? "News" : "Announcement"}</span>
+            </Button>
+          )}
+        </div>
       </div>
-      {readOnly && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">You have read-only access. A super admin can manage homepage content.</p>}
+
+      {readOnly && (
+        <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-xs text-amber-900 rounded-r-lg">
+          You have read-only access. A super admin can manage homepage content.
+        </p>
+      )}
 
       {error && (
-        <div role="alert" className="admin-callout admin-callout--error mb-4 px-4 py-3 text-sm text-red-900">
+        <div role="alert" className="border-l-4 border-red-600 bg-red-50 p-3.5 text-xs text-red-900 rounded-r-lg">
           <p>{error}</p>
-          <button type="button" onClick={refresh} className="mt-2 font-semibold underline">Retry</button>
+          <button type="button" onClick={refresh} className="mt-1 font-semibold underline">Retry</button>
         </div>
       )}
-      {notice && <p role="status" className="admin-callout admin-callout--success mb-4 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
-
-      <div className="mb-5 flex flex-wrap gap-2" role="tablist" aria-label="Homepage content types">
-        {CONTENT_TYPES.map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={category === id}
-            onClick={() => { setCategory(id); setEditing(null); setNotice(""); }}
-            className={`rounded border px-4 py-2 text-sm font-semibold ${category === id ? "border-emerald-800 bg-emerald-800 text-white" : "border-stone-300 bg-white text-stone-700 hover:bg-stone-100"}`}
-          >
-            {label} ({records[id].length})
-          </button>
-        ))}
-      </div>
+      {notice && (
+        <p role="status" className="border-l-4 border-emerald-700 bg-emerald-50 p-3.5 text-xs text-emerald-900 rounded-r-lg">
+          {notice}
+        </p>
+      )}
 
       {editing && (
         <div ref={formRef} className="scroll-mt-4">
@@ -330,36 +364,66 @@ export default function HomeContentManager({ readOnly = false }) {
       )}
 
       {loading ? (
-        <p role="status" className="py-8 text-sm text-stone-600">Loading homepage content...</p>
-      ) : items.length ? (
-        <div className="admin-table-wrap overflow-x-auto border border-stone-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white shadow-xs">
           <table className="w-full min-w-[700px] text-left text-sm">
-            <thead className="border-b border-stone-200 bg-stone-100 text-xs uppercase tracking-wide text-stone-600">
+            <thead className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
               <tr>
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Details</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className="px-5 py-3.5">Title</th>
+                <th className="px-4 py-3.5">Details</th>
+                <th className="px-4 py-3.5">Date</th>
+                <th className="px-5 py-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <SkeletonTable rows={4} columns={4} />
+            </tbody>
+          </table>
+        </div>
+      ) : items.length ? (
+        <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white shadow-xs">
+          <table className="w-full min-w-[700px] text-left text-sm">
+            <thead className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
+              <tr>
+                <th className="px-5 py-3.5">Title</th>
+                <th className="px-4 py-3.5">Details</th>
+                <th className="px-4 py-3.5">Published Date</th>
+                <th className="px-5 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.id} className="border-b border-stone-100">
-                  <td className="max-w-sm px-4 py-3 font-semibold text-stone-900">{displayTitle(item)}</td>
-                  <td className="px-4 py-3 text-stone-600">
+                <tr key={item.id} className="border-t border-stone-100 hover:bg-stone-50/60 transition-colors">
+                  <td className="max-w-sm px-5 py-3.5 font-bold text-stone-900">{displayTitle(item)}</td>
+                  <td className="px-4 py-3.5 text-xs text-stone-600">
                     {category === "videos"
                       ? `${displayText(item.category, "Video")} / ${displayText(item.youtubeUrl)}`
                       : category === "announcements"
                         ? `${displayText(item.type, "general")} / ${displayText(item.priority, "medium")}`
                         : displayText(item.author)}
                   </td>
-                  <td className="px-4 py-3 text-stone-600">{new Date(item.publishedAt || item.date).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
+                  <td className="px-4 py-3.5 text-xs text-stone-500">
+                    {new Date(item.publishedAt || item.date).toLocaleDateString()}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <div className="inline-flex items-center gap-1.5 justify-end">
                       {!readOnly && (
                         <>
-                          <Button variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
-                          <Button variant="danger" disabled={saving} onClick={() => setPendingDelete(item)}>Delete</Button>
+                          <button
+                            type="button"
+                            onClick={() => setEditing(item)}
+                            className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            disabled={saving}
+                            onClick={() => setPendingDelete(item)}
+                            className="rounded-lg border border-red-200/80 bg-red-50/60 p-1.5 text-xs text-red-600 hover:bg-red-100 shadow-2xs transition-all"
+                            title="Delete content"
+                          >
+                            🗑
+                          </button>
                         </>
                       )}
                     </div>
@@ -370,9 +434,19 @@ export default function HomeContentManager({ readOnly = false }) {
           </table>
         </div>
       ) : (
-        <div className="border border-dashed border-stone-300 bg-white px-5 py-10 text-center">
-          <h3 className="font-semibold text-stone-800">No {categoryLabel.toLowerCase()} yet</h3>
-          <p className="mt-1 text-sm text-stone-600">Add content here to show it on the public site.</p>
+        <div className="rounded-xl border border-stone-200 bg-white">
+          <EmptyState
+            icon="building"
+            title={`No ${categoryLabel.toLowerCase()} published yet`}
+            description="Add content here to publish announcements, news articles, and videos on the citizen-facing portal."
+            action={
+              !readOnly ? (
+                <Button type="button" onClick={() => setEditing({})}>
+                  + Add New {categoryLabel.slice(0, -1)}
+                </Button>
+              ) : null
+            }
+          />
         </div>
       )}
       <ConfirmationDialog

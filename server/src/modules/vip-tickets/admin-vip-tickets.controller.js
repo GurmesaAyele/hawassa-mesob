@@ -1,5 +1,6 @@
 import prisma from "../../config/db.js";
 import crypto from "crypto";
+import { broadcastQueueUpdate } from "../vip-dashboard/realtime.js";
 
 // Allowed service-processing status transitions
 const STATUS_DB_TO_CLIENT = {
@@ -128,7 +129,7 @@ export function formatAdminTicket(ticket, staffInstitutionId = null) {
       name,
       estimatedFee: s.estimatedFee ?? null,
       processingDays: s.processingDays ?? null,
-      status: serializeStatus(ts.serviceProcessingStatus || ticket.serviceProcessingStatus || "PENDING"),
+      status: serializeStatus(ts.serviceProcessingStatus || "PENDING"),
       servedAt: ts.servedAt instanceof Date ? ts.servedAt.toISOString() : ts.servedAt || null,
       completedAt: ts.completedAt instanceof Date ? ts.completedAt.toISOString() : ts.completedAt || null,
       servedById: ts.servedById || null,
@@ -449,7 +450,9 @@ export async function updateVipTicketServiceStatus(req, res) {
       }
 
       if (requestedServiceId) {
-        targetTicketServices = instServices.filter((ts) => ts.serviceId === requestedServiceId.trim());
+        targetTicketServices = instServices.filter(
+          (ts) => ts.serviceId === requestedServiceId.trim() || ts.id === requestedServiceId.trim()
+        );
         if (targetTicketServices.length === 0) {
           return res.status(403).json({
             error: "Access denied: The specified service does not belong to your assigned institution.",
@@ -461,7 +464,9 @@ export async function updateVipTicketServiceStatus(req, res) {
     } else {
       // Super Admin: target specific service if requested, or all
       if (requestedServiceId) {
-        targetTicketServices = allTicketServices.filter((ts) => ts.serviceId === requestedServiceId.trim());
+        targetTicketServices = allTicketServices.filter(
+          (ts) => ts.serviceId === requestedServiceId.trim() || ts.id === requestedServiceId.trim()
+        );
         if (targetTicketServices.length === 0) {
           return res.status(404).json({
             error: `Service '${requestedServiceId}' not found on this VIP ticket.`,
@@ -579,6 +584,17 @@ export async function updateVipTicketServiceStatus(req, res) {
       where: { id: ticket.id },
       include: getAdminTicketIncludes(),
     });
+
+    // Instantly notify public TV screens, staff counters, and admin dashboards
+    try {
+      broadcastQueueUpdate({
+        type: "TICKET_STATUS_UPDATED",
+        ticketId: ticket.id,
+        status: serializeStatus(targetDbStatus),
+      });
+    } catch (notifyErr) {
+      console.warn("[admin-vip-tickets] broadcastQueueUpdate notice:", notifyErr.message);
+    }
 
     return res.status(200).json({
       success: true,

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, FIELD_CLASS, Field, LocalizedFields, Status } from "./AdminFields";
+import { Button, FIELD_CLASS, Field, LocalizedFields, Status, EmptyState } from "./AdminFields";
+import { SkeletonTable } from "./AdminSkeleton";
 import { assetUrl } from "../../services/adminApi";
 import "../InstitutionLogo.css";
 
@@ -173,100 +174,233 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
   }, [editing]);
 
   return (
-    <section className="admin-section" aria-labelledby="institutions-heading">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <section className="space-y-4" aria-labelledby="institutions-heading">
+      {/* ─── Elevated Header & Pro Command Toolbar ─── */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-stone-500">Organization directory</p>
-          <h2 id="institutions-heading" className="text-2xl font-bold text-stone-900">Institutions <span className="ml-1 text-base font-medium text-stone-500">{items.length}</span></h2>
+          <div className="flex items-center gap-2.5">
+            <h2 id="institutions-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
+              Institutions Directory
+            </h2>
+            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+              {items.length}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-stone-500">
+            Partner government agencies, public offices, and on-site service desks.
+          </p>
         </div>
-        {!readOnly && !editing && <Button onClick={() => setEditing({})}>Add institution</Button>}
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Quick Search with embedded icon and clear button */}
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search name, code, location..."
+              className="w-56 sm:w-72 rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {!readOnly && !editing && (
+            <Button
+              onClick={() => setEditing(emptyInstitution())}
+              className="rounded-xl shadow-xs flex items-center gap-1.5"
+            >
+              <span className="text-base leading-none">+</span>
+              <span>Add Institution</span>
+            </Button>
+          )}
+        </div>
       </div>
-      {readOnly && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">You have read-only access. A super admin can manage institutions.</p>}
+
+      {readOnly && (
+        <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-xs text-amber-900 rounded-r-lg">
+          You have read-only access. A super admin can manage institutions.
+        </p>
+      )}
 
       {editing && (
         <div ref={formRef} className="scroll-mt-4">
-          <InstitutionForm key={editing.id || "new"} initial={editing.id ? editing : null} saving={saving} onCancel={() => setEditing(null)} onSave={onSave} />
+          <InstitutionForm
+            key={editing.id || "new"}
+            initial={editing.id ? editing : null}
+            saving={saving}
+            onCancel={() => setEditing(null)}
+            onSave={onSave}
+          />
         </div>
       )}
 
-      <label className="admin-table-search">
-        <span className="sr-only">Search institutions</span>
-        <input className={FIELD_CLASS} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name, code, location, phone" />
-      </label>
-
-      <div className="admin-table-wrap admin-institution-table-wrap">
-        <table className="admin-institution-table">
-          <colgroup>
-            <col className="admin-institution-table__name" />
-            <col className="admin-institution-table__email" />
-            <col className="admin-institution-table__location" />
-            <col className="admin-institution-table__contact" />
-            <col className="admin-institution-table__services" />
-            <col className="admin-institution-table__status" />
-            <col className="admin-institution-table__actions" />
-          </colgroup>
-          <thead>
+      {/* ─── Elevated Modern Data Table ─── */}
+      <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white shadow-xs">
+        <table className="w-full min-w-[860px] text-left text-sm">
+          <thead className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
             <tr>
-              <th scope="col">Institution</th>
-              <th scope="col">Email / website</th>
-              <th scope="col">Location</th>
-              <th scope="col">Contact</th>
-              <th scope="col" className="admin-institution-table__center">Services</th>
-              <th scope="col">Status</th>
-              <th scope="col" className="admin-institution-table__actions-heading">Actions</th>
+              <th scope="col" className="px-5 py-3.5">Institution</th>
+              <th scope="col" className="px-4 py-3.5">Location</th>
+              <th scope="col" className="px-4 py-3.5">Contact / Website</th>
+              <th scope="col" className="px-4 py-3.5 text-center">Services</th>
+              <th scope="col" className="px-4 py-3.5">Status</th>
+              <th scope="col" className="px-5 py-3.5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="admin-table-state">Loading institutions...</td></tr>
+              <SkeletonTable rows={5} columns={6} />
             ) : rows.map((item) => (
-              <tr key={item.id}>
-                <td>
-                  <div className="admin-institution-identity">
-                    <div className="institution-logo-frame institution-logo-frame--table flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-stone-200 bg-stone-50 text-sm font-bold text-emerald-800">
-                      {item.logoUrl ? <img src={assetUrl(item.logoUrl)} alt="" className="institution-logo-image h-full w-full object-contain" /> : item.name?.en?.[0] || "?"}
+              <tr key={item.id} className="border-t border-stone-100 hover:bg-stone-50/60 transition-colors">
+                {/* Institution Name & Code */}
+                <td className="px-5 py-3.5 align-middle">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white p-1 text-sm font-bold text-emerald-800 shadow-2xs overflow-hidden">
+                      {item.logoUrl ? (
+                        <img src={assetUrl(item.logoUrl)} alt="" className="h-full w-full object-contain" />
+                      ) : (
+                        <span className="bg-emerald-50 text-emerald-800 w-full h-full flex items-center justify-center font-black rounded-lg">
+                          {(item.name?.en || item.code || "?")[0].toUpperCase()}
+                        </span>
+                      )}
                     </div>
-                    <div className="admin-institution-identity__text">
-                      <p className="admin-institution-identity__name">{item.name?.en || "Unnamed institution"}</p>
-                      <p className="admin-institution-identity__code">{item.code || "No institution code"}</p>
+                    <div className="min-w-0">
+                      <p className="font-bold text-stone-900 leading-snug">{item.name?.en || "Unnamed institution"}</p>
+                      <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 mt-0.5">
+                        {item.code || "NO_CODE"}
+                      </span>
                     </div>
                   </div>
                 </td>
-                <td>
-                  <div className="admin-institution-contact">
-                    {item.email
-                      ? <a href={`mailto:${item.email}`}>{item.email}</a>
-                      : <span className="admin-table-muted">No email</span>}
-                    {item.website
-                      ? <a href={item.website} target="_blank" rel="noreferrer">Visit website <span aria-hidden="true">↗</span></a>
-                      : <span className="admin-table-muted">No website</span>}
-                  </div>
+
+                {/* Location */}
+                <td className="px-4 py-3.5 align-middle text-xs">
+                  {item.floorRoomNumber ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-stone-100/90 border border-stone-200/60 px-2.5 py-1 font-medium text-stone-700">
+                      <span>📍</span> {item.floorRoomNumber}
+                    </span>
+                  ) : (
+                    <span className="text-stone-400">—</span>
+                  )}
                 </td>
-                <td>{item.floorRoomNumber || <span className="admin-table-muted">Not set</span>}</td>
-                <td>{item.contactPhone || <span className="admin-table-muted">Not set</span>}</td>
-                <td className="admin-institution-table__center">
-                  <span className="admin-service-count">{item.serviceCount ?? 0}</span>
-                </td>
-                <td><Status active={item.isActive} /></td>
-                <td className="admin-institution-table__actions-cell">
-                  <div className="admin-institution-actions">
-                    {!readOnly && (
-                      <>
-                        <Button className="admin-table-action" variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
-                        {item.isActive && <Button className="admin-table-action admin-table-action--warning" variant="danger" disabled={saving} onClick={() => onDeactivate(item)}>Deactivate</Button>}
-                        {!item.isActive && <Button className="admin-table-action" disabled={saving} onClick={() => onReactivate(item)}>Reactivate</Button>}
-                        <Button className="admin-table-action admin-table-action--danger" variant="danger" disabled={saving} onClick={() => onDelete(item)}>Delete</Button>
-                      </>
+
+                {/* Contact & Website */}
+                <td className="px-4 py-3.5 align-middle text-xs">
+                  <div className="space-y-1">
+                    {item.email ? (
+                      <a href={`mailto:${item.email}`} className="text-emerald-700 hover:underline flex items-center gap-1 font-medium">
+                        <span>✉</span> {item.email}
+                      </a>
+                    ) : null}
+                    {item.website ? (
+                      <a href={item.website} target="_blank" rel="noreferrer" className="text-stone-500 hover:text-emerald-800 hover:underline flex items-center gap-1 text-[11px]">
+                        <span>🌐</span> Visit site ↗
+                      </a>
+                    ) : null}
+                    {item.contactPhone && !item.email ? (
+                      <a href={`tel:${item.contactPhone}`} className="text-stone-600 hover:underline flex items-center gap-1">
+                        <span>📞</span> {item.contactPhone}
+                      </a>
+                    ) : null}
+                    {!item.email && !item.website && !item.contactPhone && (
+                      <span className="text-stone-400">—</span>
                     )}
                   </div>
+                </td>
+
+                {/* Services Count */}
+                <td className="px-4 py-3.5 align-middle text-center">
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                    (item.serviceCount ?? 0) > 0 ? "bg-sky-50 text-sky-800 border border-sky-200" : "bg-stone-100 text-stone-500"
+                  }`}>
+                    <span>⚡</span> {item.serviceCount ?? 0}
+                  </span>
+                </td>
+
+                {/* Status */}
+                <td className="px-4 py-3.5 align-middle">
+                  <Status active={item.isActive} />
+                </td>
+
+                {/* Actions */}
+                <td className="px-5 py-3.5 align-middle text-right">
+                  {!readOnly && (
+                    <div className="inline-flex items-center gap-1.5 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(item)}
+                        className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => item.isActive ? onDeactivate(item) : onReactivate(item)}
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all shadow-2xs ${
+                          item.isActive
+                            ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                        }`}
+                      >
+                        {item.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => onDelete(item)}
+                        className="rounded-lg border border-red-200/80 bg-red-50/60 p-1.5 text-xs text-red-600 hover:bg-red-100 transition-all shadow-2xs"
+                        title="Delete institution"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
             {!loading && rows.length === 0 && (
-              <tr><td colSpan={7} className="admin-table-state">
-                <strong>{items.length ? "No matching institutions" : "No institutions yet"}</strong>
-                <span>{items.length ? "Try another name, code, location, or phone number." : "Create an institution to start building the directory."}</span>
-              </td></tr>
+              <tr>
+                <td colSpan={6} className="p-0">
+                  <EmptyState
+                    icon="building"
+                    title={items.length ? "No matching institutions" : "No institutions yet"}
+                    description={
+                      items.length
+                        ? `No institutions match "${query}". Try searching for another name, code, or floor.`
+                        : "Create an institution to start building the Hawassa Mesob service directory."
+                    }
+                    action={
+                      query ? (
+                        <button
+                          type="button"
+                          onClick={() => setQuery("")}
+                          className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 shadow-xs"
+                        >
+                          Clear search
+                        </button>
+                      ) : !readOnly ? (
+                        <Button type="button" onClick={() => setEditing(emptyInstitution())}>
+                          + Add First Institution
+                        </Button>
+                      ) : null
+                    }
+                  />
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Button, FIELD_CLASS, Field, LanguageSwitch, LocalizedFields, Status } from "./AdminFields";
+import { Button, FIELD_CLASS, Field, LanguageSwitch, LocalizedFields, Status, EmptyState } from "./AdminFields";
+import { SkeletonTable } from "./AdminSkeleton";
 
 const emptyService = () => ({
   providerId: "",
@@ -125,74 +126,202 @@ export default function ServiceManager({ items, institutions, loading, saving, r
   ].join(" ").toLowerCase().includes(query.trim().toLowerCase())), [items, query]);
 
   return (
-    <section className="admin-section" aria-labelledby="services-heading">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <section className="space-y-4" aria-labelledby="services-heading">
+      {/* ─── Elevated Header & Pro Command Toolbar ─── */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm text-stone-500">Catalog management</p>
-          <h2 id="services-heading" className="text-2xl font-bold text-stone-900">Services <span className="ml-1 text-base font-medium text-stone-500">{items.length}</span></h2>
+          <div className="flex items-center gap-2.5">
+            <h2 id="services-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
+              Citizen Services Catalog
+            </h2>
+            <span className="rounded-full bg-sky-100 border border-sky-300 px-2.5 py-0.5 text-xs font-bold text-sky-900">
+              {items.length}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-stone-500">
+            Official government procedures, processing timelines, and fee schedules.
+          </p>
         </div>
-        {!readOnly && !editing && <Button disabled={!institutions.length} onClick={() => setEditing({})}>Add service</Button>}
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Quick Search */}
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search services or institutions..."
+              className="w-56 sm:w-72 rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {!readOnly && !editing && (
+            <Button
+              disabled={!institutions.length}
+              onClick={() => setEditing(emptyService())}
+              className="rounded-xl shadow-xs flex items-center gap-1.5"
+            >
+              <span className="text-base leading-none">+</span>
+              <span>Add Service</span>
+            </Button>
+          )}
+        </div>
       </div>
-      {readOnly && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">You have read-only access. A super admin can manage services.</p>}
 
-      {editing && <ServiceForm key={editing.id || "new"} initial={editing.id ? editing : null} institutions={institutions} saving={saving} onCancel={() => setEditing(null)} onSave={onSave} />}
-      {!institutions.length && !loading && <p className="mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">Create an institution before adding services.</p>}
+      {readOnly && (
+        <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-xs text-amber-900 rounded-r-lg">
+          You have read-only access. A super admin can manage services.
+        </p>
+      )}
 
-      <label className="admin-table-search">
-        <span className="sr-only">Search services</span>
-        <input className={FIELD_CLASS} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by service or institution" />
-      </label>
+      {editing && (
+        <ServiceForm
+          key={editing.id || "new"}
+          initial={editing.id ? editing : null}
+          institutions={institutions}
+          saving={saving}
+          onCancel={() => setEditing(null)}
+          onSave={onSave}
+        />
+      )}
 
-      <div className="admin-table-wrap admin-service-table-wrap">
-        <table className="admin-service-table">
-          <colgroup>
-            <col className="admin-service-table__service" />
-            <col className="admin-service-table__institution" />
-            <col className="admin-service-table__fee" />
-            <col className="admin-service-table__processing" />
-            <col className="admin-service-table__status" />
-            <col className="admin-service-table__actions" />
-          </colgroup>
-          <thead>
+      {!institutions.length && !loading && (
+        <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-xs text-amber-900 rounded-r-lg">
+          Create an institution before adding services.
+        </p>
+      )}
+
+      {/* ─── Elevated Modern Data Table ─── */}
+      <div className="overflow-x-auto rounded-2xl border border-stone-200/90 bg-white shadow-xs">
+        <table className="w-full min-w-[820px] text-left text-sm">
+          <thead className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
             <tr>
-              <th scope="col">Service</th>
-              <th scope="col">Institution</th>
-              <th scope="col">Fee</th>
-              <th scope="col">Processing</th>
-              <th scope="col">Status</th>
-              <th scope="col" className="admin-service-table__actions-heading">Actions</th>
+              <th scope="col" className="px-5 py-3.5">Service Offering</th>
+              <th scope="col" className="px-4 py-3.5">Providing Institution</th>
+              <th scope="col" className="px-4 py-3.5">Gov Fee</th>
+              <th scope="col" className="px-4 py-3.5">Est. Timeline</th>
+              <th scope="col" className="px-4 py-3.5">Status</th>
+              <th scope="col" className="px-5 py-3.5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="admin-table-state">Loading services...</td></tr>
+              <SkeletonTable rows={5} columns={6} />
             ) : rows.map((item) => (
-              <tr key={item.id}>
-                <td>
-                  <div className="admin-service-identity">
-                    <p className="admin-service-identity__name">{item.title?.en || "Untitled service"}</p>
-                    {item.description?.en && <p className="admin-service-identity__description">{item.description.en}</p>}
-                  </div>
+              <tr key={item.id} className="border-t border-stone-100 hover:bg-stone-50/60 transition-colors">
+                {/* Service Title & Description */}
+                <td className="px-5 py-3.5 align-middle max-w-xs">
+                  <p className="font-bold text-stone-900 leading-snug">{item.title?.en || "Untitled service"}</p>
+                  {item.description?.en && (
+                    <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">{item.description.en}</p>
+                  )}
                 </td>
-                <td>{item.institution?.name?.en || item.institution?.code || <span className="admin-table-muted">Not set</span>}</td>
-                <td className="admin-service-table__number">{item.estimatedFee == null ? <span className="admin-table-muted">Not set</span> : `${item.estimatedFee} ETB`}</td>
-                <td className="admin-service-table__number">{item.processingDays == null ? <span className="admin-table-muted">Not set</span> : `${item.processingDays} days`}</td>
-                <td><Status active={item.isActive} /></td>
-                <td className="admin-service-table__actions-cell">
-                  <div className="admin-service-actions">
-                    {!readOnly && (
-                      <>
-                        <Button className="admin-table-action" variant="secondary" onClick={() => setEditing(item)}>Edit</Button>
-                        {item.isActive && <Button className="admin-table-action admin-table-action--warning" variant="danger" disabled={saving} onClick={() => onDeactivate(item)}>Deactivate</Button>}
-                        {!item.isActive && <Button className="admin-table-action" disabled={saving} onClick={() => onReactivate(item)}>Reactivate</Button>}
-                      </>
-                    )}
-                  </div>
+
+                {/* Institution */}
+                <td className="px-4 py-3.5 align-middle text-xs">
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                    {item.institution?.code || item.institution?.name?.en || "Unassigned"}
+                  </span>
+                </td>
+
+                {/* Fee */}
+                <td className="px-4 py-3.5 align-middle text-xs">
+                  {item.estimatedFee != null ? (
+                    <span className="font-mono font-bold text-stone-900 bg-stone-100 px-2 py-0.5 rounded border border-stone-200">
+                      {item.estimatedFee} ETB
+                    </span>
+                  ) : (
+                    <span className="text-stone-400">Free / None</span>
+                  )}
+                </td>
+
+                {/* Processing Days */}
+                <td className="px-4 py-3.5 align-middle text-xs">
+                  {item.processingDays != null ? (
+                    <span className="inline-flex items-center gap-1 font-medium text-stone-700 bg-stone-50 px-2 py-0.5 rounded border border-stone-200">
+                      <span>⏱</span> {item.processingDays} {item.processingDays === 1 ? "day" : "days"}
+                    </span>
+                  ) : (
+                    <span className="text-stone-400">Same-day</span>
+                  )}
+                </td>
+
+                {/* Status */}
+                <td className="px-4 py-3.5 align-middle">
+                  <Status active={item.isActive} />
+                </td>
+
+                {/* Actions */}
+                <td className="px-5 py-3.5 align-middle text-right">
+                  {!readOnly && (
+                    <div className="inline-flex items-center gap-1.5 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(item)}
+                        className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        disabled={saving}
+                        onClick={() => item.isActive ? onDeactivate(item) : onReactivate(item)}
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all shadow-2xs ${
+                          item.isActive
+                            ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                        }`}
+                      >
+                        {item.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
             {!loading && rows.length === 0 && (
-              <tr><td colSpan={6} className="admin-table-state">{items.length ? "No services match this search." : "No services found."}</td></tr>
+              <tr>
+                <td colSpan={6} className="p-0">
+                  <EmptyState
+                    icon="search"
+                    title={items.length ? "No services match this search" : "No services registered"}
+                    description={
+                      items.length
+                        ? `No services found matching "${query}". Try searching with different keywords.`
+                        : "Add services provided by institutions in Hawassa Mesob."
+                    }
+                    action={
+                      query ? (
+                        <button
+                          type="button"
+                          onClick={() => setQuery("")}
+                          className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 shadow-xs"
+                        >
+                          Clear search
+                        </button>
+                      ) : !readOnly && institutions.length ? (
+                        <Button type="button" onClick={() => setEditing(emptyService())}>
+                          + Add First Service
+                        </Button>
+                      ) : null
+                    }
+                  />
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

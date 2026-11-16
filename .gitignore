@@ -26,3 +26,8 @@ prisma/generated
 # Local guides & docs
 chatbot-integration-guide.md
 server/chatbot-integration-guide.md
+
+# Local skills (ignored from push)
+.skills/
+skills/
+

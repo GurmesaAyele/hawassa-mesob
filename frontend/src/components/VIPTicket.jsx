@@ -115,6 +115,21 @@ const VIPTicket = () => {
     }
   }, [isOpen, step, isServicesMinimized, selectedServices, formData]);
 
+  // Listen for openVipTicket events from public dashboard or buttons
+  useEffect(() => {
+    const handleOpenVip = (event) => {
+      setIsOpen(true);
+      if (event.detail?.service) {
+        setSelectedServices((prev) => {
+          const exists = prev.find((s) => s.id === event.detail.service.id);
+          return exists ? prev : [...prev, event.detail.service];
+        });
+      }
+    };
+    window.addEventListener('openVipTicket', handleOpenVip);
+    return () => window.removeEventListener('openVipTicket', handleOpenVip);
+  }, []);
+
   // Fetch institutions when modal opens
   useEffect(() => {
     if (isOpen && institutions.length === 0) {
@@ -273,19 +288,20 @@ const VIPTicket = () => {
       const primaryService = selectedServices[0];
       const serviceIds = selectedServices.map(s => s.id);
       const allServiceNames = selectedServices
-        .map(s => resolveLocalizedValue(s.title, language) || resolveLocalizedValue(s.name, language) || 'Service')
+        .map(s => resolveLocalizedValue(s.title, language) || resolveLocalizedValue(s.name, language) || (typeof s.title === 'string' ? s.title : s.title?.en) || 'Service')
         .join(', ');
 
       const requestBody = {
         citizenName: formData.citizenName.trim(),
         citizenPhone: formData.citizenPhone.trim(),
         email: formData.citizenEmail.trim(),
-        serviceIds: serviceIds, // Send all selected services so backend links each one!
-        serviceId: primaryService.id,
+        serviceIds: serviceIds, // Send ALL selected service IDs
+        serviceId: primaryService?.id || serviceIds[0], // Keep for backwards compatibility
         purpose: formData.purpose.trim() || `VIP Service Request: ${allServiceNames}`
       };
 
       console.log('=== VIP APPLICATION REQUEST ===', requestBody);
+      console.log('Selected service count:', selectedServices.length, 'IDs:', serviceIds);
 
       const response = await fetch(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.VIP_TICKETS}`,
