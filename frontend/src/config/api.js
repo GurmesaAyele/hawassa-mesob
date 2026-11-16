@@ -1,22 +1,40 @@
-// Resolve API base URL with mobile/LAN support
+// Production deployed endpoints
+export const PRODUCTION_API_URL = 'https://hawassa-mesob-api.onrender.com';
+export const PRODUCTION_CLIENT_URL = 'https://hawassa-mesob.vercel.app';
+
+// Resolve API base URL with mobile/LAN, Vercel, and local development support
 const getApiBaseUrl = () => {
-  // Prefer explicit environment variable
+  // 1. Prefer explicit environment variable if set (strip any trailing slashes)
   if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '');
   }
   
-  // For local development
-  // If accessed via IP address (e.g., from mobile on LAN), use same hostname for API
-  const currentHostname = window.location.hostname;
-  
-  // If localhost or 127.0.0.1, keep it (desktop development)
-  if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
-    return 'http://localhost:5000';
+  // 2. Client-side browser hostname detection
+  if (typeof window !== 'undefined' && window.location) {
+    const currentHostname = window.location.hostname;
+    
+    // When running on Vercel deployment or production build, route to Render API
+    if (
+      currentHostname === 'hawassa-mesob.vercel.app' ||
+      currentHostname.endsWith('.vercel.app') ||
+      import.meta.env.PROD
+    ) {
+      return PRODUCTION_API_URL;
+    }
+    
+    // Desktop local development
+    if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
+      return 'http://localhost:5000';
+    }
+    
+    // Mobile/LAN local network access (e.g. 192.168.x.x, 10.x.x.x)
+    if (/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(currentHostname)) {
+      return `http://${currentHostname}:5000`;
+    }
   }
   
-  // If accessed via IP or other hostname (mobile LAN access), use that hostname
-  // Assumes backend runs on port 5000 on the same machine
-  return `http://${currentHostname}:5000`;
+  // Fallback: Production mode defaults to Render API, otherwise localhost
+  return import.meta.env.PROD ? PRODUCTION_API_URL : 'http://localhost:5000';
 };
 
 export const API_CONFIG = {

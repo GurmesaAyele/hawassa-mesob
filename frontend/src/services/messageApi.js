@@ -1,4 +1,6 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000").replace(/\/+$/, "");
+import { API_CONFIG } from "../config/api";
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 export async function submitMessage(message) {
   let response;
