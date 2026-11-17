@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import InstitutionManager from "../components/admin/InstitutionManager";
 import ServiceManager from "../components/admin/ServiceManager";
@@ -138,6 +138,12 @@ function AdminSignIn({ message, onSignedIn, authError }) {
 export default function AdminDashboard() {
   const [section, setSection] = useState("institutions");
   const [currentUser, setCurrentUser] = useState(null);
+  const currentUserRef = useRef(currentUser);
+
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
   const [authLoading, setAuthLoading] = useState(true);
   const [authMessage, setAuthMessage] = useState("");
   const [authError, setAuthError] = useState("");
@@ -156,8 +162,9 @@ export default function AdminDashboard() {
   const isStaff = currentUser?.role === "STAFF";
   const isOperator = currentUser?.role === "OPERATOR";
 
-  const refreshData = useCallback(async () => {
-    const isSuper = currentUser?.role === "SUPER_ADMIN";
+  const refreshData = useCallback(async (userOverride) => {
+    const activeUser = userOverride || currentUserRef.current;
+    const isSuper = activeUser?.role === "SUPER_ADMIN";
     const results = await Promise.allSettled([
       adminApi.institutions(),
       adminApi.services(),
@@ -234,7 +241,12 @@ export default function AdminDashboard() {
         } else if (user.role === "OPERATOR") {
           setSection("institutions");
         }
-        setCurrentUser({ ...user, sessionExpiresAt });
+        const activeUser = { ...user, sessionExpiresAt };
+        currentUserRef.current = activeUser;
+        setCurrentUser(activeUser);
+        if (activeUser.role !== "STAFF") {
+          refreshData(activeUser);
+        }
       })
       .catch((requestError) => {
         localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
@@ -353,8 +365,12 @@ export default function AdminDashboard() {
     setAuthMessage("");
     setError("");
     setSection(user.role === "STAFF" ? "vip-tickets" : "institutions");
+    currentUserRef.current = user;
     setCurrentUser(user);
     setLoading(user.role !== "STAFF");
+    if (user.role !== "STAFF") {
+      refreshData(user);
+    }
   };
 
   const signOut = async () => {
@@ -735,10 +751,12 @@ export default function AdminDashboard() {
             onToggleRead={updateMessageStatus}
           />
         )}
-        {!isStaff && section === "site-settings" && <SiteSettingsManager readOnly={!isSuperAdmin} />}
+        {!isStaff && section === "site-settings" && (
+          <SiteSettingsManager readOnly={!isSuperAdmin && !isOperator} />
+        )}
         {!isStaff && section === "home" && (
           <>
-            <HomeContentManager readOnly={!isSuperAdmin} />
+            <HomeContentManager readOnly={!isSuperAdmin && !isOperator} />
             <p className="text-sm text-stone-600">
               Homepage links are not included in the documented content endpoints and remain unchanged.
             </p>

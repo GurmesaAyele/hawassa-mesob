@@ -334,7 +334,7 @@ export default function HomeContentManager({ readOnly = false }) {
 
       {readOnly && (
         <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-xs text-amber-900 rounded-r-lg">
-          You have read-only access. A super admin can manage homepage content.
+          You have read-only access. An authorized administrator or operator can manage homepage content.
         </p>
       )}
 

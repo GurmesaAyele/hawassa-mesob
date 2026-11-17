@@ -291,15 +291,13 @@ export async function listContactMessages(req, res) {
         if (filter === "unread") whereClause.isReviewed = false;
         if (filter === "read") whereClause.isReviewed = true;
 
-        const [items, unreadTotal, allTotal] = await Promise.all([
-          prisma.comments.findMany({
-            where: whereClause,
-            orderBy: { createdAt: "desc" },
-            take: 100,
-          }),
-          prisma.comments.count({ where: { isReviewed: false } }),
-          prisma.comments.count(),
-        ]);
+        const items = await prisma.comments.findMany({
+          where: whereClause,
+          orderBy: { createdAt: "desc" },
+          take: 100,
+        });
+        const unreadTotal = await prisma.comments.count({ where: { isReviewed: false } });
+        const allTotal = filter ? await prisma.comments.count() : items.length;
 
         dbMessages = items;
         unreadCount = unreadTotal;
