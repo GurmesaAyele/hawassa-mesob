@@ -188,7 +188,7 @@ export default function VIPPublicDashboard() {
   const displayedDesks = showAllDesks ? staffCounters : pendingDesks;
 
   return (
-    <div className="queue-tv-screen">
+    <div className={`queue-tv-screen ${isFullscreen ? 'is-fullscreen' : ''}`}>
       {/* ─── 0. Office Background Image (mesob.jpg) with Soft Blue Tint ─── */}
       <img
         src={mesobOfficeBg}
@@ -203,15 +203,16 @@ export default function VIPPublicDashboard() {
         className="queue-bg-logo-layer"
       />
 
-      {/* ─── 2. Top-Left Watermark Icon ─── */}
-      <img
-        src={footerLogo}
-        alt="Hawassa Mesob Watermark"
-        className="queue-top-watermark"
-      />
-
-      {/* ─── 3. Top Header: hawassa Queue Management (Clean, No Timer / No Notification) ─── */}
+      {/* ─── 2. Top Header with Bold Visible Logo, Title & Controls ─── */}
       <header className="queue-header">
+        <div className="queue-header-left">
+          <img
+            src={footerLogo}
+            alt="Hawassa Mesob Logo"
+            className="queue-top-logo"
+          />
+        </div>
+
         <h1 className="queue-title">{t.title}</h1>
 
         {/* Minimal utility controls (Fullscreen & Language) */}
@@ -223,7 +224,7 @@ export default function VIPPublicDashboard() {
             title="Toggle Fullscreen (or press 'F')"
           >
             <span>⛶</span>
-            <span className="hidden md:inline">{isFullscreen ? t.windowedBtn : t.fullscreenBtn}</span>
+            <span className="hidden sm:inline">{isFullscreen ? t.windowedBtn : t.fullscreenBtn}</span>
           </button>
 
           <div className="queue-lang-group">
@@ -253,10 +254,10 @@ export default function VIPPublicDashboard() {
             <table className="queue-table">
               <thead>
                 <tr>
-                  <th style={{ width: '36%' }}>{t.colOrganization}</th>
-                  <th style={{ width: '18%' }}>{t.colCounter}</th>
-                  <th style={{ width: '26%' }}>{t.colStaffName}</th>
-                  <th style={{ width: '20%', textAlign: 'center' }}>{t.colNumber}</th>
+                  <th style={{ width: '36%', minWidth: '130px' }}>{t.colOrganization}</th>
+                  <th style={{ width: '18%', minWidth: '85px' }}>{t.colCounter}</th>
+                  <th style={{ width: '26%', minWidth: '115px' }}>{t.colStaffName}</th>
+                  <th style={{ width: '20%', minWidth: '75px', textAlign: 'center' }}>{t.colNumber}</th>
                 </tr>
               </thead>
               <tbody>
@@ -279,19 +280,19 @@ export default function VIPPublicDashboard() {
                       >
                         {/* 1. Organization */}
                         <td className="font-bold text-slate-900">
-                          <div className="truncate max-w-[240px]">
+                          <div className="truncate max-w-[180px] sm:max-w-[260px] lg:max-w-none">
                             {desk.institutionName || 'MESOB Center'}
                           </div>
                         </td>
 
                         {/* 2. Counter */}
-                        <td className="font-bold text-blue-900">
+                        <td className="font-bold text-blue-900 whitespace-nowrap">
                           {desk.roomNumber || `Counter 0${idx + 1}`}
                         </td>
 
                         {/* 3. Staff Name */}
                         <td className="font-medium text-slate-700">
-                          <div className="truncate max-w-[180px]">
+                          <div className="truncate max-w-[140px] sm:max-w-[200px] lg:max-w-none">
                             {desk.staffName || 'Staff Officer'}
                           </div>
                         </td>
