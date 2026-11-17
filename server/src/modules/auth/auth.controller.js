@@ -5,7 +5,10 @@ const COOKIE_NAME = "mesob_admin_token";
 const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
 
 function getCookieOptions() {
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction =
+    process.env.NODE_ENV === "production" ||
+    Boolean(process.env.RENDER) ||
+    Boolean(process.env.VERCEL);
   return {
     httpOnly: true,
     secure: isProduction,
@@ -123,7 +126,10 @@ export async function login(req, res) {
  * Clears the session cookie and invalidates client session.
  */
 export function logout(req, res) {
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction =
+    process.env.NODE_ENV === "production" ||
+    Boolean(process.env.RENDER) ||
+    Boolean(process.env.VERCEL);
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
     secure: isProduction,

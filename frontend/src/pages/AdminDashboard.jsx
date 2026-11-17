@@ -9,7 +9,7 @@ import VipTicketsManager from "../components/admin/VipTicketsManager";
 import StaffManager from "../components/admin/StaffManager";
 import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { SkeletonMetricsGrid } from "../components/admin/AdminSkeleton";
-import { adminApi } from "../services/adminApi";
+import { adminApi, setAdminToken, getAdminToken } from "../services/adminApi";
 import { API_CONFIG } from "../config/api";
 import "./AdminDashboard.css";
 
@@ -62,6 +62,7 @@ function AdminSignIn({ message, onSignedIn, authError }) {
       onSignedIn({ ...user, sessionExpiresAt });
     } catch (requestError) {
       localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+      setAdminToken(null);
       setError(requestError.message);
     } finally {
       setSubmitting(false);
@@ -209,9 +210,17 @@ export default function AdminDashboard() {
           setAuthError("This account does not have access to the admin dashboard.");
           return;
         }
-        const sessionExpiresAt = localStorage.getItem(ADMIN_SESSION_EXPIRY_KEY);
+        let sessionExpiresAt = localStorage.getItem(ADMIN_SESSION_EXPIRY_KEY);
+        if (!sessionExpiresAt) {
+          const storedToken = getAdminToken();
+          sessionExpiresAt = getSessionExpiry(storedToken);
+          if (sessionExpiresAt) {
+            localStorage.setItem(ADMIN_SESSION_EXPIRY_KEY, sessionExpiresAt);
+          }
+        }
         if (!sessionExpiresAt || !Number.isFinite(Date.parse(sessionExpiresAt)) || Date.parse(sessionExpiresAt) <= Date.now()) {
           localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+          setAdminToken(null);
           setAuthMessage("Please sign in again to start a new 24-hour session.");
           adminApi.logout().catch((requestError) => {
             if (active) setAuthError(`Could not clear the previous session. ${requestError.message}`);
@@ -223,6 +232,7 @@ export default function AdminDashboard() {
       })
       .catch((requestError) => {
         localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+        setAdminToken(null);
         if (active && requestError.status !== 401) setAuthError(requestError.message);
       })
       .finally(() => {
@@ -267,6 +277,7 @@ export default function AdminDashboard() {
     function handleUnauthorized(event) {
       setCurrentUser(null);
       localStorage.removeItem(ADMIN_SESSION_EXPIRY_KEY);
+      setAdminToken(null);
       setAuthMessage(event.detail?.message || "Your session has expired. Please sign in again.");
       setAuthError("");
       setInstitutions([]);

@@ -3,6 +3,28 @@ import { API_CONFIG } from "../config/api";
 const API_BASE_URL = API_CONFIG.BASE_URL;
 const API_ROOT = `${API_BASE_URL}/api`;
 
+export const ADMIN_TOKEN_KEY = "mesob_admin_token";
+
+export function getAdminToken() {
+  try {
+    return localStorage.getItem(ADMIN_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAdminToken(token) {
+  try {
+    if (token) {
+      localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(ADMIN_TOKEN_KEY);
+    }
+  } catch {
+    // Ignore storage quota or access errors
+  }
+}
+
 export function assetUrl(path) {
   if (!path) return "";
   return /^https?:\/\//i.test(path) ? path : `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
@@ -13,12 +35,17 @@ async function request(path, options = {}, { dispatchUnauthorized = true } = {})
 
   try {
     const isFormData = options.body instanceof FormData;
+    const token = getAdminToken();
+    const headers = {
+      ...(options.body && !isFormData ? { "Content-Type": "application/json" } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    };
+
     response = await fetch(`${API_ROOT}${path}`, {
       ...options,
       credentials: "include",
-      headers: options.body && !isFormData
-        ? { "Content-Type": "application/json", ...options.headers }
-        : options.headers,
+      headers,
     });
   } catch {
     throw new Error(`Cannot connect to the API at ${API_ROOT}. Check that the backend is running.`);
@@ -28,6 +55,9 @@ async function request(path, options = {}, { dispatchUnauthorized = true } = {})
   if (!response.ok) {
     const error = new Error(payload?.error || payload?.message || `Request failed (${response.status}).`);
     error.status = response.status;
+    if (response.status === 401 && !["/auth/login"].includes(path)) {
+      setAdminToken(null);
+    }
     if (dispatchUnauthorized && response.status === 401 && !["/auth/login", "/auth/me", "/auth/logout"].includes(path)) {
       window.dispatchEvent(new Event("admin:unauthorized"));
     }
@@ -46,12 +76,24 @@ async function list(path, requestPolicy) {
 }
 
 export const adminApi = {
-  login: (credentials) => request("/auth/login", {
-    method: "POST",
-    body: JSON.stringify(credentials),
-  }),
+  login: async (credentials) => {
+    const result = await request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    });
+    if (result?.token) {
+      setAdminToken(result.token);
+    }
+    return result;
+  },
   me: () => request("/auth/me"),
-  logout: () => request("/auth/logout", { method: "POST" }),
+  logout: async () => {
+    try {
+      return await request("/auth/logout", { method: "POST" });
+    } finally {
+      setAdminToken(null);
+    }
+  },
   institutions: () => list("/institutions"),
   services: () => list("/services"),
   messages: () => request("/contact/messages"),

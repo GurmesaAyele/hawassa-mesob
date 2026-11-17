@@ -18,6 +18,27 @@ export const FALLBACK_FAQS = [
     },
   },
   {
+    keywords: [
+      "football",
+      "soccer",
+      "sport",
+      "sports",
+      "stadium",
+      "እግር ኳስ",
+      "እግርኳስ",
+      "ስፖርት",
+      "ስፖርቶች",
+      "ስታዲየም",
+      "kubbaate",
+      "isporte",
+    ],
+    answer: {
+      en: "Hawassa MESOB Center is a unified public service center for civic and government services (such as Fayda National ID, Trade licenses, Electricity, Revenues/TIN, Banking, and Ethiopian Origin ID). We do not currently handle football or sports club registrations.\n\nFor football, stadium, or youth sports registration, please contact the **Hawassa City Youth and Sports Department** or the relevant local sports federation.\n\nIs there any public service at Hawassa MESOB Center I can assist you with today?",
+      am: "የሀዋሳ መሶብ ማዕከል የመንግስት እና የማህበረሰብ አገልግሎት መስጫ ማዕከል (እንደ ፋይዳ ብሔራዊ መታወቂያ፣ የንግድ ፈቃድ፣ ኤሌክትሪክ፣ ግብር/ቲን፣ የባንክ እና የትውልደ ኢትዮጵያውያን መታወቂያ) በመሆኑ የእግር ኳስ ወይም የስፖርት ክለብ ምዝገባ አገልግሎት አይሰጥም።\n\nለእግር ኳስ ወይም ለስፖርት ማሰልጠኛ ምዝገባ እባክዎ የ**ሀዋሳ ከተማ ወጣቶችና ስፖርት መምሪያ**ን ወይም የሚመለከተውን የስፖርት ማህበር ያነጋግሩ።\n\nከሀዋሳ መሶብ ማዕከል አገልግሎቶች ጋር በተያያዘ በሌላ በምን ልርዳዎት እችላለሁ?",
+      sid: "Hawaasa MESOOBE Bayichi gashshootu agurrubbara (lawishshaho Fayda wolooma, daldalu eegeera, elektirike, gibira/TIN, baanke fi bicha kaarde) qixxaawinoha ikkino daafira kubbaate woy isportete borreessiro agurro di-uyinanni.\n\nKubbaate woy isportete borreessirora **Hawaasa Katamu Wedellu fi Isporte Biiro** xa'ma dandiitinanni.\n\nHawaasa MESOOBE Bayichi wole agurrote aana ma garinni kaa'lo'ne?",
+    },
+  },
+  {
     keywords: ["origin id", "yellow card", "ethiopian origin", "ቢጫ ካርድ", "የትውልደ ኢትዮጵያውያን መታወቂያ", "bicha kaarde"],
     answer: {
       en: "**Ethiopian Origin ID (Yellow Card)**\nProvider: Immigration and Citizenship Service (ICS)\nLocation: Hawassa MESOB Center\n\nKey Requirements:\n1. Completed application form\n2. Valid ordinary passport (valid > 6 months)\n3. Copy of entry visa & date stamp\n4. Machine-readable Ethiopian passport or authenticated birth certificate\n5. Parents' Ethiopian ID/passport (if parents are Ethiopian citizens)\n6. Recent passport-sized photograph\n\nFee: 300 USD (Regular) / 400 USD (Urgent)\nNote: In-person appearance is mandatory (proxy is not permitted). Daily penalty applies for late renewal.",
@@ -158,15 +179,12 @@ const OFF_TOPIC_REGEXES = [
   /\bwhat is \d+/i,
   /\btranslate to (french|spanish|german|arabic|chinese)\b/i,
   /\bwho won\b/i,
-  /\bfootball\b/i,
-  /\bsoccer\b/i,
   /\bworld cup\b/i,
   /ዋና ከተማ/,
   /ፕሬዝዳንት/,
   /ጠቅላይ ሚኒስትር/,
   /ቀልድ/,
   /ግጥም/,
-  /እግር ኳስ/,
   /የአየር ሁኔታ/,
   /\bwaana katama\b/i,
   /\bgashshaancho\b/i,
@@ -584,12 +602,12 @@ export function isSpecificDetailedInquiry(query) {
   return false;
 }
 
-export async function findFAQAnswer(query, locale = "en") {
+export async function findFAQAnswer(query, locale = "en", allowDetailedBypass = true) {
   const lowerQuery = query.toLowerCase().trim();
 
   // If the query asks for specific criteria (e.g. age limits, lost ID, renewal exceptions),
   // let Tier 3 AI provide a tailored, direct answer instead of returning a generic FAQ summary.
-  if (isSpecificDetailedInquiry(lowerQuery)) {
+  if (allowDetailedBypass && isSpecificDetailedInquiry(lowerQuery)) {
     return null;
   }
 

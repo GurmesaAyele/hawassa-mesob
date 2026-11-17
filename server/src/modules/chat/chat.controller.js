@@ -139,6 +139,13 @@ export async function handleChatMessage(req, res) {
       }
     }
 
+    // If Gemini was unavailable, timed out, or returned empty, check FAQ safety net
+    // (disabling detailed inquiry bypass so common queries like passport, sports, etc. get friendly guidance)
+    const safetyNetFaq = await findFAQAnswer(trimmedMessage, effectiveLocale, false);
+    if (safetyNetFaq) {
+      return res.json({ reply: safetyNetFaq, tier: "faq-safety-net", locale: effectiveLocale });
+    }
+
     // If Gemini was unavailable or returned empty, but we found service context:
     if (serviceContext) {
       const firstSection = serviceContext.split("\n\n---\n\n")[0];
