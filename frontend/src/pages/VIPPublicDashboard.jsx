@@ -17,8 +17,6 @@ const TRANSLATIONS = {
     emptyMessage: "No tickets available at the moment.",
     viewRequestedOnly: "Pending Requests Only",
     viewAllDesks: "Show All Counters",
-    motionLabel: "Hawassa Mesob • One-Stop Public Service Center",
-    liveBadge: "Live Motion",
     fullscreenBtn: "Fullscreen",
     windowedBtn: "Exit",
   },
@@ -31,8 +29,6 @@ const TRANSLATIONS = {
     emptyMessage: "በአሁኑ ሰዓት የሚስተናገድ ተገልጋይ የለም።",
     viewRequestedOnly: "በመጠባበቅ ላይ ያሉ",
     viewAllDesks: "ሁሉንም መስኮቶች አሳይ",
-    motionLabel: "የሀዋሳ መሶብ • የአንድ ማዕከል የህዝብ አገልግሎት",
-    liveBadge: "የቀጥታ ማሳያ",
     fullscreenBtn: "ሙሉ ስክሪን",
     windowedBtn: "ውጣ",
   },
@@ -45,8 +41,6 @@ const TRANSLATIONS = {
     emptyMessage: "Tenne yanna kasso nookkiho.",
     viewRequestedOnly: "Agadhanni noore",
     viewAllDesks: "Baala Dargubba",
-    motionLabel: "Hawassa Mesob • Mitte Dargi Dagate Agurro",
-    liveBadge: "Dagate Mashala",
     fullscreenBtn: "Wo'ma Skiriine",
     windowedBtn: "Goochi",
   },
@@ -343,12 +337,6 @@ export default function VIPPublicDashboard() {
               scrolling="no"
               loading="eager"
             />
-            <div className="queue-video-caption">
-              <span>{t.motionLabel}</span>
-              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-black/60 border border-white/20 text-amber-300">
-                {t.liveBadge}
-              </span>
-            </div>
           </div>
         </section>
       </main>

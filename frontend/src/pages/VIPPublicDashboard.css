@@ -388,21 +388,6 @@
   pointer-events: none;
 }
 
-.queue-video-caption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0.5rem 0.85rem;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
-  font-size: clamp(0.75rem, 0.9vw, 0.88rem);
-  font-weight: 600;
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
 
 /* ─── Responsive Breakpoints ─── */
 
