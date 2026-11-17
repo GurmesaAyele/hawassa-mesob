@@ -345,7 +345,13 @@ export async function updateContactMessageReviewStatus(req, res) {
     const { id } = req.params;
     const { isReviewed } = req.body || {};
 
-    const reviewedBool = Boolean(isReviewed);
+    if (isReviewed === false) {
+      return res.status(400).json({
+        error: "Reviewed citizen inquiries cannot be marked as unread.",
+      });
+    }
+
+    const reviewedBool = true;
     let updated = null;
 
     try {

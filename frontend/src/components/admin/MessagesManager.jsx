@@ -148,14 +148,20 @@ export default function MessagesManager({ items, loading, unreadCount, error = "
                   >
                     <span>✉ Reply</span>
                   </a>
-                  <Button
-                    type="button"
-                    variant={item.isReviewed ? "secondary" : "primary"}
-                    className="text-xs min-h-8 px-2.5 py-1"
-                    onClick={() => onToggleRead(item, !item.isReviewed)}
-                  >
-                    {item.isReviewed ? "Mark unread" : "Mark read ✓"}
-                  </Button>
+                  {!item.isReviewed ? (
+                    <Button
+                      type="button"
+                      variant="primary"
+                      className="text-xs min-h-8 px-2.5 py-1"
+                      onClick={() => onToggleRead(item, true)}
+                    >
+                      Mark read ✓
+                    </Button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-600">
+                      ✓ Read
+                    </span>
+                  )}
                 </div>
               </div>
             </article>

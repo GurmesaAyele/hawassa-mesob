@@ -378,11 +378,11 @@ describe("3. Admin VIP Tickets List Endpoint (GET /api/admin/vip-tickets)", () =
     assert.ok(ticket.issuedAt, "issuedAt timestamp must be present");
   });
 
-  test("Operator GET /api/admin/vip-tickets returns 200", async () => {
+  test("Operator GET /api/admin/vip-tickets returns 403 Forbidden (VIP tickets restricted to Staff & Super Admin)", async () => {
     const res = await fetch(`${baseUrl}/api/admin/vip-tickets`, {
       headers: { Authorization: `Bearer ${operatorToken}` },
     });
-    assert.equal(res.status, 200);
+    assert.equal(res.status, 403);
   });
 
   test("Super Admin GET /api/admin/vip-tickets returns 200", async () => {
@@ -528,7 +528,7 @@ describe("4. Service Status Progression & Audit History (PATCH /api/admin/vip-ti
     assert.equal(res.status, 400);
   });
 
-  test("Super Admin: Corrective transition COMPLETED -> IN_PROGRESS succeeds with 200", async () => {
+  test("Super Admin PATCH returns 403 Forbidden (Super Admin has view-only access and cannot modify ticket status)", async () => {
     const res = await fetch(`${baseUrl}/api/admin/vip-tickets/${createdTestTicketId}/service-status`, {
       method: "PATCH",
       headers: {
@@ -537,14 +537,12 @@ describe("4. Service Status Progression & Audit History (PATCH /api/admin/vip-ti
       },
       body: JSON.stringify({
         status: "in-progress",
-        notes: "Super Admin reopening application for secondary document check",
+        notes: "Super Admin attempting status update",
       }),
     });
-    assert.equal(res.status, 200);
+    assert.equal(res.status, 403);
     const body = await res.json();
-    assert.equal(body.data.status, "in-progress");
-    assert.equal(body.history.previousStatus, "completed");
-    assert.equal(body.history.newStatus, "in-progress");
+    assert.match(body.error, /access denied|view-only|staff/i);
   });
 
   test("Idempotent transition (target equals current) returns 200 without duplicate audit row", async () => {

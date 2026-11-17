@@ -19,10 +19,10 @@ const SECTIONS = [
   { id: "institutions", label: "Institutions" },
   { id: "services", label: "Services" },
   { id: "staff", label: "Staff members", superAdminOnly: true },
-  { id: "messages", label: "Messages" },
+  { id: "messages", label: "Messages", superAdminOnly: true },
   { id: "site-settings", label: "Location & contact" },
   { id: "home", label: "Home content" },
-  { id: "vip-tickets", label: "VIP tickets" },
+  { id: "vip-tickets", label: "VIP tickets", hideForOperator: true },
 ];
 
 function getSessionExpiry(token) {
@@ -154,12 +154,14 @@ export default function AdminDashboard() {
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
   const isStaff = currentUser?.role === "STAFF";
+  const isOperator = currentUser?.role === "OPERATOR";
 
   const refreshData = useCallback(async () => {
+    const isSuper = currentUser?.role === "SUPER_ADMIN";
     const results = await Promise.allSettled([
       adminApi.institutions(),
       adminApi.services(),
-      adminApi.messages(),
+      isSuper ? adminApi.messages() : Promise.resolve({ data: [], meta: { unreadCount: 0 } }),
     ]);
     const sessionExpired = results.some(
       (result) => result.status === "rejected" && result.reason.status === 401,
@@ -227,7 +229,11 @@ export default function AdminDashboard() {
           });
           return;
         }
-        if (user.role === "STAFF") setSection("vip-tickets");
+        if (user.role === "STAFF") {
+          setSection("vip-tickets");
+        } else if (user.role === "OPERATOR") {
+          setSection("institutions");
+        }
         setCurrentUser({ ...user, sessionExpiresAt });
       })
       .catch((requestError) => {
@@ -444,9 +450,9 @@ export default function AdminDashboard() {
     }
   };
 
-  const updateMessageStatus = (message, isReviewed) => runMutation(
-    () => adminApi.updateMessage(message.id, isReviewed),
-    isReviewed ? "Message marked as read." : "Message marked as unread.",
+  const updateMessageStatus = (message) => runMutation(
+    () => adminApi.updateMessage(message.id, true),
+    "Message marked as read.",
   );
 
   const retryLoading = async () => {
@@ -530,6 +536,7 @@ export default function AdminDashboard() {
             <div className="mx-auto flex max-w-7xl items-center gap-1.5 overflow-x-auto py-1.5 scrollbar-none" role="tablist">
               {SECTIONS.filter((item) => {
                 if (item.superAdminOnly && !isSuperAdmin) return false;
+                if (item.hideForOperator && isOperator) return false;
                 return true;
               }).map((item) => (
                 <button
@@ -570,9 +577,9 @@ export default function AdminDashboard() {
             </div>
 
             {loading ? (
-              <SkeletonMetricsGrid count={4} />
+              <SkeletonMetricsGrid count={isSuperAdmin ? 4 : 2} />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isSuperAdmin ? "lg:grid-cols-4" : "lg:grid-cols-2"} gap-4`}>
                 {/* Metric 1: Institutions */}
                 <article
                   onClick={() => setSection("institutions")}
@@ -625,56 +632,60 @@ export default function AdminDashboard() {
                   </p>
                 </article>
 
-                {/* Metric 3: Citizen Inquiries */}
-                <article
-                  onClick={() => setSection("messages")}
-                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
-                    section === "messages" ? "border-amber-500 ring-2 ring-amber-500/20" : "border-stone-200/80"
-                  }`}
-                >
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-amber-300"></div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-100">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                      </svg>
-                    </span>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border ${unreadCount > 0 ? "bg-amber-100 border-amber-300 text-amber-900" : "bg-stone-100 border-stone-200 text-stone-600"}`}>
-                      {unreadCount > 0 ? "Action Required" : "Inbox"}
-                    </span>
-                  </div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Citizen Inquiries</p>
-                  <p className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">{messagesError ? "—" : unreadCount}</p>
-                  <p className="mt-2 text-xs font-medium text-stone-500 flex items-center gap-1.5">
-                    {unreadCount > 0 && <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-ping"></span>}
-                    {messagesError ? "Inbox unavailable" : `${unreadCount} unread submissions`}
-                  </p>
-                </article>
+                {/* Metric 3: Citizen Inquiries (Super Admin Only) */}
+                {isSuperAdmin && (
+                  <article
+                    onClick={() => setSection("messages")}
+                    className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                      section === "messages" ? "border-amber-500 ring-2 ring-amber-500/20" : "border-stone-200/80"
+                    }`}
+                  >
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-amber-300"></div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-100">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide border ${unreadCount > 0 ? "bg-amber-100 border-amber-300 text-amber-900" : "bg-stone-100 border-stone-200 text-stone-600"}`}>
+                        {unreadCount > 0 ? "Action Required" : "Inbox"}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Citizen Inquiries</p>
+                    <p className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">{messagesError ? "—" : unreadCount}</p>
+                    <p className="mt-2 text-xs font-medium text-stone-500 flex items-center gap-1.5">
+                      {unreadCount > 0 && <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-ping"></span>}
+                      {messagesError ? "Inbox unavailable" : `${unreadCount} unread submissions`}
+                    </p>
+                  </article>
+                )}
 
-                {/* Metric 4: VIP Queue */}
-                <article
-                  onClick={() => setSection("vip-tickets")}
-                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
-                    section === "vip-tickets" ? "border-purple-600 ring-2 ring-purple-600/20" : "border-stone-200/80"
-                  }`}
-                >
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 to-indigo-400"></div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-700 border border-purple-100">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                      </svg>
-                    </span>
-                    <span className="rounded-full bg-purple-100/80 border border-purple-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-purple-800">
-                      Fast-Track
-                    </span>
-                  </div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">VIP Ticket Desk</p>
-                  <p className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">Queue</p>
-                  <p className="mt-2 text-xs font-medium text-purple-700 group-hover:underline flex items-center gap-1">
-                    Manage appointments &amp; orders →
-                  </p>
-                </article>
+                {/* Metric 4: VIP Queue (Super Admin Only) */}
+                {isSuperAdmin && (
+                  <article
+                    onClick={() => setSection("vip-tickets")}
+                    className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                      section === "vip-tickets" ? "border-purple-600 ring-2 ring-purple-600/20" : "border-stone-200/80"
+                    }`}
+                  >
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 to-indigo-400"></div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-700 border border-purple-100">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                        </svg>
+                      </span>
+                      <span className="rounded-full bg-purple-100/80 border border-purple-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-purple-800">
+                        Fast-Track
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">VIP Ticket Desk</p>
+                    <p className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">Queue</p>
+                    <p className="mt-2 text-xs font-medium text-purple-700 group-hover:underline flex items-center gap-1">
+                      Manage appointments &amp; orders →
+                    </p>
+                  </article>
+                )}
               </div>
             )}
           </section>
@@ -715,7 +726,7 @@ export default function AdminDashboard() {
         {!isStaff && isSuperAdmin && section === "staff" && (
           <StaffManager institutions={institutions} currentUser={currentUser} />
         )}
-        {!isStaff && section === "messages" && (
+        {!isStaff && isSuperAdmin && section === "messages" && (
           <MessagesManager
             items={messages}
             loading={loading}
@@ -733,7 +744,7 @@ export default function AdminDashboard() {
             </p>
           </>
         )}
-        {section === "vip-tickets" && (
+        {!isOperator && section === "vip-tickets" && (
           <VipTicketsManager currentUser={currentUser} institutions={institutions} />
         )}
       </main>

@@ -394,10 +394,10 @@ export async function updateVipTicketServiceStatus(req, res) {
       });
     }
 
-    // Role check: Only SUPER_ADMIN and STAFF may change service processing status
-    if (currentUser.role !== "SUPER_ADMIN" && currentUser.role !== "STAFF") {
+    // Role check: Only institution STAFF may change service processing status; SUPER_ADMIN has view-only access
+    if (currentUser.role !== "STAFF") {
       return res.status(403).json({
-        error: "Access denied. Only STAFF and SUPER_ADMIN roles are authorized to change service-processing status.",
+        error: "Access denied. VIP ticket service status can only be modified by institution STAFF at their service desk. SUPER_ADMIN has view-only access.",
       });
     }
 

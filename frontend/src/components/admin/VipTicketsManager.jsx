@@ -49,6 +49,7 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
   const isStaff = currentUser?.role === "STAFF";
+  const canModifyStatus = isStaff;
   const staffInstitution = currentUser?.institution;
 
   const copyRef = (text) => {
@@ -453,8 +454,8 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                                   {TICKET_STATUSES.find(({ id }) => id === svcStatus)?.label || svcStatus}
                                 </span>
 
-                                {/* Advance buttons per service */}
-                                {svcStatus === "pending" && (
+                                {/* Advance buttons per service: Only STAFF can modify status; Super Admin has view-only access */}
+                                {canModifyStatus && svcStatus === "pending" && (
                                   <button
                                     type="button"
                                     disabled={isBusy}
@@ -465,7 +466,7 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                                     <span>{isBusy ? "Updating..." : "Start →"}</span>
                                   </button>
                                 )}
-                                {svcStatus === "in-progress" && (
+                                {canModifyStatus && svcStatus === "in-progress" && (
                                   <button
                                     type="button"
                                     disabled={isBusy}
