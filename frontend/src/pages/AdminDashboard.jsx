@@ -516,6 +516,8 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-3 sm:gap-4">
             <Link
               to="/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-emerald-200/80 hover:text-white transition-colors"
             >
               <span>Public Portal</span>
