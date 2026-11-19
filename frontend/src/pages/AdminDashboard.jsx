@@ -11,6 +11,8 @@ import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { SkeletonMetricsGrid } from "../components/admin/AdminSkeleton";
 import { adminApi, setAdminToken, getAdminToken } from "../services/adminApi";
 import { API_CONFIG } from "../config/api";
+import mesobLogo from "../assets/images/hawassa_mesob_circle_logo.png";
+import mesobBgLogo from "../assets/images/hawassa_mesob_bg_logo.png";
 import "./AdminDashboard.css";
 
 const ADMIN_ROLES = new Set(["OPERATOR", "SUPER_ADMIN", "STAFF"]);
@@ -71,35 +73,146 @@ function AdminSignIn({ message, onSignedIn, authError }) {
 
   return (
     <main className="admin-login-layout">
-      <section className="admin-login-intro" aria-label="Administration portal information">
-        <Link className="admin-login-brand" to="/">
-          <span className="admin-login-brand__mark" aria-hidden="true">M</span>
-          <span><strong>MESOB</strong><small>HAWASSA CITY CENTER</small></span>
-        </Link>
-        <div className="admin-login-intro__body">
-          <p className="admin-eyebrow">STAFF PORTAL</p>
-          <h1>Administration,<br />with clarity.</h1>
-          <p>Manage the services, institutions, and information that connect Hawassa City residents to public services.</p>
+      {/* ─── Left Showcase Section (Brand Colors, Official Logo, Watermark) ─── */}
+      <section className="admin-login-intro" aria-label="Hawassa Mesob Administration Portal">
+        <div className="admin-login-watermark" aria-hidden="true">
+          <img src={mesobBgLogo} alt="" className="admin-login-watermark__img" />
         </div>
-        <p className="admin-login-intro__footer">A trusted digital gateway for every citizen.</p>
+
+        <div className="admin-login-intro__top">
+          <Link className="admin-login-brand" to="/">
+            <img
+              src={mesobLogo}
+              alt="Hawassa Mesob Official Emblem"
+              className="admin-login-brand__img"
+            />
+            <div className="admin-login-brand__text">
+              <span className="admin-login-brand__title">HAWASSA MESOB</span>
+              <span className="admin-login-brand__sub">ONE-STOP PUBLIC SERVICE CENTER</span>
+            </div>
+          </Link>
+        </div>
+
+        <div className="admin-login-intro__body">
+          <div className="admin-login-badge">
+            <span className="admin-login-badge__pulse" aria-hidden="true"></span>
+            <span>Operations &amp; Service Portal</span>
+          </div>
+
+          <h1>
+            Public service,<br />
+            <span className="admin-login-gold-text">digitized &amp; unified.</span>
+          </h1>
+
+          <p>
+            The centralized administrative gateway for managing public institutions, service catalogs,
+            and fast-track citizen queues for Hawassa City.
+          </p>
+
+          <div className="admin-login-features">
+            <div className="admin-login-feature-item">
+              <span className="admin-login-feature-icon">🏛️</span>
+              <div>
+                <strong>13 Institutions</strong>
+                <small>Partner government bodies &amp; offices</small>
+              </div>
+            </div>
+            <div className="admin-login-feature-item">
+              <span className="admin-login-feature-icon">📋</span>
+              <div>
+                <strong>24 Public Services</strong>
+                <small>Citizen catalog, fees &amp; processing days</small>
+              </div>
+            </div>
+            <div className="admin-login-feature-item">
+              <span className="admin-login-feature-icon">⚡</span>
+              <div>
+                <strong>Fast-Track VIP Queue</strong>
+                <small>Live tracking &amp; desk operations</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-login-intro__footer">
+          <span className="admin-login-footer-badge">🔒 256-Bit Encrypted Session</span>
+          <p>© {new Date().getFullYear()} Hawassa City Administration. All rights reserved.</p>
+        </div>
       </section>
+
+      {/* ─── Right Login Card Section ─── */}
       <section className="admin-login-panel">
         <form onSubmit={submit} className="admin-login-card">
-          <div className="admin-login-card__heading">
-            <p className="admin-eyebrow">HAWASSA MESOB / ADMINISTRATION</p>
-            <h2>Welcome back</h2>
-            <p>Sign in with your active administrator account.</p>
+          <div className="admin-login-card__brand">
+            <img
+              src={mesobLogo}
+              alt="Hawassa Mesob Emblem"
+              className="admin-login-card__logo"
+            />
+            <div className="admin-login-card__brand-text">
+              <span className="admin-login-card__org">HAWASSA MESOB</span>
+              <span className="admin-login-card__badge">Administration Console</span>
+            </div>
           </div>
-          {message && <p role="status" className="admin-callout admin-callout--security">{message}</p>}
-          {error && <p role="alert" className="admin-callout admin-callout--error">{error}</p>}
-          <label className="admin-login-field">
-            <span>Email address</span>
-            <input type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@hawassamesobcenter.et" />
-          </label>
+
+          <div className="admin-login-card__heading">
+            <h2>Welcome back</h2>
+            <p>Sign in with your active administrator or staff account</p>
+          </div>
+
+          {message && (
+            <div role="status" className="admin-callout admin-callout--security flex items-start gap-2.5">
+              <span className="text-amber-600 mt-0.5">ℹ</span>
+              <span>{message}</span>
+            </div>
+          )}
+
+          {error && (
+            <div role="alert" className="admin-callout admin-callout--error flex items-start gap-2.5">
+              <span className="text-red-600 mt-0.5">⚠</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="admin-login-field">
+            <label htmlFor="admin-email">Email address</label>
+            <div className="admin-input-wrapper">
+              <span className="admin-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+              </span>
+              <input
+                id="admin-email"
+                type="email"
+                autoComplete="username"
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="name@mesob.hawassa.gov.et"
+              />
+            </div>
+          </div>
+
           <div className="admin-login-field">
             <label htmlFor="admin-password">Password</label>
-            <span className="admin-password-input">
-              <input id="admin-password" type={showPassword ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" />
+            <div className="admin-input-wrapper admin-password-wrapper">
+              <span className="admin-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+              <input
+                id="admin-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter your security password"
+              />
               <button
                 className="admin-password-toggle"
                 type="button"
@@ -109,26 +222,49 @@ function AdminSignIn({ message, onSignedIn, authError }) {
               >
                 {showPassword ? (
                   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 3l18 18" />
-                    <path d="M10.6 10.6a2 2 0 002.8 2.8" />
-                    <path d="M9.9 5.2A10.8 10.8 0 0112 5c5.5 0 9 7 9 7a14.8 14.8 0 01-3.1 3.9" />
-                    <path d="M6.2 6.2C3.9 7.8 3 12 3 12s3.5 7 9 7a10.7 10.7 0 004.1-.8" />
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
                   </svg>
                 ) : (
                   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2.5 12s3.3-7 9.5-7 9.5 7 9.5 7-3.3 7-9.5 7-9.5-7-9.5-7z" />
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
                 )}
               </button>
-            </span>
+            </div>
           </div>
+
           <button className="admin-login-submit" type="submit" disabled={submitting}>
-            {submitting ? "Signing in..." : "Sign in to dashboard"}
+            {submitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="admin-login-spinner" aria-hidden="true"></span>
+                <span>Signing in...</span>
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <span>Sign in to dashboard</span>
+                <span className="text-amber-300 font-bold">→</span>
+              </span>
+            )}
           </button>
-          <Link className="admin-login-return" to="/">← Return to public site</Link>
-          <p className="admin-login-security">Access is limited to authorized staff accounts.</p>
+
+          <div className="admin-login-roles-info">
+            <span className="admin-login-roles-title">Authorized Portal Roles</span>
+            <div className="admin-login-roles-tags">
+              <span className="admin-role-pill">Super Admin</span>
+              <span className="admin-role-pill">Operations Desk</span>
+              <span className="admin-role-pill">Service Staff</span>
+            </div>
+          </div>
+
+          <div className="admin-login-card__bottom">
+            <Link className="admin-login-return" to="/">
+              <span>← Return to public portal</span>
+            </Link>
+          </div>
         </form>
+
         {authError && <p role="alert" className="admin-login-error">{authError}</p>}
       </section>
     </main>
@@ -496,9 +632,11 @@ export default function AdminDashboard() {
           {/* Brand Identity */}
           <div className="flex items-center gap-3">
             <Link className="flex items-center gap-2.5 text-white hover:opacity-90 transition-opacity" to="/">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 font-black text-emerald-950 text-xs shadow-xs">
-                M
-              </span>
+              <img
+                src={mesobLogo}
+                alt="Hawassa Mesob Logo"
+                className="h-8 w-8 rounded-full object-cover border border-amber-400/50 shadow-xs"
+              />
               <span className="font-extrabold tracking-tight text-sm sm:text-base">HAWASSA MESOB</span>
             </Link>
             <span className="text-emerald-700/60 font-mono">/</span>
