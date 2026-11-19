@@ -188,6 +188,14 @@ export default function AdminDashboard() {
   const isStaff = currentUser?.role === "STAFF";
   const isOperator = currentUser?.role === "OPERATOR";
 
+  const shouldShowOverview = !isStaff && (
+    isSuperAdmin
+      ? (section === "institutions" || section === "services" || section === "staff")
+      : isOperator
+        ? (section === "institutions" || section === "services")
+        : false
+  );
+
   const refreshData = useCallback(async (userOverride) => {
     const activeUser = userOverride || currentUserRef.current;
     const isSuper = activeUser?.role === "SUPER_ADMIN";
@@ -620,7 +628,7 @@ export default function AdminDashboard() {
 
       <main className={`admin-main mx-auto max-w-7xl px-4 md:px-8 ${isStaff ? "py-4 md:py-5 space-y-3" : "py-6 md:py-8 space-y-6"}`}>
         {/* ─── Modern AI Bento Operations Overview Grid ─── */}
-        {!isStaff && (
+        {shouldShowOverview && (
           <section className="mb-6" aria-label="Executive Operations Overview">
             <div className="flex flex-wrap items-end justify-between gap-4 mb-3.5">
               <div>
