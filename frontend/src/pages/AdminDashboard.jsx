@@ -641,18 +641,26 @@ export default function AdminDashboard() {
             {loading ? (
               <SkeletonMetricsGrid count={isSuperAdmin ? 4 : 2} />
             ) : (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isSuperAdmin ? "lg:grid-cols-4" : "lg:grid-cols-2"} gap-4`}>
+              <div
+                className={
+                  isSuperAdmin
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                    : "grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-xl"
+                }
+              >
                 {/* Metric 1: Institutions */}
                 <article
                   onClick={() => setSection("institutions")}
-                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white ${
+                    isSuperAdmin ? "p-5" : "p-3.5 sm:p-4"
+                  } shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
                     section === "institutions" ? "border-[#294491] ring-2 ring-[#294491]/20 shadow-sm" : "border-stone-200/80"
                   }`}
                 >
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#294491] via-[#3d5fb8] to-[#d9a83f]"></div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#294491] border border-blue-100 shadow-2xs">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className={`flex items-center justify-between ${isSuperAdmin ? "mb-3" : "mb-2 sm:mb-2.5"}`}>
+                    <span className={`flex ${isSuperAdmin ? "h-10 w-10" : "h-8.5 w-8.5 sm:h-9 sm:w-9"} items-center justify-center rounded-xl bg-blue-50 text-[#294491] border border-blue-100 shadow-2xs`}>
+                      <svg className={`${isSuperAdmin ? "h-5 w-5" : "h-4.5 w-4.5"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </span>
@@ -660,9 +668,9 @@ export default function AdminDashboard() {
                       Directory
                     </span>
                   </div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Institutions</p>
-                  <p className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">{institutions.length}</p>
-                  <p className="mt-2 text-xs font-medium text-stone-500 flex items-center gap-1.5">
+                  <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-stone-500">Institutions</p>
+                  <p className={`mt-0.5 ${isSuperAdmin ? "text-3xl" : "text-2xl sm:text-3xl"} font-extrabold tracking-tight text-stone-900`}>{institutions.length}</p>
+                  <p className={`mt-1.5 ${isSuperAdmin ? "text-xs" : "text-[11px] sm:text-xs"} font-medium text-stone-500 flex items-center gap-1.5`}>
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     {institutions.filter((item) => item.isActive).length} active bodies
                   </p>
@@ -671,14 +679,16 @@ export default function AdminDashboard() {
                 {/* Metric 2: Catalog Services */}
                 <article
                   onClick={() => setSection("services")}
-                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white ${
+                    isSuperAdmin ? "p-5" : "p-3.5 sm:p-4"
+                  } shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
                     section === "services" ? "border-sky-600 ring-2 ring-sky-600/20 shadow-sm" : "border-stone-200/80"
                   }`}
                 >
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-600 to-sky-400"></div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-700 border border-sky-100 shadow-2xs">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className={`flex items-center justify-between ${isSuperAdmin ? "mb-3" : "mb-2 sm:mb-2.5"}`}>
+                    <span className={`flex ${isSuperAdmin ? "h-10 w-10" : "h-8.5 w-8.5 sm:h-9 sm:w-9"} items-center justify-center rounded-xl bg-sky-50 text-sky-700 border border-sky-100 shadow-2xs`}>
+                      <svg className={`${isSuperAdmin ? "h-5 w-5" : "h-4.5 w-4.5"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
                     </span>
@@ -686,9 +696,9 @@ export default function AdminDashboard() {
                       Catalog
                     </span>
                   </div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Citizen Services</p>
-                  <p className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">{services.length}</p>
-                  <p className="mt-2 text-xs font-medium text-stone-500 flex items-center gap-1.5">
+                  <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-stone-500">Citizen Services</p>
+                  <p className={`mt-0.5 ${isSuperAdmin ? "text-3xl" : "text-2xl sm:text-3xl"} font-extrabold tracking-tight text-stone-900`}>{services.length}</p>
+                  <p className={`mt-1.5 ${isSuperAdmin ? "text-xs" : "text-[11px] sm:text-xs"} font-medium text-stone-500 flex items-center gap-1.5`}>
                     <span className="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
                     {services.filter((item) => item.isActive).length} published services
                   </p>

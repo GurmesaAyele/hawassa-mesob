@@ -28,15 +28,15 @@ export function SkeletonText({ lines = 1, width = "100%", className = "" }) {
   );
 }
 
-export function SkeletonMetricCard() {
+export function SkeletonMetricCard({ compact = false }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs">
-      <div className="flex items-center justify-between mb-3">
-        <Skeleton className="h-10 w-10 rounded-xl" />
+    <div className={`relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white ${compact ? "p-3.5 sm:p-4" : "p-5"} shadow-xs`}>
+      <div className={`flex items-center justify-between ${compact ? "mb-2 sm:mb-2.5" : "mb-3"}`}>
+        <Skeleton className={`${compact ? "h-8.5 w-8.5 sm:h-9 sm:w-9" : "h-10 w-10"} rounded-xl`} />
         <Skeleton className="h-5 w-16 rounded-full" />
       </div>
       <Skeleton className="h-3 w-20 mb-2" />
-      <Skeleton className="h-8 w-24 mb-2" />
+      <Skeleton className={`${compact ? "h-7 w-20" : "h-8 w-24"} mb-2`} />
       <Skeleton className="h-3 w-32" />
     </div>
   );
@@ -44,9 +44,15 @@ export function SkeletonMetricCard() {
 
 export function SkeletonMetricsGrid({ count = 4 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div
+      className={
+        count === 2
+          ? "grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-xl"
+          : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      }
+    >
       {Array.from({ length: count }).map((_, i) => (
-        <SkeletonMetricCard key={i} />
+        <SkeletonMetricCard key={i} compact={count === 2} />
       ))}
     </div>
   );
