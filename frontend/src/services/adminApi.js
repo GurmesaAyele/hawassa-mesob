@@ -188,4 +188,32 @@ export const adminApi = {
       method: "DELETE",
     }),
   },
+  changePassword: (data) => request("/auth/change-password", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  }),
+  requestPasswordReset: (data) => request("/auth/reset-request", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }),
+  resetRequests: {
+    list: (params = {}) => {
+      const search = new URLSearchParams();
+      if (params.status && params.status !== "all") search.set("status", params.status);
+      if (params.search) search.set("search", params.search);
+      const query = search.toString();
+      return request(`/admin/reset-requests${query ? `?${query}` : ""}`);
+    },
+    approve: (id, tempPassword = null) => request(`/admin/reset-requests/${encodeURIComponent(id)}/approve`, {
+      method: "PATCH",
+      body: JSON.stringify({ tempPassword }),
+    }),
+    reject: (id, rejectionReason = "") => request(`/admin/reset-requests/${encodeURIComponent(id)}/reject`, {
+      method: "PATCH",
+      body: JSON.stringify({ rejectionReason }),
+    }),
+    delete: (id) => request(`/admin/reset-requests/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  },
 };

@@ -8,6 +8,8 @@ import SiteSettingsManager from "../components/admin/SiteSettingsManager";
 import VipTicketsManager from "../components/admin/VipTicketsManager";
 import StaffManager from "../components/admin/StaffManager";
 import ConfirmationDialog from "../components/admin/ConfirmationDialog";
+import ChangePasswordModal from "../components/admin/ChangePasswordModal";
+import PasswordResetRequestModal from "../components/admin/PasswordResetRequestModal";
 import { SkeletonMetricsGrid } from "../components/admin/AdminSkeleton";
 import { adminApi, setAdminToken, getAdminToken } from "../services/adminApi";
 import { API_CONFIG } from "../config/api";
@@ -20,11 +22,11 @@ const ADMIN_SESSION_EXPIRY_KEY = "adminSessionExpiresAt";
 const SECTIONS = [
   { id: "institutions", label: "Institutions" },
   { id: "services", label: "Services" },
+  { id: "vip-tickets", label: "VIP tickets", hideForOperator: true },
   { id: "staff", label: "Staff members", superAdminOnly: true },
   { id: "messages", label: "Messages", superAdminOnly: true },
   { id: "site-settings", label: "Location & contact" },
   { id: "home", label: "Home content" },
-  { id: "vip-tickets", label: "VIP tickets", hideForOperator: true },
 ];
 
 function getSessionExpiry(token) {
@@ -45,6 +47,7 @@ function AdminSignIn({ message, onSignedIn, authError }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
@@ -145,6 +148,15 @@ function AdminSignIn({ message, onSignedIn, authError }) {
               </button>
             </span>
           </div>
+          <div className="flex justify-end -mt-1.5 mb-3">
+            <button
+              type="button"
+              onClick={() => setResetModalOpen(true)}
+              className="text-xs font-semibold text-[#294491] hover:text-[#192c60] hover:underline transition-colors focus:outline-none"
+            >
+              Forgot password? Request Reset
+            </button>
+          </div>
           <button className="admin-login-submit" type="submit" disabled={submitting}>
             {submitting ? "Signing in..." : "Sign in to dashboard"}
           </button>
@@ -157,6 +169,12 @@ function AdminSignIn({ message, onSignedIn, authError }) {
         </form>
         {authError && <p role="alert" className="admin-login-error">{authError}</p>}
       </section>
+
+      {/* ─── Supervised Password Reset Request Modal ─── */}
+      <PasswordResetRequestModal
+        isOpen={resetModalOpen}
+        onClose={() => setResetModalOpen(false)}
+      />
     </main>
   );
 }
@@ -183,10 +201,19 @@ export default function AdminDashboard() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [confirmation, setConfirmation] = useState(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [changePasswordForced, setChangePasswordForced] = useState(false);
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
   const isStaff = currentUser?.role === "STAFF";
   const isOperator = currentUser?.role === "OPERATOR";
+
+  useEffect(() => {
+    if (currentUser?.mustChangePassword) {
+      setChangePasswordForced(true);
+      setChangePasswordOpen(true);
+    }
+  }, [currentUser]);
 
   const shouldShowOverview = !isStaff && (
     isSuperAdmin
@@ -584,6 +611,21 @@ export default function AdminDashboard() {
 
             <button
               type="button"
+              onClick={() => {
+                setChangePasswordForced(false);
+                setChangePasswordOpen(true);
+              }}
+              className="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/20 hover:border-white/30 transition-all shadow-2xs flex items-center gap-1.5"
+              title="Change account password"
+            >
+              <svg className="h-3.5 w-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+              <span className="hidden sm:inline">Change Password</span>
+            </button>
+
+            <button
+              type="button"
               onClick={signOut}
               className="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/20 hover:border-white/30 transition-all shadow-2xs"
             >
@@ -627,6 +669,28 @@ export default function AdminDashboard() {
       </header>
 
       <main className={`admin-main mx-auto max-w-7xl px-4 md:px-8 ${isStaff ? "py-4 md:py-5 space-y-3" : "py-6 md:py-8 space-y-6"}`}>
+        {/* ─── Mandatory Password Change Reminder ─── */}
+        {currentUser?.mustChangePassword && (
+          <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-200 text-amber-900 font-extrabold text-sm shadow-2xs">!</span>
+              <div>
+                <p className="font-bold text-amber-950">Security Action Required: Temporary Password Active</p>
+                <p className="text-amber-900/90 text-[11px] mt-0.5">Government security policy requires you to replace the temporary access code with your private password.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setChangePasswordForced(true);
+                setChangePasswordOpen(true);
+              }}
+              className="rounded-xl bg-[#294491] px-4 py-2 text-xs font-bold text-white hover:bg-[#1c3270] transition-colors shadow-2xs"
+            >
+              Set Personal Password
+            </button>
+          </div>
+        )}
         {/* ─── Modern AI Bento Operations Overview Grid ─── */}
         {shouldShowOverview && (
           <section className="mb-6" aria-label="Executive Operations Overview">
@@ -840,6 +904,17 @@ export default function AdminDashboard() {
         busy={saving}
         onCancel={() => setConfirmation(null)}
         onConfirm={confirmDestructiveAction}
+      />
+      <ChangePasswordModal
+        isOpen={changePasswordOpen}
+        forced={changePasswordForced}
+        onClose={() => setChangePasswordOpen(false)}
+        onSuccess={() => {
+          setChangePasswordOpen(false);
+          setChangePasswordForced(false);
+          setCurrentUser((prev) => (prev ? { ...prev, mustChangePassword: false } : prev));
+          setNotice("Your account password has been changed successfully.");
+        }}
       />
     </div>
   );

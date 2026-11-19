@@ -47,6 +47,7 @@ export async function authenticateAdmin(req, res, next) {
             name: true,
             role: true,
             institutionId: true,
+            mustChangePassword: true,
             institution: {
               select: {
                 id: true,

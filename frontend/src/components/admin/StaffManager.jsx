@@ -4,6 +4,7 @@ import { API_CONFIG } from "../../config/api";
 import { Button, FIELD_CLASS, Field, EmptyState, Status } from "./AdminFields";
 import { Skeleton, SkeletonTable } from "./AdminSkeleton";
 import ConfirmationDialog from "./ConfirmationDialog";
+import PasswordResetRequestsManager from "./PasswordResetRequestsManager";
 
 function getInstitutionDisplayName(inst) {
   if (!inst) return "Unassigned";
@@ -28,6 +29,8 @@ export default function StaffManager({ institutions = [], currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [activeTab, setActiveTab] = useState("directory"); // "directory" | "resets"
+  const [pendingResetCount, setPendingResetCount] = useState(0);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -66,6 +69,11 @@ export default function StaffManager({ institutions = [], currentUser }) {
       const res = await adminApi.staff.list(params);
       setStaffList(res?.data || []);
       setTotalCount(res?.meta?.total || (res?.data || []).length);
+
+      // Check pending reset requests
+      adminApi.resetRequests.list({ status: "PENDING" }).then((resetRes) => {
+        setPendingResetCount(resetRes?.meta?.pendingCount ?? resetRes?.data?.length ?? 0);
+      }).catch(() => {});
     } catch (err) {
       if (!silent) setError(err.message || "Failed to load staff accounts.");
     } finally {
@@ -207,45 +215,92 @@ export default function StaffManager({ institutions = [], currentUser }) {
 
   return (
     <section className="space-y-4" aria-labelledby="staff-heading">
-      {/* ─── Elevated Header & Primary Action ─── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h2 id="staff-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
-              Staff Member Accounts
-            </h2>
-            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-bold text-[#294491]">
-              {totalCount}
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-stone-500">
-            Authorized desk officers assigned to manage VIP appointments and orders.
-          </p>
-        </div>
-
-        <Button
+      {/* ─── Top Sub-Navigation Tabs ─── */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-stone-200/90 pb-3">
+        <button
           type="button"
-          variant="primary"
-          onClick={openCreateModal}
-          className="rounded-xl shadow-xs flex items-center gap-1.5"
+          onClick={() => setActiveTab("directory")}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            activeTab === "directory"
+              ? "bg-[#294491] text-white shadow-2xs"
+              : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/80"
+          }`}
         >
-          <span className="text-base leading-none">+</span>
-          <span>Add Staff Member</span>
-        </Button>
+          <span>Staff Accounts Directory</span>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+            activeTab === "directory" ? "bg-white/20 text-white" : "bg-stone-100 text-stone-600"
+          }`}>
+            {totalCount}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("resets")}
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            activeTab === "resets"
+              ? "bg-[#294491] text-white shadow-2xs"
+              : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200/80"
+          }`}
+        >
+          <span>Password Reset Requests</span>
+          {pendingResetCount > 0 ? (
+            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-black text-blue-950 animate-pulse">
+              {pendingResetCount} PENDING
+            </span>
+          ) : (
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+              activeTab === "resets" ? "bg-white/20 text-white" : "bg-stone-100 text-stone-600"
+            }`}>
+              0
+            </span>
+          )}
+        </button>
       </div>
 
-      {notice && (
-        <div role="status" className="border-l-4 border-emerald-700 bg-emerald-50 p-3.5 text-xs text-emerald-900 rounded-r-lg">
-          <p className="font-semibold">{notice}</p>
-        </div>
-      )}
+      {activeTab === "resets" ? (
+        <PasswordResetRequestsManager />
+      ) : (
+        <>
+          {/* ─── Elevated Header & Primary Action ─── */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h2 id="staff-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
+                  Staff Member Accounts
+                </h2>
+                <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-bold text-[#294491]">
+                  {totalCount}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-stone-500">
+                Authorized desk officers assigned to manage VIP appointments and orders.
+              </p>
+            </div>
 
-      {error && (
-        <div role="alert" className="border-l-4 border-red-600 bg-red-50 p-3.5 text-xs text-red-900 rounded-r-lg">
-          <p className="font-semibold">Error</p>
-          <p>{error}</p>
-        </div>
-      )}
+            <Button
+              type="button"
+              variant="primary"
+              onClick={openCreateModal}
+              className="rounded-xl shadow-xs flex items-center gap-1.5"
+            >
+              <span className="text-base leading-none">+</span>
+              <span>Add Staff Member</span>
+            </Button>
+          </div>
+
+          {notice && (
+            <div role="status" className="border-l-4 border-emerald-700 bg-emerald-50 p-3.5 text-xs text-emerald-900 rounded-r-lg">
+              <p className="font-semibold">{notice}</p>
+            </div>
+          )}
+
+          {error && (
+            <div role="alert" className="border-l-4 border-red-600 bg-red-50 p-3.5 text-xs text-red-900 rounded-r-lg">
+              <p className="font-semibold">Error</p>
+              <p>{error}</p>
+            </div>
+          )}
 
       {/* ─── Metrics Cards ─── */}
       <div className="grid gap-4 sm:grid-cols-3" aria-label="Staff member summary totals">
@@ -635,6 +690,8 @@ export default function StaffManager({ institutions = [], currentUser }) {
         onCancel={() => setDeletingStaff(null)}
         onConfirm={handleDelete}
       />
+        </>
+      )}
     </section>
   );
 }
