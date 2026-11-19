@@ -12,7 +12,6 @@ import { SkeletonMetricsGrid } from "../components/admin/AdminSkeleton";
 import { adminApi, setAdminToken, getAdminToken } from "../services/adminApi";
 import { API_CONFIG } from "../config/api";
 import mesobLogo from "../assets/images/hawassa_mesob_circle_logo.png";
-import mesobBgLogo from "../assets/images/hawassa_mesob_bg_logo.png";
 import "./AdminDashboard.css";
 
 const ADMIN_ROLES = new Set(["OPERATOR", "SUPER_ADMIN", "STAFF"]);
@@ -73,12 +72,17 @@ function AdminSignIn({ message, onSignedIn, authError }) {
 
   return (
     <main className="admin-login-layout">
-      {/* ─── Left Showcase Section (Brand Colors, Official Logo, Watermark) ─── */}
-      <section className="admin-login-intro" aria-label="Hawassa Mesob Administration Portal">
-        <div className="admin-login-watermark" aria-hidden="true">
-          <img src={mesobBgLogo} alt="" className="admin-login-watermark__img" />
-        </div>
+      {/* ─── Authentic Hawassa Mesob Circle Logo Background (Large Scale) ─── */}
+      <div className="admin-login-bg-layer" aria-hidden="true">
+        <img
+          src={mesobLogo}
+          alt=""
+          className="admin-login-bg-logo"
+        />
+      </div>
 
+      {/* ─── Left Showcase Section (Brand Colors, Official Logo) ─── */}
+      <section className="admin-login-intro" aria-label="Hawassa Mesob Administration Portal">
         <div className="admin-login-intro__top">
           <Link className="admin-login-brand" to="/">
             <img
@@ -248,15 +252,6 @@ function AdminSignIn({ message, onSignedIn, authError }) {
               </span>
             )}
           </button>
-
-          <div className="admin-login-roles-info">
-            <span className="admin-login-roles-title">Authorized Portal Roles</span>
-            <div className="admin-login-roles-tags">
-              <span className="admin-role-pill">Super Admin</span>
-              <span className="admin-role-pill">Operations Desk</span>
-              <span className="admin-role-pill">Service Staff</span>
-            </div>
-          </div>
 
           <div className="admin-login-card__bottom">
             <Link className="admin-login-return" to="/">
