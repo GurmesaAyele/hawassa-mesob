@@ -414,11 +414,8 @@
   height: 48px;
   min-width: 48px;
   border-radius: 50%;
-  border: 2px solid rgba(217, 168, 63, 0.75);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  object-fit: cover;
-  background: #ffffff;
-  padding: 1px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.35));
 }
 
 .admin-login-brand__text {

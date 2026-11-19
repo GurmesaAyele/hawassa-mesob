@@ -11,6 +11,7 @@ import ConfirmationDialog from "../components/admin/ConfirmationDialog";
 import { SkeletonMetricsGrid } from "../components/admin/AdminSkeleton";
 import { adminApi, setAdminToken, getAdminToken } from "../services/adminApi";
 import { API_CONFIG } from "../config/api";
+import mesobFavicon from "../assets/favicon.png";
 import mesobLogo from "../assets/images/hawassa_mesob_circle_logo.png";
 import "./AdminDashboard.css";
 
@@ -86,7 +87,7 @@ function AdminSignIn({ message, onSignedIn, authError }) {
         <div className="admin-login-intro__top">
           <Link className="admin-login-brand" to="/">
             <img
-              src={mesobLogo}
+              src={mesobFavicon}
               alt="Hawassa Mesob Official Emblem"
               className="admin-login-brand__img"
             />
