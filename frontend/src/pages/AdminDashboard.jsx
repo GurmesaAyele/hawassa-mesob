@@ -517,19 +517,29 @@ export default function AdminDashboard() {
   return (
     <div className="admin-shell min-h-screen bg-stone-50 text-stone-900 font-sans">
       {/* ─── Executive Modern Navigation Bar ─── */}
-      <header className="border-b border-emerald-950 bg-[#0a231b] text-white sticky top-0 z-40 shadow-sm backdrop-blur-md">
+      <header className="border-b border-[#182f6a] border-t-2 border-t-[#d9a83f] bg-gradient-to-r from-[#172c60] via-[#294491] to-[#1c3575] text-white sticky top-0 z-40 shadow-md backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Brand Identity */}
           <div className="flex items-center gap-3">
             <Link className="flex items-center gap-2.5 text-white hover:opacity-90 transition-opacity" to="/">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 font-black text-emerald-950 text-xs shadow-xs">
-                M
-              </span>
-              <span className="font-extrabold tracking-tight text-sm sm:text-base">HAWASSA MESOB</span>
+              <img
+                src={mesobFavicon}
+                alt="Hawassa Mesob Logo"
+                className="h-8 w-8 rounded-full object-contain border border-amber-400/60 shadow-xs bg-white/10 p-0.5"
+              />
+              <span className="font-extrabold tracking-tight text-sm sm:text-base text-white">HAWASSA MESOB</span>
             </Link>
-            <span className="text-emerald-700/60 font-mono">/</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-900/90 border border-emerald-700/60 px-2.5 py-0.5 text-xs font-semibold text-emerald-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-blue-300/40 font-mono">/</span>
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+              isSuperAdmin
+                ? "bg-[#13234d] border-amber-400/60 text-amber-200"
+                : isOperator
+                  ? "bg-[#13234d] border-sky-400/60 text-sky-200"
+                  : "bg-[#13234d] border-emerald-400/60 text-emerald-200"
+            }`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${
+                isSuperAdmin ? "bg-amber-400 animate-pulse" : isOperator ? "bg-sky-400" : "bg-emerald-400"
+              }`}></span>
               {isStaff
                 ? `${currentUser.institution?.name?.en || currentUser.institution?.code || "Desk"} Desk`
                 : isSuperAdmin
@@ -544,21 +554,21 @@ export default function AdminDashboard() {
               to="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-emerald-200/80 hover:text-white transition-colors"
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-blue-100/80 hover:text-white transition-colors"
             >
               <span>Public Portal</span>
               <span className="text-[10px]">↗</span>
             </Link>
 
-            <div className="h-4 w-px bg-emerald-800/80 hidden sm:block"></div>
+            <div className="h-4 w-px bg-blue-300/20 hidden sm:block"></div>
 
             <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-900 border border-emerald-700 text-xs font-bold text-amber-300">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#152758] border border-amber-400/50 text-xs font-bold text-amber-300 shadow-2xs">
                 {(currentUser.name || currentUser.email || "A").slice(0, 1).toUpperCase()}
               </span>
               <div className="hidden sm:block text-left text-xs leading-tight">
                 <p className="font-bold text-white truncate max-w-[130px]">{currentUser.name || currentUser.email}</p>
-                <p className="text-[11px] text-emerald-300 font-medium">
+                <p className="text-[11px] text-blue-200 font-medium">
                   {currentUser.role === "SUPER_ADMIN" ? "Super Admin" : isStaff ? "Staff Officer" : "Operator"}
                 </p>
               </div>
@@ -567,7 +577,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={signOut}
-              className="rounded-md border border-emerald-800/80 bg-emerald-950/60 px-2.5 py-1 text-xs font-semibold text-emerald-200 hover:bg-emerald-900 hover:text-white transition-all"
+              className="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-semibold text-white hover:bg-white/20 hover:border-white/30 transition-all shadow-2xs"
             >
               Sign out
             </button>
@@ -576,7 +586,7 @@ export default function AdminDashboard() {
 
         {/* Horizontal Navigation Sub-bar for Super Admin / Operator */}
         {!isStaff && (
-          <div className="border-t border-emerald-900/40 bg-[#081d16]/90 px-4 sm:px-6 lg:px-8">
+          <div className="border-t border-[#182d63] bg-[#162b5e]/95 px-4 sm:px-6 lg:px-8">
             <div className="mx-auto flex max-w-7xl items-center gap-1.5 overflow-x-auto py-1.5 scrollbar-none" role="tablist">
               {SECTIONS.filter((item) => {
                 if (item.superAdminOnly && !isSuperAdmin) return false;
@@ -589,14 +599,15 @@ export default function AdminDashboard() {
                   role="tab"
                   aria-selected={section === item.id}
                   onClick={() => setSection(item.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${section === item.id
-                    ? "bg-white text-emerald-950 shadow-xs font-bold"
-                    : "text-emerald-100/75 hover:bg-white/10 hover:text-white"
-                    }`}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+                    section === item.id
+                      ? "bg-white text-[#1b3472] shadow-xs font-bold"
+                      : "text-blue-100/80 hover:bg-white/10 hover:text-white"
+                  }`}
                 >
                   <span>{item.label}</span>
                   {item.id === "messages" && unreadCount > 0 && (
-                    <span className="rounded-full bg-amber-400 px-1.5 py-0.2 text-[10px] font-black text-emerald-950 shadow-2xs">
+                    <span className="rounded-full bg-amber-400 px-1.5 py-0.2 text-[10px] font-black text-blue-950 shadow-2xs">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
