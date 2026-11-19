@@ -110,7 +110,7 @@ function InstitutionForm({ initial, saving, onCancel, onSave }) {
     <form onSubmit={submit} className="admin-form mb-6 space-y-5 border border-stone-200 bg-white p-5 md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Institution record</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#294491]">Institution record</p>
           <h3 className="mt-1 text-xl font-bold text-stone-900">{initial ? "Edit institution" : "Add institution"}</h3>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -139,10 +139,10 @@ function InstitutionForm({ initial, saving, onCancel, onSave }) {
 
       <Field label="Logo" error={errors.logo}>
         <div className="flex flex-wrap items-center gap-4">
-          <div className="institution-logo-frame institution-logo-frame--preview flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border border-stone-200 bg-stone-50">
+          <div className="institution-logo-frame institution-logo-frame--preview flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
             {logoPreview ? <img src={logoPreview} alt="Institution logo preview" className="institution-logo-image h-full w-full object-contain" /> : <span className="text-xs text-stone-400">No logo</span>}
           </div>
-          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={selectLogo} className="block min-w-0 flex-1 text-sm text-stone-600 file:mr-3 file:border-0 file:bg-emerald-800 file:px-3 file:py-2 file:font-semibold file:text-white hover:file:bg-emerald-900" />
+          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={selectLogo} className="block min-w-0 flex-1 text-sm text-stone-600 file:mr-3 file:rounded-xl file:border-0 file:bg-[#294491] file:px-4 file:py-2.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#1e3470] cursor-pointer" />
           <span className="w-full text-xs text-stone-500">PNG, JPG, or WebP; maximum 2 MB.</span>
         </div>
       </Field>
@@ -182,7 +182,7 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
             <h2 id="institutions-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
               Institutions Directory
             </h2>
-            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-bold text-[#294491]">
               {items.length}
             </span>
           </div>
@@ -204,7 +204,7 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search name, code, location..."
-              className="w-56 sm:w-72 rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+              className="w-56 sm:w-72 min-h-[44px] rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-[#294491] focus:outline-none focus:ring-2 focus:ring-[#294491]/20"
             />
             {query && (
               <button
@@ -268,18 +268,18 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
                 {/* Institution Name & Code */}
                 <td className="px-5 py-3.5 align-middle">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white p-1 text-sm font-bold text-emerald-800 shadow-2xs overflow-hidden">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white p-1 text-sm font-bold text-[#172c60] shadow-2xs overflow-hidden">
                       {item.logoUrl ? (
                         <img src={assetUrl(item.logoUrl)} alt="" className="h-full w-full object-contain" />
                       ) : (
-                        <span className="bg-emerald-50 text-emerald-800 w-full h-full flex items-center justify-center font-black rounded-lg">
+                        <span className="bg-blue-50 text-[#172c60] w-full h-full flex items-center justify-center font-black rounded-lg">
                           {(item.name?.en || item.code || "?")[0].toUpperCase()}
                         </span>
                       )}
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-stone-900 leading-snug">{item.name?.en || "Unnamed institution"}</p>
-                      <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 mt-0.5">
+                      <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-[#172c60] bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60 mt-0.5">
                         {item.code || "NO_CODE"}
                       </span>
                     </div>
@@ -301,12 +301,12 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
                 <td className="px-4 py-3.5 align-middle text-xs">
                   <div className="space-y-1">
                     {item.email ? (
-                      <a href={`mailto:${item.email}`} className="text-emerald-700 hover:underline flex items-center gap-1 font-medium">
+                      <a href={`mailto:${item.email}`} className="text-[#294491] hover:underline flex items-center gap-1 font-medium">
                         <span>✉</span> {item.email}
                       </a>
                     ) : null}
                     {item.website ? (
-                      <a href={item.website} target="_blank" rel="noreferrer" className="text-stone-500 hover:text-emerald-800 hover:underline flex items-center gap-1 text-[11px]">
+                      <a href={item.website} target="_blank" rel="noreferrer" className="text-stone-500 hover:text-[#294491] hover:underline flex items-center gap-1 text-[11px]">
                         <span>🌐</span> Visit site ↗
                       </a>
                     ) : null}
@@ -338,11 +338,12 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
                 {/* Actions */}
                 <td className="px-5 py-3.5 align-middle text-right">
                   {!readOnly && (
-                    <div className="inline-flex items-center gap-1.5 justify-end">
+                    <div className="inline-flex items-center gap-2 justify-end">
                       <button
                         type="button"
                         onClick={() => setEditing(item)}
-                        className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all"
+                        aria-label={`Edit ${item.name?.en || item.code}`}
+                        className="min-h-[36px] rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491]"
                       >
                         Edit
                       </button>
@@ -350,7 +351,8 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
                         type="button"
                         disabled={saving}
                         onClick={() => item.isActive ? onDeactivate(item) : onReactivate(item)}
-                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all shadow-2xs ${
+                        aria-label={`${item.isActive ? "Deactivate" : "Activate"} ${item.name?.en || item.code}`}
+                        className={`min-h-[36px] rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491] ${
                           item.isActive
                             ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
                             : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
@@ -362,7 +364,8 @@ export default function InstitutionManager({ items, loading, saving, readOnly = 
                         type="button"
                         disabled={saving}
                         onClick={() => onDelete(item)}
-                        className="rounded-lg border border-red-200/80 bg-red-50/60 p-1.5 text-xs text-red-600 hover:bg-red-100 transition-all shadow-2xs"
+                        aria-label={`Delete ${item.name?.en || item.code} permanently`}
+                        className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg border border-red-200/80 bg-red-50/60 p-2 text-xs text-red-600 hover:bg-red-100 hover:border-red-300 transition-all shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                         title="Delete institution"
                       >
                         🗑

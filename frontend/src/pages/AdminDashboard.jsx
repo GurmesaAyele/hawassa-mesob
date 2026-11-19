@@ -599,9 +599,9 @@ export default function AdminDashboard() {
                   role="tab"
                   aria-selected={section === item.id}
                   onClick={() => setSection(item.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+                  className={`inline-flex min-h-[38px] items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
                     section === item.id
-                      ? "bg-white text-[#1b3472] shadow-xs font-bold"
+                      ? "bg-white text-[#172c60] shadow-xs font-bold ring-1 ring-black/5"
                       : "text-blue-100/80 hover:bg-white/10 hover:text-white"
                   }`}
                 >
@@ -624,7 +624,7 @@ export default function AdminDashboard() {
           <section className="mb-6" aria-label="Executive Operations Overview">
             <div className="flex flex-wrap items-end justify-between gap-4 mb-3.5">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Executive Workspace</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#294491]">Executive Workspace</p>
                 <h2 className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">Operations Overview</h2>
               </div>
               <span className="text-xs font-medium text-stone-500">Live system status and directory metrics</span>
@@ -637,17 +637,18 @@ export default function AdminDashboard() {
                 {/* Metric 1: Institutions */}
                 <article
                   onClick={() => setSection("institutions")}
-                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${section === "institutions" ? "border-emerald-600 ring-2 ring-emerald-600/20" : "border-stone-200/80"
-                    }`}
+                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                    section === "institutions" ? "border-[#294491] ring-2 ring-[#294491]/20 shadow-sm" : "border-stone-200/80"
+                  }`}
                 >
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-emerald-400"></div>
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#294491] via-[#3d5fb8] to-[#d9a83f]"></div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#294491] border border-blue-100 shadow-2xs">
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </span>
-                    <span className="rounded-full bg-emerald-100/80 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
+                    <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#294491]">
                       Directory
                     </span>
                   </div>
@@ -662,12 +663,13 @@ export default function AdminDashboard() {
                 {/* Metric 2: Catalog Services */}
                 <article
                   onClick={() => setSection("services")}
-                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${section === "services" ? "border-sky-600 ring-2 ring-sky-600/20" : "border-stone-200/80"
-                    }`}
+                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                    section === "services" ? "border-sky-600 ring-2 ring-sky-600/20 shadow-sm" : "border-stone-200/80"
+                  }`}
                 >
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-600 to-sky-400"></div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-700 border border-sky-100">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-700 border border-sky-100 shadow-2xs">
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
@@ -688,12 +690,13 @@ export default function AdminDashboard() {
                 {isSuperAdmin && (
                   <article
                     onClick={() => setSection("messages")}
-                    className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${section === "messages" ? "border-amber-500 ring-2 ring-amber-500/20" : "border-stone-200/80"
-                      }`}
+                    className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                      section === "messages" ? "border-amber-500 ring-2 ring-amber-500/20 shadow-sm" : "border-stone-200/80"
+                    }`}
                   >
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-amber-300"></div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-100">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-100 shadow-2xs">
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                         </svg>
@@ -715,12 +718,13 @@ export default function AdminDashboard() {
                 {isSuperAdmin && (
                   <article
                     onClick={() => setSection("vip-tickets")}
-                    className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${section === "vip-tickets" ? "border-purple-600 ring-2 ring-purple-600/20" : "border-stone-200/80"
-                      }`}
+                    className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+                      section === "vip-tickets" ? "border-purple-600 ring-2 ring-purple-600/20 shadow-sm" : "border-stone-200/80"
+                    }`}
                   >
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 to-indigo-400"></div>
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-[#d9a83f]"></div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-700 border border-purple-100">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-700 border border-purple-100 shadow-2xs">
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                         </svg>
@@ -742,12 +746,22 @@ export default function AdminDashboard() {
         )}
 
         {!isStaff && error && (
-          <div role="alert" className="admin-callout admin-callout--error flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-900">
-            <p>{error}</p>
-            <button type="button" onClick={retryLoading} className="font-semibold underline">Retry</button>
+          <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 border-l-4 border-l-red-600 bg-red-50 px-4 py-3 text-sm text-red-900 shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-600 text-white text-xs font-bold">!</span>
+              <p className="font-medium">{error}</p>
+            </div>
+            <button type="button" onClick={retryLoading} className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-bold text-red-700 hover:bg-red-50 transition-colors shadow-2xs">
+              Retry
+            </button>
           </div>
         )}
-        {!isStaff && notice && <p role="status" className="admin-callout admin-callout--success border-l-4 border-emerald-700 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
+        {!isStaff && notice && (
+          <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 border-l-4 border-l-emerald-600 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-xs">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-xs font-bold">✓</span>
+            <p className="font-semibold">{notice}</p>
+          </div>
+        )}
 
         {!isStaff && section === "institutions" && (
           <InstitutionManager

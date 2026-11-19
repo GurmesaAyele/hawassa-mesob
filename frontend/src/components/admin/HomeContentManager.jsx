@@ -92,7 +92,7 @@ function ContentForm({ category, initial, saving, onCancel, onSave }) {
     <form onSubmit={submit} className="admin-form mb-6 space-y-5 border border-stone-200 bg-white p-5 md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Homepage content</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#294491]">Homepage content</p>
           <h3 className="mt-1 text-xl font-bold text-stone-900">{initial ? "Edit item" : "Add item"}</h3>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -291,7 +291,7 @@ export default function HomeContentManager({ readOnly = false }) {
             <h2 id="home-content-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
               Portal Content &amp; Media
             </h2>
-            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-bold text-[#294491]">
               {items.length}
             </span>
           </div>
@@ -309,9 +309,9 @@ export default function HomeContentManager({ readOnly = false }) {
                 role="tab"
                 aria-selected={category === id}
                 onClick={() => { setCategory(id); setEditing(null); setNotice(""); }}
-                className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${
+                className={`min-h-[38px] rounded-lg px-3.5 py-1.5 font-semibold transition-all ${
                   category === id
-                    ? "bg-white text-emerald-950 shadow-xs font-bold"
+                    ? "bg-[#294491] text-white shadow-xs font-bold"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
               >
@@ -405,13 +405,14 @@ export default function HomeContentManager({ readOnly = false }) {
                     {new Date(item.publishedAt || item.date).toLocaleDateString()}
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    <div className="inline-flex items-center gap-1.5 justify-end">
+                    <div className="inline-flex items-center gap-2 justify-end">
                       {!readOnly && (
                         <>
                           <button
                             type="button"
                             onClick={() => setEditing(item)}
-                            className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all"
+                            aria-label={`Edit ${displayTitle(item)}`}
+                            className="min-h-[36px] rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491]"
                           >
                             Edit
                           </button>
@@ -419,7 +420,8 @@ export default function HomeContentManager({ readOnly = false }) {
                             type="button"
                             disabled={saving}
                             onClick={() => setPendingDelete(item)}
-                            className="rounded-lg border border-red-200/80 bg-red-50/60 p-1.5 text-xs text-red-600 hover:bg-red-100 shadow-2xs transition-all"
+                            aria-label={`Delete ${displayTitle(item)}`}
+                            className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg border border-red-200/80 bg-red-50/60 p-2 text-xs text-red-600 hover:bg-red-100 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             title="Delete content"
                           >
                             🗑

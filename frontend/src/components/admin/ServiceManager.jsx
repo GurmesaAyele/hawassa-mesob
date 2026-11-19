@@ -78,7 +78,7 @@ function ServiceForm({ initial, institutions, saving, onCancel, onSave }) {
     <form onSubmit={submit} className="admin-form mb-6 space-y-5 border border-stone-200 bg-white p-5 md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Service record</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#294491]">Service record</p>
           <h3 className="mt-1 text-xl font-bold text-stone-900">{initial ? "Edit service" : "Add service"}</h3>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -156,7 +156,7 @@ export default function ServiceManager({ items, institutions, loading, saving, r
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search services or institutions..."
-              className="w-56 sm:w-72 rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+              className="w-56 sm:w-72 min-h-[44px] rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-[#294491] focus:outline-none focus:ring-2 focus:ring-[#294491]/20"
             />
             {query && (
               <button
@@ -233,7 +233,7 @@ export default function ServiceManager({ items, institutions, loading, saving, r
 
                 {/* Institution */}
                 <td className="px-4 py-3.5 align-middle text-xs">
-                  <span className="inline-flex items-center gap-1 font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-[#172c60] bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60">
                     {item.institution?.code || item.institution?.name?.en || "Unassigned"}
                   </span>
                 </td>
@@ -268,11 +268,12 @@ export default function ServiceManager({ items, institutions, loading, saving, r
                 {/* Actions */}
                 <td className="px-5 py-3.5 align-middle text-right">
                   {!readOnly && (
-                    <div className="inline-flex items-center gap-1.5 justify-end">
+                    <div className="inline-flex items-center gap-2 justify-end">
                       <button
                         type="button"
                         onClick={() => setEditing(item)}
-                        className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all"
+                        aria-label={`Edit ${item.title?.en || "service"}`}
+                        className="min-h-[36px] rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491]"
                       >
                         Edit
                       </button>
@@ -280,7 +281,8 @@ export default function ServiceManager({ items, institutions, loading, saving, r
                         type="button"
                         disabled={saving}
                         onClick={() => item.isActive ? onDeactivate(item) : onReactivate(item)}
-                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all shadow-2xs ${
+                        aria-label={`${item.isActive ? "Deactivate" : "Activate"} ${item.title?.en || "service"}`}
+                        className={`min-h-[36px] rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491] ${
                           item.isActive
                             ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
                             : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"

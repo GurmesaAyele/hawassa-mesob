@@ -115,15 +115,21 @@ export default function SiteSettingsManager({ readOnly = false }) {
       </div>
 
       {error && (
-        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-600 bg-red-50 p-3.5 text-xs text-red-900 rounded-r-lg">
-          <p>{error}</p>
-          <button type="button" onClick={load} className="font-semibold underline">Retry</button>
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 border-l-4 border-l-red-600 bg-red-50 p-3.5 text-xs text-red-900 shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-600 text-white text-xs font-bold">!</span>
+            <p className="font-medium">{error}</p>
+          </div>
+          <button type="button" onClick={load} className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-bold text-red-700 hover:bg-red-50 transition-colors shadow-2xs">
+            Retry
+          </button>
         </div>
       )}
       {notice && (
-        <p role="status" className="border-l-4 border-emerald-700 bg-emerald-50 p-3.5 text-xs text-emerald-900 rounded-r-lg">
-          {notice}
-        </p>
+        <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 border-l-4 border-l-emerald-600 bg-emerald-50 p-3.5 text-xs text-emerald-900 shadow-xs">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-xs font-bold">✓</span>
+          <p className="font-semibold">{notice}</p>
+        </div>
       )}
       {readOnly && (
         <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-xs text-amber-900 rounded-r-lg">
@@ -138,7 +144,7 @@ export default function SiteSettingsManager({ readOnly = false }) {
           <fieldset disabled={readOnly} className="space-y-8">
             <fieldset className="space-y-4">
               <div className="border-b border-stone-100 pb-2">
-                <legend className="text-base font-bold text-stone-900">Contact Details</legend>
+                <legend className="text-base font-bold text-[#172c60]">Contact Details</legend>
                 <p className="text-xs text-stone-500">Official contact addresses displayed across the public portal</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
@@ -151,28 +157,32 @@ export default function SiteSettingsManager({ readOnly = false }) {
               </div>
               <Field label="Operating Hours Summary"><input className={FIELD_CLASS} value={form.operatingHours} onChange={(event) => update("operatingHours", event.target.value)} required /></Field>
               <Field label="Detailed Office Hours (one per line: days | hours)">
-                <textarea className={FIELD_CLASS} rows="4" value={form.officeHoursDetailed} onChange={(event) => update("officeHoursDetailed", event.target.value)} required />
+                <textarea className={FIELD_CLASS} rows="4" value={form.officeHoursDetailed} onChange={(event) => update("officeHoursDetailed", event.target.value)} placeholder="Monday - Friday | 8:30 AM - 5:30 PM" required />
+                <span className="mt-1 block text-xs text-stone-400">Format: Days | Hours (e.g. Monday - Friday | 8:30 AM - 5:30 PM)</span>
               </Field>
             </fieldset>
 
             <fieldset className="space-y-4 border-t border-stone-100 pt-6">
               <div className="border-b border-stone-100 pb-2">
-                <legend className="text-base font-bold text-stone-900">Map &amp; Geolocation</legend>
+                <legend className="text-base font-bold text-[#172c60]">Map &amp; Geolocation</legend>
                 <p className="text-xs text-stone-500">Google Maps embed and GPS pin placement for citizen navigation</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Place Name"><input className={FIELD_CLASS} value={form.placeName} onChange={(event) => update("placeName", event.target.value)} required /></Field>
                 <Field label="Google Maps Place URL"><input className={FIELD_CLASS} type="url" value={form.googleMapsUrl} onChange={(event) => update("googleMapsUrl", event.target.value)} required /></Field>
-                <Field label="Latitude"><input className={FIELD_CLASS} type="number" min="-90" max="90" step="any" value={form.latitude} onChange={(event) => update("latitude", event.target.value)} required /></Field>
-                <Field label="Longitude"><input className={FIELD_CLASS} type="number" min="-180" max="180" step="any" value={form.longitude} onChange={(event) => update("longitude", event.target.value)} required /></Field>
+                <Field label="Latitude"><input className={FIELD_CLASS} type="number" min="-90" max="90" step="any" value={form.latitude} onChange={(event) => update("latitude", event.target.value)} placeholder="7.0504" required /></Field>
+                <Field label="Longitude"><input className={FIELD_CLASS} type="number" min="-180" max="180" step="any" value={form.longitude} onChange={(event) => update("longitude", event.target.value)} placeholder="38.4764" required /></Field>
               </div>
-              <Field label="Google Maps Embed URL"><input className={FIELD_CLASS} type="url" value={form.embedUrl} onChange={(event) => update("embedUrl", event.target.value)} required /></Field>
+              <Field label="Google Maps Embed URL">
+                <input className={FIELD_CLASS} type="url" value={form.embedUrl} onChange={(event) => update("embedUrl", event.target.value)} required />
+                <span className="mt-1 block text-xs text-stone-400">Embed iframe src URL from Google Maps sharing dialog.</span>
+              </Field>
             </fieldset>
           </fieldset>
 
           {!readOnly && (
             <div className="border-t border-stone-100 pt-5 flex items-center justify-end">
-              <Button type="submit" disabled={saving} className="rounded-xl px-5">
+              <Button type="submit" disabled={saving} className="rounded-xl px-6 min-h-[44px]">
                 {saving ? "Saving Changes..." : "Save Public Settings"}
               </Button>
             </div>

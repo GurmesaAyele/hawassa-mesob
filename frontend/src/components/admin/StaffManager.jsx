@@ -214,7 +214,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
             <h2 id="staff-heading" className="text-xl font-extrabold tracking-tight text-stone-900 sm:text-2xl">
               Staff Member Accounts
             </h2>
-            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-bold text-[#294491]">
               {totalCount}
             </span>
           </div>
@@ -250,12 +250,12 @@ export default function StaffManager({ institutions = [], currentUser }) {
       {/* ─── Metrics Cards ─── */}
       <div className="grid gap-4 sm:grid-cols-3" aria-label="Staff member summary totals">
         <article className="relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs hover:shadow-md transition-all">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-400"></div>
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#294491] via-[#3d5fb8] to-[#d9a83f]"></div>
           <div className="flex items-center justify-between mb-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 font-mono text-xs font-bold">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#294491] border border-blue-100 font-mono text-xs font-bold shadow-2xs">
               STAFF
             </span>
-            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold uppercase text-stone-600">
+            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2 py-0.5 text-[10px] font-bold uppercase text-[#294491]">
               Accounts
             </span>
           </div>
@@ -271,7 +271,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
         <article className="relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs hover:shadow-md transition-all">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-emerald-400"></div>
           <div className="flex items-center justify-between mb-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 font-mono text-xs font-bold">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 font-mono text-xs font-bold shadow-2xs">
               ONLINE
             </span>
             <span className="rounded-full bg-emerald-100/80 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-800">
@@ -293,7 +293,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
         <article className="relative overflow-hidden rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs hover:shadow-md transition-all">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-stone-400 to-stone-300"></div>
           <div className="flex items-center justify-between mb-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-600 border border-stone-200 font-mono text-xs font-bold">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-600 border border-stone-200 font-mono text-xs font-bold shadow-2xs">
               PAUSED
             </span>
             <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold uppercase text-stone-500">
@@ -323,7 +323,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search staff by name, email, or phone..."
-            className="w-full rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+            className="w-full min-h-[44px] rounded-xl border border-stone-300 bg-white py-2 pl-9 pr-8 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-[#294491] focus:outline-none focus:ring-2 focus:ring-[#294491]/20"
           />
           {search && (
             <button
@@ -341,7 +341,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
             <select
               value={institutionFilter}
               onChange={(e) => setInstitutionFilter(e.target.value)}
-              className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-2xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+              className="w-full min-h-[44px] rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-2xs focus:border-[#294491] focus:outline-none focus:ring-2 focus:ring-[#294491]/20"
             >
               <option value="all">All Institutions ({institutions.length})</option>
               {institutions.map((inst) => (
@@ -357,21 +357,21 @@ export default function StaffManager({ institutions = [], currentUser }) {
           <button
             type="button"
             onClick={() => setStatusFilter("all")}
-            className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${statusFilter === "all" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
+            className={`min-h-[38px] rounded-lg px-3.5 py-1.5 font-semibold transition-all ${statusFilter === "all" ? "bg-[#294491] text-white shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
           >
             All
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter("active")}
-            className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${statusFilter === "active" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
+            className={`min-h-[38px] rounded-lg px-3.5 py-1.5 font-semibold transition-all ${statusFilter === "active" ? "bg-[#294491] text-white shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
           >
             Active
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter("inactive")}
-            className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${statusFilter === "inactive" ? "bg-white text-emerald-950 shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
+            className={`min-h-[38px] rounded-lg px-3.5 py-1.5 font-semibold transition-all ${statusFilter === "inactive" ? "bg-[#294491] text-white shadow-xs font-bold" : "text-stone-600 hover:text-stone-900"}`}
           >
             Inactive
           </button>
@@ -381,7 +381,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
           type="button"
           onClick={fetchStaff}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 shadow-2xs transition-all"
+          className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491]"
         >
           <span className={loading ? "inline-block animate-spin" : ""}>↻</span>
           <span>{loading ? "Refreshing..." : "Refresh"}</span>
@@ -443,7 +443,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
                     {/* Staff Name & Avatar */}
                     <td className="px-5 py-3.5 align-middle">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-bold text-xs shadow-2xs">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#172c60] border border-blue-200/80 font-bold text-xs shadow-2xs">
                           {(staff.name || "S").slice(0, 1).toUpperCase()}
                         </span>
                         <div>
@@ -468,7 +468,7 @@ export default function StaffManager({ institutions = [], currentUser }) {
                     <td className="px-4 py-3.5 align-middle text-xs">
                       <div className="flex items-center gap-2">
                         {inst?.code && (
-                          <span className="font-mono text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                          <span className="font-mono text-[11px] font-bold text-[#172c60] bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60">
                             {inst.code}
                           </span>
                         )}
@@ -491,18 +491,20 @@ export default function StaffManager({ institutions = [], currentUser }) {
 
                     {/* Actions */}
                     <td className="px-5 py-3.5 align-middle text-right">
-                      <div className="inline-flex items-center gap-1.5 justify-end">
+                      <div className="inline-flex items-center gap-2 justify-end">
                         <button
                           type="button"
                           onClick={() => openEditModal(staff)}
-                          className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all"
+                          aria-label={`Edit ${staff.name}`}
+                          className="min-h-[36px] rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491]"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeletingStaff(staff)}
-                          className="rounded-lg border border-red-200/80 bg-red-50/60 p-1.5 text-xs text-red-600 hover:bg-red-100 shadow-2xs transition-all"
+                          aria-label={`Delete ${staff.name}`}
+                          className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg border border-red-200/80 bg-red-50/60 p-2 text-xs text-red-600 hover:bg-red-100 hover:border-red-300 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                           title="Delete staff account"
                         >
                           🗑
@@ -603,9 +605,9 @@ export default function StaffManager({ institutions = [], currentUser }) {
                   id="form-is-active"
                   checked={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.checked)}
-                  className="h-4 w-4 rounded border-stone-300 text-emerald-800 focus:ring-emerald-700"
+                  className="h-4 w-4 rounded border-stone-300 accent-[#294491] text-[#294491] focus:ring-[#294491] cursor-pointer"
                 />
-                <label htmlFor="form-is-active" className="text-sm font-medium text-stone-800">
+                <label htmlFor="form-is-active" className="text-sm font-medium text-stone-800 cursor-pointer">
                   Account is active (can log into dashboard)
                 </label>
               </div>

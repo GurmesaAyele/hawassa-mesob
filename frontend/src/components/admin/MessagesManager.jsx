@@ -45,16 +45,16 @@ export default function MessagesManager({ items, loading, unreadCount, error = "
             </span>
           )}
 
-          <div className="inline-flex rounded-lg border border-stone-200 bg-stone-100 p-0.5 text-xs" role="group" aria-label="Filter messages">
+          <div className="inline-flex rounded-xl border border-stone-200 bg-stone-100 p-0.5 text-xs shadow-2xs" role="group" aria-label="Filter messages">
             {FILTERS.map(([value, label]) => (
               <button
                 key={value}
                 type="button"
                 aria-pressed={filter === value}
                 onClick={() => setFilter(value)}
-                className={`rounded px-3 py-1.5 font-semibold transition-all ${
+                className={`min-h-[38px] rounded-lg px-3.5 py-1.5 font-semibold transition-all ${
                   filter === value
-                    ? "bg-white text-emerald-950 shadow-xs"
+                    ? "bg-[#294491] text-white shadow-xs font-bold"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
               >
@@ -107,8 +107,8 @@ export default function MessagesManager({ items, loading, unreadCount, error = "
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                    item.isReviewed ? "bg-stone-100 text-stone-700" : "bg-emerald-800 text-white"
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold shadow-2xs ${
+                    item.isReviewed ? "bg-stone-100 text-stone-700 border border-stone-200" : "bg-[#294491] text-white shadow-xs"
                   }`}>
                     {(item.name || "C").slice(0, 1).toUpperCase()}
                   </div>
@@ -117,7 +117,7 @@ export default function MessagesManager({ items, loading, unreadCount, error = "
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className={`text-sm text-stone-900 ${item.isReviewed ? "font-semibold" : "font-bold"}`}>{item.name}</h3>
                       {!item.isReviewed && (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900 border border-amber-200">
+                        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900 border border-amber-300">
                           New
                         </span>
                       )}
@@ -125,17 +125,17 @@ export default function MessagesManager({ items, loading, unreadCount, error = "
                     </div>
 
                     <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-stone-600">
-                      <a href={`mailto:${item.email}`} className="text-emerald-700 hover:underline font-medium">
+                      <a href={`mailto:${item.email}`} className="text-[#294491] hover:underline font-semibold">
                         {item.email}
                       </a>
                       {item.phone && (
-                        <a href={`tel:${item.phone}`} className="hover:underline text-stone-500">
+                        <a href={`tel:${item.phone}`} className="hover:underline text-stone-600">
                           📞 {item.phone}
                         </a>
                       )}
                     </div>
 
-                    <p className="mt-3 whitespace-pre-wrap break-words text-xs leading-5 text-stone-700 bg-stone-50/70 p-3 rounded-lg border border-stone-100">
+                    <p className="mt-3 whitespace-pre-wrap break-words text-xs leading-5 text-stone-700 bg-stone-50/80 p-3.5 rounded-xl border border-stone-100">
                       {item.message}
                     </p>
                   </div>
@@ -144,7 +144,7 @@ export default function MessagesManager({ items, loading, unreadCount, error = "
                 <div className="flex items-center gap-2">
                   <a
                     href={`mailto:${item.email}?subject=Regarding your inquiry at Hawassa Mesob`}
-                    className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 shadow-xs transition-colors"
+                    className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:border-stone-300 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491]"
                   >
                     <span>✉ Reply</span>
                   </a>
@@ -152,13 +152,13 @@ export default function MessagesManager({ items, loading, unreadCount, error = "
                     <Button
                       type="button"
                       variant="primary"
-                      className="text-xs min-h-8 px-2.5 py-1"
+                      className="text-xs min-h-[38px] px-3.5 py-1.5 rounded-xl shadow-2xs"
                       onClick={() => onToggleRead(item, true)}
                     >
                       Mark read ✓
                     </Button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-600">
+                    <span className="inline-flex min-h-[38px] items-center gap-1 rounded-xl border border-stone-200 bg-stone-100 px-3 py-1.5 text-xs font-semibold text-stone-600">
                       ✓ Read
                     </span>
                   )}

@@ -172,14 +172,14 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
             <h2 id="vip-tickets-heading" className="text-base font-bold text-stone-900 tracking-tight">
               VIP Queue
             </h2>
-            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-xs font-bold text-emerald-900">
+            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-bold text-[#294491]">
               {totalCount}
             </span>
           </div>
 
           {isStaff && staffInstitution && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-stone-100 border border-stone-200 px-2.5 py-1 text-xs text-stone-700">
-              <span className="font-bold text-emerald-800">{staffInstitution.code || "Desk"}:</span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-stone-100 border border-stone-200 px-3 py-1 text-xs text-stone-700">
+              <span className="font-bold text-[#172c60]">{staffInstitution.code || "Desk"}:</span>
               <span className="font-medium">{getInstName(staffInstitution)}</span>
               {staffInstitution.floorRoomNumber && (
                 <span className="text-stone-400">({staffInstitution.floorRoomNumber})</span>
@@ -197,13 +197,13 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search reference, citizen..."
-              className="w-48 sm:w-56 rounded-md border border-stone-300 bg-white px-2.5 py-1 text-xs text-stone-900 placeholder:text-stone-400 focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700/20"
+              className="w-48 sm:w-56 min-h-[38px] rounded-xl border border-stone-300 bg-white px-3 py-1 text-xs text-stone-900 placeholder:text-stone-400 shadow-2xs focus:border-[#294491] focus:outline-none focus:ring-2 focus:ring-[#294491]/20"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700"
               >
                 ✕
               </button>
@@ -215,7 +215,7 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
             <select
               value={institutionFilter}
               onChange={(e) => setInstitutionFilter(e.target.value)}
-              className="rounded-md border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 focus:border-emerald-700 focus:outline-hidden"
+              className="min-h-[38px] rounded-xl border border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-700 shadow-2xs focus:border-[#294491] focus:outline-none focus:ring-2 focus:ring-[#294491]/20"
               aria-label="Filter by institution"
             >
               <option value="all">All Institutions ({institutions.length})</option>
@@ -228,19 +228,19 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
           )}
 
           {/* Segmented Status Filter Tabs with integrated live badges */}
-          <div className="inline-flex rounded-md border border-stone-200 bg-stone-100 p-0.5 text-xs" role="group" aria-label="Filter VIP tickets by status">
+          <div className="inline-flex rounded-xl border border-stone-200 bg-stone-100 p-0.5 text-xs shadow-2xs" role="group" aria-label="Filter VIP tickets by status">
             <button
               type="button"
               aria-pressed={filter === "all"}
               onClick={() => setFilter("all")}
-              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+              className={`flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-all ${
                 filter === "all"
-                  ? "bg-white text-emerald-950 shadow-xs"
+                  ? "bg-[#294491] text-white shadow-xs font-bold"
                   : "text-stone-600 hover:text-stone-900"
               }`}
             >
               <span>All</span>
-              <span className="rounded-full bg-stone-200 px-1.5 py-0.2 text-[10px] font-bold">
+              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "all" ? "bg-white/20 text-white" : "bg-stone-200 text-stone-700"}`}>
                 {totalCount}
               </span>
             </button>
@@ -249,15 +249,15 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
               type="button"
               aria-pressed={filter === "pending"}
               onClick={() => setFilter("pending")}
-              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+              className={`flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-all ${
                 filter === "pending"
-                  ? "bg-white text-amber-900 shadow-xs"
+                  ? "bg-amber-500 text-white shadow-xs font-bold"
                   : "text-stone-600 hover:text-stone-900"
               }`}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+              <span className={`h-1.5 w-1.5 rounded-full ${filter === "pending" ? "bg-white" : "bg-amber-500"}`}></span>
               <span>Pending</span>
-              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "pending" ? "bg-amber-100 text-amber-900" : "bg-stone-200 text-stone-700"}`}>
+              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "pending" ? "bg-white/20 text-white" : "bg-stone-200 text-stone-700"}`}>
                 {counts.pending || 0}
               </span>
             </button>
@@ -266,15 +266,15 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
               type="button"
               aria-pressed={filter === "in-progress"}
               onClick={() => setFilter("in-progress")}
-              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+              className={`flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-all ${
                 filter === "in-progress"
-                  ? "bg-white text-sky-900 shadow-xs"
+                  ? "bg-sky-600 text-white shadow-xs font-bold"
                   : "text-stone-600 hover:text-stone-900"
               }`}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+              <span className={`h-1.5 w-1.5 rounded-full ${filter === "in-progress" ? "bg-white" : "bg-sky-500"}`}></span>
               <span>In Progress</span>
-              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "in-progress" ? "bg-sky-100 text-sky-900" : "bg-stone-200 text-stone-700"}`}>
+              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "in-progress" ? "bg-white/20 text-white" : "bg-stone-200 text-stone-700"}`}>
                 {counts["in-progress"] || 0}
               </span>
             </button>
@@ -283,15 +283,15 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
               type="button"
               aria-pressed={filter === "completed"}
               onClick={() => setFilter("completed")}
-              className={`flex items-center gap-1.5 rounded px-2.5 py-1 font-semibold transition-all ${
+              className={`flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 py-1 font-semibold transition-all ${
                 filter === "completed"
-                  ? "bg-white text-emerald-900 shadow-xs"
+                  ? "bg-emerald-600 text-white shadow-xs font-bold"
                   : "text-stone-600 hover:text-stone-900"
               }`}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+              <span className={`h-1.5 w-1.5 rounded-full ${filter === "completed" ? "bg-white" : "bg-emerald-500"}`}></span>
               <span>Completed</span>
-              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "completed" ? "bg-emerald-100 text-emerald-900" : "bg-stone-200 text-stone-700"}`}>
+              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === "completed" ? "bg-white/20 text-white" : "bg-stone-200 text-stone-700"}`}>
                 {counts.completed || 0}
               </span>
             </button>
@@ -301,7 +301,7 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
             type="button"
             onClick={fetchTickets}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 shadow-xs transition-all"
+            className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 shadow-2xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#294491]"
           >
             <span className={loading ? "inline-block animate-spin" : ""}>↻</span>
             <span>{loading ? "Updating..." : "Refresh"}</span>
@@ -402,7 +402,8 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                       <button
                         type="button"
                         onClick={() => viewHistory(ticket)}
-                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
+                        aria-label={`View audit log for ${ticket.reference}`}
+                        className="mt-1.5 inline-flex min-h-[30px] items-center gap-1.5 text-xs font-semibold text-[#294491] hover:text-[#172c60] hover:underline"
                       >
                         <span>🕒</span>
                         <span>Audit Log</span>
@@ -429,12 +430,12 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                           return (
                             <div
                               key={serviceKey}
-                              className="flex flex-wrap items-center justify-between gap-2 rounded border border-stone-200 bg-stone-50/60 p-2.5 text-xs"
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-200 bg-stone-50/70 p-2.5 text-xs"
                             >
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5">
                                   {svcInst && (
-                                    <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-bold text-emerald-900">
+                                    <span className="rounded-md bg-blue-50 border border-blue-200 px-1.5 py-0.5 font-mono font-bold text-[#172c60]">
                                       {svcInst}
                                     </span>
                                   )}
@@ -450,7 +451,7 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                               </div>
 
                               <div className="flex items-center gap-2">
-                                <span className={`inline-flex border px-2 py-0.5 font-bold ${STATUS_STYLES[svcStatus] || STATUS_STYLES.pending}`}>
+                                <span className={`inline-flex rounded-md border px-2 py-0.5 font-bold ${STATUS_STYLES[svcStatus] || STATUS_STYLES.pending}`}>
                                   {TICKET_STATUSES.find(({ id }) => id === svcStatus)?.label || svcStatus}
                                 </span>
 
@@ -460,7 +461,8 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                                     type="button"
                                     disabled={isBusy}
                                     onClick={() => handleUpdateStatus(ticket.id, "in-progress", svc.ticketServiceId || svc.id, serviceKey)}
-                                    className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-3 py-1 font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-xs"
+                                    aria-label={`Start service ${svcTitle}`}
+                                    className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg bg-sky-600 px-3.5 py-1 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                                   >
                                     {isBusy ? <span className="inline-block animate-spin text-[10px]">↻</span> : null}
                                     <span>{isBusy ? "Updating..." : "Start →"}</span>
@@ -471,14 +473,15 @@ export default function VipTicketsManager({ currentUser, institutions = [] }) {
                                     type="button"
                                     disabled={isBusy}
                                     onClick={() => handleUpdateStatus(ticket.id, "completed", svc.ticketServiceId || svc.id, serviceKey)}
-                                    className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-3 py-1 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 transition-colors shadow-xs"
+                                    aria-label={`Complete service ${svcTitle}`}
+                                    className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                                   >
                                     {isBusy ? <span className="inline-block animate-spin text-[10px]">↻</span> : null}
                                     <span>{isBusy ? "Updating..." : "Done ✓"}</span>
                                   </button>
                                 )}
                                 {svcStatus === "completed" && (
-                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                  <span className="inline-flex min-h-[32px] items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
                                     ✓ Served
                                   </span>
                                 )}
