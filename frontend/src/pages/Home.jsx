@@ -12,23 +12,16 @@ import footerLogo from '../assets/images/hawasssa_mesob.png';
 import heroImg from '../assets/hero.png';
 
 // Import mesob images
-import mesob1 from '../assets/images/mesob1.jfif';
-import mesob2 from '../assets/images/mesob2.jfif';
-import mesob3 from '../assets/images/mesob3.jfif';
-import mesob4 from '../assets/images/mesob4.jfif';
-import mesob5 from '../assets/images/mesob5.jfif';
-import mesob6 from '../assets/images/mesob6.jfif';
-import mesob7 from '../assets/images/mesob7.jfif';
-import mesob8 from '../assets/images/mesob8.jfif';
-import mesob9 from '../assets/images/mesob9.jfif';
-import mesob10 from '../assets/images/mesob10.jfif';
-import mesob11 from '../assets/images/mesob11.jfif';
-import mesob12 from '../assets/images/mesob12.jfif';
-import mesob13 from '../assets/images/mesob13.jfif';
-import mesob14 from '../assets/images/mesob14.jfif';
-import mesob15 from '../assets/images/mesob15.jfif';
-import mesob16 from '../assets/images/mesob16.jfif';
-import mesob17 from '../assets/images/mesob17.jfif';
+import mesob1 from '../assets/images/mesob1.jpg';
+import mesob2 from '../assets/images/mesob2.jpg';
+import mesob3 from '../assets/images/mesob3.jpg';
+import mesob4 from '../assets/images/mesob4.jpg';
+import mesob5 from '../assets/images/mesob5.jpg';
+import mesob6 from '../assets/images/mesob6.jpg';
+import mesob7 from '../assets/images/mesob7.jpg';
+import mesob8 from '../assets/images/mesob8.jpg';
+import mesob9 from '../assets/images/mesob9.jpg';
+import mesob10 from '../assets/images/mesob10.jpg';
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,10 +55,9 @@ const Home = () => {
   const [mapLoading, setMapLoading] = useState(false);
   const [mapError, setMapError] = useState(null);
 
-  // Array of mesob images for slideshow
+  // Array of mesob images for slideshow (high quality mesob1 to mesob10)
   const mesobImages = [
-    mesob1, mesob2, mesob3, mesob4, mesob5, mesob6, mesob7, mesob8, mesob9,
-    mesob10, mesob11, mesob12, mesob13, mesob14, mesob15, mesob16, mesob17
+    mesob1, mesob2, mesob3, mesob4, mesob5, mesob6, mesob7, mesob8, mesob9, mesob10
   ];
 
   // Image slideshow effect - change every 3 seconds
