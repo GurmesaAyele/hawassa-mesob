@@ -318,6 +318,121 @@ const Home = () => {
     }
   };
 
+  // Our Services grid section translations
+  const ourServicesTranslations = {
+    English: {
+      title: 'Our Services',
+      subtitle: 'Access essential government services quickly and efficiently',
+      viewAll: 'View All Services',
+      local: {
+        title: 'Local Services',
+        desc: 'Access local government services and permits'
+      },
+      international: {
+        title: 'International Services',
+        desc: 'International permits and documentation services'
+      },
+      document: {
+        title: 'Document Services',
+        desc: 'Official document processing and certification'
+      },
+      tax: {
+        title: 'Tax Services',
+        desc: 'Tax filing, payment, and consultation services'
+      },
+      housing: {
+        title: 'Housing Permits',
+        desc: 'Building permits and housing documentation'
+      },
+      vehicle: {
+        title: 'Vehicle Services',
+        desc: 'Vehicle registration, licensing, and permits'
+      },
+      education: {
+        title: 'Education Services',
+        desc: 'Educational certificates and academic services'
+      },
+      health: {
+        title: 'Health Services',
+        desc: 'Health permits, medical certificates, and services'
+      }
+    },
+    Amharic: {
+      title: 'አገልግሎቶቻችን',
+      subtitle: 'አስፈላጊ የመንግሥት አገልግሎቶችን በፍጥነት እና በብቃት ያግኙ',
+      viewAll: 'ሁሉንም አገልግሎቶች ይመልከቱ',
+      local: {
+        title: 'የአካባቢ አገልግሎቶች',
+        desc: 'የአካባቢ መስተዳድር አገልግሎቶችን እና ፈቃዶችን ያግኙ'
+      },
+      international: {
+        title: 'ዓለም አቀፍ አገልግሎቶች',
+        desc: 'ዓለም አቀፍ ፈቃዶች እና የሰነድ አገልግሎቶች'
+      },
+      document: {
+        title: 'የሰነድ አገልግሎቶች',
+        desc: 'ይፋዊ የሰነድ ማረጋገጫ እና ማረጋገጫ አገልግሎት'
+      },
+      tax: {
+        title: 'የግብር አገልግሎቶች',
+        desc: 'የግብር ማስገባት፣ ክፍያ እና የማማከር አገልግሎቶች'
+      },
+      housing: {
+        title: 'የቤትና ግንባታ ፈቃዶች',
+        desc: 'የግንባታ ፈቃዶች እና የቤት ባለቤትነት ሰነዶች'
+      },
+      vehicle: {
+        title: 'የተሽከርካሪ አገልግሎቶች',
+        desc: 'የተሽከርካሪ ምዝገባ፣ መንጃ ፈቃድ እና ፈቃዶች'
+      },
+      education: {
+        title: 'የትምህርት አገልግሎቶች',
+        desc: 'የትምህርት ማስረጃዎች እና አካዳሚክ አገልግሎቶች'
+      },
+      health: {
+        title: 'የጤና አገልግሎቶች',
+        desc: 'የጤና ፈቃዶች፣ የህክምና ማስረጃዎች እና አገልግሎቶች'
+      }
+    },
+    Sidama: {
+      title: 'Ninke Ooso',
+      subtitle: 'Hasidhaano gashshootu ooso shatanaho nna heeshshiishado afidhe',
+      viewAll: 'Baala Ooso La\'e',
+      local: {
+        title: 'Dargi Ooso',
+        desc: 'Dargi gashshooti oosonna hayyo waraqata afidhe'
+      },
+      international: {
+        title: 'Alame Kawaassi Ooso',
+        desc: 'Alame kawaassi hayyonna borro mashalaqqa'
+      },
+      document: {
+        title: 'Borro Ooso',
+        desc: 'Gashshootu borro qineessanna mirkaneessa'
+      },
+      tax: {
+        title: 'Gimaru Ooso',
+        desc: 'Gimara baata, kaffaltiinna amaalote ooso'
+      },
+      housing: {
+        title: 'Mini Minate Hayyo',
+        desc: 'Mine minate hayyonna mini borro mashalaqqa'
+      },
+      vehicle: {
+        title: 'Makiinote Ooso',
+        desc: 'Makiina galfadha, liisenssenna hayyo waraqata'
+      },
+      education: {
+        title: 'Ronso Ooso',
+        desc: 'Ronso sertifikeetenna barnootu ooso'
+      },
+      health: {
+        title: 'Fayyimmate Ooso',
+        desc: 'Fayyimmate hayyo, woshshu mashalaqqanna ooso'
+      }
+    }
+  };
+
   // Contact form translations
   const contactTranslations = {
     English: {
@@ -706,6 +821,7 @@ const Home = () => {
   const t = heroTranslations[language] || heroTranslations.English;
   const st = servicesTranslations[language] || servicesTranslations.English;
   const it = institutionsTranslations[language] || institutionsTranslations.English;
+  const ost = ourServicesTranslations[language] || ourServicesTranslations.English;
   const ct = contactTranslations[language] || contactTranslations.English;
   const mt = mapTranslations[language] || mapTranslations.English;
 
@@ -925,12 +1041,12 @@ const Home = () => {
 
               {/* Buttons */}
               <div className="flex gap-4">
-                <button 
-                  onClick={() => scrollToSection('service-catalogue')}
-                  className="px-7 py-3.5 rounded-xl font-semibold text-[19px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#2563EB]"
+                <Link 
+                  to="/service-catalogue"
+                  className="px-7 py-3.5 rounded-xl font-semibold text-[19px] text-white transition-all duration-200 hover:translate-y-[-2px] hover:shadow-lg bg-[#2563EB] inline-flex items-center justify-center text-center"
                 >
                   {st.exploreBtn} →
-                </button>
+                </Link>
                 <button 
                   onClick={() => scrollToSection('services')}
                   className="px-7 py-3.5 rounded-xl font-semibold text-[19px] transition-all duration-200 hover:translate-y-[-2px] bg-transparent text-gray-600 dark:text-[#CBD5E1] border border-gray-300 dark:border-[#334155]"
@@ -1119,8 +1235,8 @@ const Home = () => {
         <div className="max-w-[1800px] mx-auto">
           {/* Section Header */}
           <div className="text-center mb-8 sm:mb-12 md:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors px-4">Our Services</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg transition-colors px-4 max-w-3xl mx-auto">Access essential government services quickly and efficiently</p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors px-4">{ost.title}</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg transition-colors px-4 max-w-3xl mx-auto">{ost.subtitle}</p>
           </div>
 
           {/* Services Grid */}
@@ -1132,8 +1248,8 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Local Services</h3>
-              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Access local government services and permits</p>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">{ost.local.title}</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">{ost.local.desc}</p>
               <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
@@ -1144,8 +1260,8 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">International Services</h3>
-              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">International permits and documentation services</p>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">{ost.international.title}</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">{ost.international.desc}</p>
               <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
@@ -1156,8 +1272,8 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Document Services</h3>
-              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Official document processing and certification</p>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">{ost.document.title}</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">{ost.document.desc}</p>
               <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
@@ -1168,8 +1284,8 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Tax Services</h3>
-              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Tax filing, payment, and consultation services</p>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">{ost.tax.title}</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">{ost.tax.desc}</p>
               <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
@@ -1180,8 +1296,8 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Housing Permits</h3>
-              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Building permits and housing documentation</p>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">{ost.housing.title}</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">{ost.housing.desc}</p>
               <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
@@ -1193,8 +1309,8 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354v2.292m0 0a4 4 0 11-1.172 7.828M12 6.646V10m0 0v8m0-8h5" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Vehicle Services</h3>
-              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Vehicle registration, licensing, and permits</p>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">{ost.vehicle.title}</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">{ost.vehicle.desc}</p>
               <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
@@ -1207,8 +1323,8 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Education Services</h3>
-              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Educational certificates and academic services</p>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">{ost.education.title}</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">{ost.education.desc}</p>
               <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
 
@@ -1219,31 +1335,23 @@ const Home = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">Health Services</h3>
-              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">Health permits, medical certificates, and services</p>
+              <h3 className="text-lg sm:text-xl md:text-[22px] font-semibold text-gray-900 dark:text-[#F8FAFC] mb-2 leading-tight transition-colors">{ost.health.title}</h3>
+              <p className="text-sm sm:text-[15px] md:text-[16px] text-gray-600 dark:text-[#CBD5E1] leading-relaxed mb-auto transition-colors">{ost.health.desc}</p>
               <div className="w-full h-1 bg-blue-600 dark:bg-[#3154B5] rounded-[10px] mt-4 sm:mt-5 transition-colors"></div>
             </div>
           </div>
 
           {/* View All Services Button */}
           <div className="flex justify-center mt-8 sm:mt-10 md:mt-12 px-4">
-            <button
-              onClick={() => {
-                const servicesCatalogue = document.getElementById('service-catalogue');
-                if (servicesCatalogue) {
-                  servicesCatalogue.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  // Navigate to Services page if section doesn't exist
-                  window.location.href = '/services';
-                }
-              }}
+            <Link
+              to="/service-catalogue"
               className="bg-blue-600 hover:bg-blue-700 dark:bg-[#24469A] dark:hover:bg-[#1e3a7f] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold transition-all duration-300 hover:shadow-xl flex items-center gap-2 min-w-[200px] sm:min-w-[260px] justify-center"
             >
-              View All Services
+              {ost.viewAll}
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </button>
+            </Link>
           </div>
 
           {/* Motion Section - Full Width Edge to Edge */}
