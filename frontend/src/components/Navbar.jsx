@@ -248,8 +248,6 @@ const Navbar = () => {
             {/* About Dropdown */}
             <div 
               className="relative about-dropdown-container"
-              onMouseEnter={() => setShowAboutDropdown(true)}
-              onMouseLeave={() => setShowAboutDropdown(false)}
             >
               <button 
                 onClick={(e) => {
@@ -275,8 +273,6 @@ const Navbar = () => {
               {showAboutDropdown && (
                 <div 
                   className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 animate-fadeIn"
-                  onMouseEnter={() => setShowAboutDropdown(true)}
-                  onMouseLeave={() => setShowAboutDropdown(false)}
                 >
                   <button
                     onClick={() => {

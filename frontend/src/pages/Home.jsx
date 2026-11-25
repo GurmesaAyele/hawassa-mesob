@@ -256,42 +256,65 @@ const Home = () => {
       vipQueueBtn: 'View Live Queue →'
     },
     Amharic: {
-      // TODO: Add Amharic translations below
-      seamless: 'ምቹ', // Add translation here
-      publicServices: 'የሕዝብ አገልግሎት', // Add translation here
-      inCity: 'በሀዋሳ ', // Add translation here
-      accessDesc: '18 የመንግሥት ተቋማት አገልግሎቶችን በአንድ ማዕከል ያግኙ:: ', // Add translation here
-      exploreBtn: 'አገልግሎቶችን ይመልከቱ', // Add translation here
-      learnBtn: 'ተጨማሪ ይመልከቱ', // Add translation here
+      seamless: 'ቀልጣፋ',
+      publicServices: 'የሕዝብ አገልግሎቶች',
+      inCity: 'በሀዋሳ።',
+      accessDesc: 'የመንግሥት አገልግሎቶችን ከ9 የመንግሥት ተቋማት በአንድ ቦታ ያግኙ።',
+      exploreBtn: 'አገልግሎቶችን ያስሱ',
+      learnBtn: 'ተጨማሪ ይወቁ',
       // Feature cards
-      digitalTitle: 'ድጅታል አገልግሎቶች', // Add translation here
-      digitalDesc: 'በመረበ መቀመጫ ፍቃድ ያመልክቱ', // Add translation here
-      supportTitle: 'የዜጋ ድጋፍ', // Add translation here
-      supportDesc: '24/7 ድጋፍ ይገኛል', // Add translation here
-      processingTitle: 'ፈጣን አገልግሎት', // Add translation here
-      processingDesc: 'ፈጣን እና ቀልጣፋ አገልግሎት በአንድ ቦታ', // Add translation here
+      digitalTitle: 'ዲጂታል አገልግሎቶች',
+      digitalDesc: 'ፈቃዶችን በመስመር ላይ ያመልክቱ',
+      supportTitle: 'የዜጎች ድጋፍ',
+      supportDesc: 'የ24/7 እገዛ ዝግጁ ነው',
+      processingTitle: 'ፈጣን አሰራር',
+      processingDesc: 'ፈጣን እና ቀልጣፋ አገልግሎት',
       vipQueueTitle: 'የቀጥታ ቪአይፒ ወረፋ መከታተያ',
       vipQueueDesc: 'የቀጥታ ወረፋ ሁኔታ፣ የሚጠበቅበት ጊዜ እና ፈጣን ምዝገባ',
       vipQueueBtn: 'የቀጥታ ወረፋ ይመልከቱ →'
     },
     Sidama: {
-      // TODO: Add Sidama translations below
-      seamless: 'Seamless', // Add translation here
-      publicServices: 'Public Services', // Add translation here
-      inCity: 'in Hawassa.', // Add translation here
-      accessDesc: 'Access government services from 9 public institutions in one place.', // Add translation here
-      exploreBtn: 'Explore Services', // Add translation here
-      learnBtn: 'Learn More', // Add translation here
+      seamless: 'Shatana',
+      publicServices: 'Dagate Ooso',
+      inCity: 'Hawassaho.',
+      accessDesc: '9 gashshootu uurrinshubbaatiwiinni gashshootu ooso mitte dargira afidhe.',
+      exploreBtn: 'Ooso Xawise La\'e',
+      learnBtn: 'Leda Roosi',
       // Feature cards
-      digitalTitle: 'Digital Services', // Add translation here
-      digitalDesc: 'Apply for permits online', // Add translation here
-      supportTitle: 'Citizen Support', // Add translation here
-      supportDesc: '24/7 assistance available', // Add translation here
-      processingTitle: 'Quick Processing', // Add translation here
-      processingDesc: 'Fast and efficient service', // Add translation here
+      digitalTitle: 'Diijitaale Ooso',
+      digitalDesc: 'Hayyo waraqata internetetenni eessidhe',
+      supportTitle: 'Dagate Kawaassi',
+      supportDesc: '24/7 kaa\'lo afantanno',
+      processingTitle: 'Shatanaho Loosa',
+      processingDesc: 'Hanaafano qoleno shatanaho loonso',
       vipQueueTitle: 'Suwisa VIP Qeele Keeraanchimma',
       vipQueueDesc: 'Hasaambanni qeele, agarraanni yanna nna qoleno suwisa kassi fushsha',
       vipQueueBtn: 'Suwisa Qeele La\'e →'
+    }
+  };
+
+  // Institutions section translations
+  const institutionsTranslations = {
+    English: {
+      title: 'Service Provider Institutions',
+      subtitle: 'Access services from these government institutions all in one place',
+      error: 'Failed to load institutions. Please try again later.',
+      tryAgain: 'Try Again',
+      empty: 'No institutions available at the moment.'
+    },
+    Amharic: {
+      title: 'አገልግሎት ሰጪ ተቋማት',
+      subtitle: 'የእነዚህን የመንግሥት ተቋማት አገልግሎቶች በአንድ ቦታ ያግኙ',
+      error: 'ተቋማትን መጫን አልተቻለም። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ።',
+      tryAgain: 'እንደገና ይሞክሩ',
+      empty: 'በአሁኑ ጊዜ የሚገኙ ተቋማት የሉም።'
+    },
+    Sidama: {
+      title: 'Ooso Aantete Uurrinshubba',
+      subtitle: 'Kuni gashshootu uurrinshubbaati ooso baala mitte dargira afidhe',
+      error: 'Uurrinshubba eessano dandiitukki. Haa ammayyo ammas yaala.',
+      tryAgain: 'Ammas Yaali',
+      empty: 'Tenne yanna noo uurrinsha nookkiho.'
     }
   };
 
@@ -313,36 +336,34 @@ const Home = () => {
       required: '*'
     },
     Amharic: {
-      // TODO: Add Amharic translations below
-      heading: 'መልእክት ይላኩ', // Add translation here
-      nameLabel: 'ስም *', // Add translation here
-      namePlaceholder: 'ስምዎን ያስገቡ', // Add translation here
-      emailLabel: 'ኢሜይል *', // Add translation here
-      emailPlaceholder: 'ኢሜይልዎን ያስገቡ', // Add translation here
-      phoneLabel: 'ስልክ', // Add translation here
-      phonePlaceholder: 'ስልክ ቁጥርዎን ያስገቡ', // Add translation here
-      messageLabel: 'መልእክት *', // Add translation here
-      messagePlaceholder: 'መልእክትዎን ያስገቡ', // Add translation here
-      verificationText: "እርስዎ ሰው መሆንዎን ለማረጋገጥ ከዚህ በታች የሚታየውን ቃል ይፃፉ:", // Add translation here
-      verificationPlaceholder: 'ቃሉን ያስገቡ', // Add translation here
-      submitBtn: 'መልእክት ላክ', // Add translation here
-      required: '*' // Keep as is
+      heading: 'መልእክት ይላኩ',
+      nameLabel: 'ስም *',
+      namePlaceholder: 'ስምዎን ያስገቡ',
+      emailLabel: 'ኢሜይል *',
+      emailPlaceholder: 'ኢሜይልዎን ያስገቡ',
+      phoneLabel: 'ስልክ',
+      phonePlaceholder: 'ስልክ ቁጥርዎን ያስገቡ',
+      messageLabel: 'መልእክት *',
+      messagePlaceholder: 'መልእክትዎን ያስገቡ',
+      verificationText: "እርስዎ ሰው መሆንዎን ለማረጋገጥ ከዚህ በታች የሚታየውን ቃል ይፃፉ:",
+      verificationPlaceholder: 'ቃሉን ያስገቡ',
+      submitBtn: 'መልእክት ላክ',
+      required: '*'
     },
     Sidama: {
-      // TODO: Add Sidama translations below
-      heading: 'Send Message', // Add translation here
-      nameLabel: 'Name', // Add translation here
-      namePlaceholder: 'Enter your name', // Add translation here
-      emailLabel: 'Email', // Add translation here
-      emailPlaceholder: 'Enter your email', // Add translation here
-      phoneLabel: 'Phone', // Add translation here
-      phonePlaceholder: 'Enter your phone number', // Add translation here
-      messageLabel: 'Message', // Add translation here
-      messagePlaceholder: 'Enter your message', // Add translation here
-      verificationText: "Type the word you see below to verify you're human:", // Add translation here
-      verificationPlaceholder: 'Enter the word', // Add translation here
-      submitBtn: 'Send Message', // Add translation here
-      required: '*' // Keep as is
+      heading: 'Erga Ergadhe',
+      nameLabel: 'Su\'ma *',
+      namePlaceholder: 'Su\'ma\'ne eessidhe',
+      emailLabel: 'Imeele *',
+      emailPlaceholder: 'Imeele\'ne eessidhe',
+      phoneLabel: 'Bilbila',
+      phonePlaceholder: 'Bilbila\'ne lakko eessidhe',
+      messageLabel: 'Erga *',
+      messagePlaceholder: 'Erga\'ne borreesse',
+      verificationText: "Mannu ikkito'ne mirkaneessate woroonni noo qaale borreesse:",
+      verificationPlaceholder: 'Qaale eessidhe',
+      submitBtn: 'Erga Ergadhe',
+      required: '*'
     }
   };
 
@@ -358,6 +379,8 @@ const Home = () => {
       servicesCenter: 'Government Services Center',
       loading: 'Loading map data...',
       errorTitle: 'Failed to load map data',
+      errorDesc: 'Failed to load map data. Please try again later.',
+      tryAgain: 'Try Again',
       emptyMessage: 'Location information will be available soon',
       addressLabel: 'Address',
       phoneLabel: 'Contact',
@@ -379,6 +402,8 @@ const Home = () => {
       servicesCenter: 'የመንግስት አገልግሎት ማእከል',
       loading: 'የካርታ መረጃ በመጫን ላይ...',
       errorTitle: 'የካርታ መረጃ መጫን አልተቻለም',
+      errorDesc: 'የካርታ መረጃ መጫን አልተቻለም። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ።',
+      tryAgain: 'እንደገና ይሞክሩ',
       emptyMessage: 'የአድራሻ መረጃ በቅርቡ ይገኛል',
       addressLabel: 'አድራሻ',
       phoneLabel: 'ስልክ',
@@ -399,7 +424,9 @@ const Home = () => {
       headquarters: 'የሀ-መሰብ Kalaqqa Offiisi',
       servicesCenter: 'Mootummaa Oso Maakko',
       loading: 'Kaarta maalla laaqqa gede...',
-      errorTitle: 'Kaarta maalla laaqqa dandaabokki',
+      errorTitle: 'Kaartate mashalaqqa eessano dandiitukki',
+      errorDesc: 'Kaartate mashalaqqa eessano dandiitukki. Haa ammayyo ammas yaala.',
+      tryAgain: 'Ammas Yaali',
       emptyMessage: 'Borro maalla ammayyo hegerannooti',
       addressLabel: 'Borro',
       phoneLabel: 'Bilbila',
@@ -678,6 +705,7 @@ const Home = () => {
 
   const t = heroTranslations[language] || heroTranslations.English;
   const st = servicesTranslations[language] || servicesTranslations.English;
+  const it = institutionsTranslations[language] || institutionsTranslations.English;
   const ct = contactTranslations[language] || contactTranslations.English;
   const mt = mapTranslations[language] || mapTranslations.English;
 
@@ -997,9 +1025,11 @@ const Home = () => {
       {/* Institutions Section */}
       <section id="institutions" className="min-h-screen bg-gray-50 dark:bg-[#1a1f2e] py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 transition-colors">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 dark:text-white mb-4 sm:mb-6 px-4">Service Provider Institutions</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 dark:text-white mb-4 sm:mb-6 px-4">
+            {it.title}
+          </h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-8 sm:mb-10 md:mb-12 text-base sm:text-lg px-4 max-w-3xl mx-auto">
-            Access services from these government institutions all in one place
+            {it.subtitle}
           </p>
 
           {/* Loading State */}
@@ -1012,12 +1042,12 @@ const Home = () => {
           {/* Error State */}
           {institutionsError && (
             <div className="bg-red-500/10 dark:bg-red-900/20 border border-red-500 dark:border-red-800 rounded-lg p-4 sm:p-5 md:p-6 text-center mx-4">
-              <p className="text-red-600 dark:text-red-400 text-base sm:text-lg">{institutionsError}</p>
+              <p className="text-red-600 dark:text-red-400 text-base sm:text-lg">{it.error}</p>
               <button
                 onClick={fetchInstitutions}
                 className="mt-3 sm:mt-4 px-4 sm:px-6 py-2 bg-red-500 dark:bg-red-600 text-white text-sm sm:text-base rounded-lg hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
               >
-                Try Again
+                {it.tryAgain}
               </button>
             </div>
           )}
@@ -1025,7 +1055,7 @@ const Home = () => {
           {/* Empty State */}
           {!institutionsLoading && !institutionsError && institutions.length === 0 && (
             <div className="text-center py-12 sm:py-16 md:py-20 px-4">
-              <p className="text-gray-500 dark:text-gray-400 text-lg sm:text-xl">No institutions available at the moment.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-lg sm:text-xl">{it.empty}</p>
             </div>
           )}
 
@@ -1399,9 +1429,15 @@ const Home = () => {
           {/* Error State */}
           {!mapLoading && mapError && (
             <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20 px-4">
-              <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 sm:px-6 py-3 sm:py-4 rounded-lg mb-4 transition-colors max-w-2xl w-full">
-                <p className="font-semibold text-sm sm:text-base">Failed to load map data</p>
-                <p className="text-xs sm:text-sm mt-1">{mapError}</p>
+              <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 sm:px-6 py-3 sm:py-4 rounded-lg mb-4 transition-colors max-w-2xl w-full text-center">
+                <p className="font-semibold text-sm sm:text-base">{mt.errorTitle}</p>
+                <p className="text-xs sm:text-sm mt-1">{mt.errorDesc || mt.errorTitle}</p>
+                <button
+                  onClick={fetchMapData}
+                  className="mt-3 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm rounded-lg transition-colors font-medium"
+                >
+                  {mt.tryAgain || 'Try Again'}
+                </button>
               </div>
             </div>
           )}

@@ -537,7 +537,8 @@ const VIPTicket = () => {
       noSearchResults: 'No services or institutions found matching',
       clearSearch: 'Clear Search',
       selectForVIP: 'Select for VIP',
-      selectedForVIP: 'Selected'
+      selectedForVIP: 'Selected',
+      vipTicketBadge: 'VIP Ticket'
     },
     Amharic: {
       title: 'ቪአይፒ ትኬት አገልግሎት',
@@ -588,7 +589,8 @@ const VIPTicket = () => {
       noSearchResults: 'ምንም ተዛማጅ አገልግሎቶች ወይም ተቋማት አልተገኙም',
       clearSearch: 'ፍለጋ አጽዳ',
       selectForVIP: 'ለቪአይፒ ይምረጡ',
-      selectedForVIP: 'ተመርጧል'
+      selectedForVIP: 'ተመርጧል',
+      vipTicketBadge: 'የቪአይፒ ትኬት'
     },
     Sidama: {
       title: 'VIP Tiketi Oosate',
@@ -639,7 +641,8 @@ const VIPTicket = () => {
       noSearchResults: 'Hasaamboonniri oosate woy biiro di-afantino',
       clearSearch: 'Hasa Qulqulleessi',
       selectForVIP: 'VIP doorri',
-      selectedForVIP: 'Doorrame'
+      selectedForVIP: 'Doorrame',
+      vipTicketBadge: 'VIP Tikete'
     }
   };
 
@@ -716,7 +719,7 @@ const VIPTicket = () => {
     return (
       <div className="fixed bottom-6 left-6 z-50 flex flex-col items-center gap-2">
         <span className="text-xs font-semibold px-2.5 py-1 rounded-full text-white shadow-lg animate-pulse" style={{ backgroundColor: '#CB9D2A' }}>
-          VIP Ticket
+          {t.vipTicketBadge || 'VIP Ticket'}
         </span>
         <button
           onClick={() => setIsOpen(true)}
